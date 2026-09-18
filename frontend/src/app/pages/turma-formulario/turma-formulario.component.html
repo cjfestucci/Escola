@@ -26,10 +26,10 @@
 
       <div class="linha-horarios">
         <label>Horário de entrada
-          <input type="time" [(ngModel)]="horarioEntrada" />
+          <app-seletor-horario [horario]="horarioEntrada" (horarioChange)="horarioEntrada = $event" />
         </label>
         <label>Horário de saída
-          <input type="time" [(ngModel)]="horarioSaida" />
+          <app-seletor-horario [horario]="horarioSaida" (horarioChange)="horarioSaida = $event" />
         </label>
       </div>
 

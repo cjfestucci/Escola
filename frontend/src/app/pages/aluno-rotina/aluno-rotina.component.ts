@@ -20,12 +20,13 @@ import { CalendarioComponent } from '../../shared/calendario/calendario.componen
 import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import { horaRegistro, iconeCategoria, resolverFotoUrls, rotuloCategoria } from '../../shared/registro-rotina-display';
 import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
+import { SeletorHorarioComponent } from '../../shared/seletor-horario/seletor-horario.component';
 
 type AcaoRapida = CategoriaRegistro | null;
 
 @Component({
   selector: 'app-aluno-rotina',
-  imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent],
+  imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent, SeletorHorarioComponent],
   templateUrl: './aluno-rotina.component.html',
   styleUrl: './aluno-rotina.component.scss'
 })

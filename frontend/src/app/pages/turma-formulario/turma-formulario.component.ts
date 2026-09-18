@@ -6,10 +6,11 @@ import { Periodo } from '../../models/aluno.model';
 import { Usuario } from '../../models/usuario.model';
 import { TurmaService } from '../../services/turma.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { SeletorHorarioComponent } from '../../shared/seletor-horario/seletor-horario.component';
 
 @Component({
   selector: 'app-turma-formulario',
-  imports: [FormsModule],
+  imports: [FormsModule, SeletorHorarioComponent],
   templateUrl: './turma-formulario.component.html',
   styleUrl: './turma-formulario.component.scss'
 })

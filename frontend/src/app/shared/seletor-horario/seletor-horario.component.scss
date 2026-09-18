@@ -1,0 +1,19 @@
+.seletor-horario {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  select {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+  }
+}
+
+.separador {
+  font-weight: 700;
+  color: var(--cor-texto-suave);
+}

@@ -10,7 +10,8 @@ Componentes nativos do HTML seguem o idioma do **navegador**, não o `lang` da p
 
 - **Data** (`<input type="date">`) → use `app-calendario` (`frontend/src/app/shared/calendario/`). Botão que abre um popover com calendário mensal em português, com `[dataSelecionada]`, `[dataMaxima]` opcional e `(escolher)`.
 - **Arquivo** (`<input type="file">`) → use `app-seletor-arquivo` (`frontend/src/app/shared/seletor-arquivo/`). Botão estilizado que dispara um input nativo oculto, com `[rotulo]`, `[aceitar]`, `[capturarCamera]` e `(arquivoSelecionado)` emitindo o `File` diretamente.
-- Antes de adicionar qualquer novo campo de data ou de arquivo em um formulário, use esses componentes — não volte a usar o `<input>` nativo.
+- **Hora** (`<input type="time">`) → use `app-seletor-horario` (`frontend/src/app/shared/seletor-horario/`). Dois `<select>` (hora 00–23, minuto 00–59) em vez do picker nativo, que mostra AM/PM em inglês no Chrome. Two-way binding via `[horario]`/`(horarioChange)` (string `HH:MM`).
+- Antes de adicionar qualquer novo campo de data, hora ou de arquivo em um formulário, use esses componentes — não volte a usar o `<input>` nativo.
 - Ao criar novos tipos de widget nativo com texto (ex.: `<input type="month">`, `<input type="week">`), teste no Chrome antes de assumir que está em português; se não estiver, siga o mesmo padrão (componente customizado).
 
 ### Outras fontes de texto em inglês a evitar

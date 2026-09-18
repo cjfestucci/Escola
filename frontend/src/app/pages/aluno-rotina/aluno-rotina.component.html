@@ -77,7 +77,7 @@
         }
         @case ('Sono') {
           <label>Início do sono
-            <input type="time" [(ngModel)]="horaInicioSono" />
+            <app-seletor-horario [horario]="horaInicioSono" (horarioChange)="horaInicioSono = $event" />
           </label>
         }
         @case ('Higiene') {

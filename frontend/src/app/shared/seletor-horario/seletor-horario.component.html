@@ -1,0 +1,13 @@
+<div class="seletor-horario">
+  <select [ngModel]="hora()" (ngModelChange)="aoAlterarHora($event)">
+    @for (h of horas; track h) {
+      <option [value]="h">{{ h }}</option>
+    }
+  </select>
+  <span class="separador">:</span>
+  <select [ngModel]="minuto()" (ngModelChange)="aoAlterarMinuto($event)">
+    @for (m of minutos; track m) {
+      <option [value]="m">{{ m }}</option>
+    }
+  </select>
+</div>
