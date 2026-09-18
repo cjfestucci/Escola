@@ -8,13 +8,31 @@
     </header>
   }
 
-  <div class="acoes-rapidas">
-    <button type="button" [class.ativa]="acaoAtiva() === 'Alimentacao' && !registroEmEdicaoId()" (click)="abrirAcao('Alimentacao')">🍽️<span>Comida</span></button>
-    <button type="button" [class.ativa]="acaoAtiva() === 'Sono' && !registroEmEdicaoId()" (click)="abrirAcao('Sono')">😴<span>Sono</span></button>
-    <button type="button" [class.ativa]="acaoAtiva() === 'Higiene' && !registroEmEdicaoId()" (click)="abrirAcao('Higiene')">🧷<span>Higiene</span></button>
-    <button type="button" [class.ativa]="acaoAtiva() === 'Humor' && !registroEmEdicaoId()" (click)="abrirAcao('Humor')">🙂<span>Humor</span></button>
-    <button type="button" [class.ativa]="acaoAtiva() === 'Momento' && !registroEmEdicaoId()" (click)="abrirAcao('Momento')">📷<span>Momento</span></button>
+  <div class="navegador-data">
+    <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
+    <div class="data-atual">
+      <span class="rotulo-dia">{{ rotuloData(dataVisualizada()) }}</span>
+      <input type="date" [value]="dataVisualizada()" [max]="hojeIso()" (change)="aoEscolherData($event)" />
+    </div>
+    <button type="button" class="botao-nav-data" [disabled]="ehHoje()" (click)="diaSeguinte()" aria-label="Próximo dia">›</button>
   </div>
+
+  @if (!ehHoje()) {
+    <p class="aviso-somente-leitura">
+      Visualizando um dia anterior — somente leitura.
+      <button type="button" class="link-hoje" (click)="irParaDia(hojeIso())">Voltar para hoje</button>
+    </p>
+  }
+
+  @if (ehHoje()) {
+    <div class="acoes-rapidas">
+      <button type="button" [class.ativa]="acaoAtiva() === 'Alimentacao' && !registroEmEdicaoId()" (click)="abrirAcao('Alimentacao')">🍽️<span>Comida</span></button>
+      <button type="button" [class.ativa]="acaoAtiva() === 'Sono' && !registroEmEdicaoId()" (click)="abrirAcao('Sono')">😴<span>Sono</span></button>
+      <button type="button" [class.ativa]="acaoAtiva() === 'Higiene' && !registroEmEdicaoId()" (click)="abrirAcao('Higiene')">🧷<span>Higiene</span></button>
+      <button type="button" [class.ativa]="acaoAtiva() === 'Humor' && !registroEmEdicaoId()" (click)="abrirAcao('Humor')">🙂<span>Humor</span></button>
+      <button type="button" [class.ativa]="acaoAtiva() === 'Momento' && !registroEmEdicaoId()" (click)="abrirAcao('Momento')">📷<span>Momento</span></button>
+    </div>
+  }
 
   @if (acaoAtiva(); as acao) {
     <div class="painel-formulario">
@@ -99,12 +117,10 @@
     </div>
   }
 
-  <h2 class="titulo-timeline">Hoje</h2>
-
   @if (carregando()) {
     <p>Carregando...</p>
   } @else if (registros().length === 0) {
-    <p class="vazio">Nenhum registro ainda hoje.</p>
+    <p class="vazio">Nenhum registro neste dia.</p>
   } @else {
     <ul class="timeline">
       @for (registro of registros(); track registro.id) {

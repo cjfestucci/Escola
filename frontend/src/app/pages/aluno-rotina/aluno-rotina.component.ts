@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -16,6 +16,7 @@ import { AlunoService } from '../../services/aluno.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import { UploadService } from '../../services/upload.service';
+import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import { horaRegistro, iconeCategoria, resolverFotoUrls, rotuloCategoria } from '../../shared/registro-rotina-display';
 
 type AcaoRapida = CategoriaRegistro | null;
@@ -39,6 +40,9 @@ export class AlunoRotinaComponent implements OnInit {
   readonly aluno = signal<Aluno | null>(null);
   readonly registros = signal<RegistroRotina[]>([]);
   readonly carregando = signal(true);
+
+  readonly dataVisualizada = signal(hojeIso());
+  readonly ehHoje = computed(() => this.dataVisualizada() === hojeIso());
   readonly enviando = signal(false);
   readonly excluindoId = signal<string | null>(null);
   readonly confirmandoExclusaoId = signal<string | null>(null);
@@ -75,13 +79,34 @@ export class AlunoRotinaComponent implements OnInit {
   }
 
   private carregarTimeline(): void {
-    this.rotinaService.listarDoDia(this.alunoId).subscribe({
+    this.carregando.set(true);
+    this.rotinaService.listarDoDia(this.alunoId, this.dataVisualizada()).subscribe({
       next: (registros) => {
         this.registros.set(registros);
         this.carregando.set(false);
       },
       error: () => this.carregando.set(false)
     });
+  }
+
+  irParaDia(dataIso: string): void {
+    this.dataVisualizada.set(dataIso);
+    this.fecharAcao();
+    this.carregarTimeline();
+  }
+
+  diaAnterior(): void {
+    this.irParaDia(somarDias(this.dataVisualizada(), -1));
+  }
+
+  diaSeguinte(): void {
+    if (this.ehHoje()) return;
+    this.irParaDia(somarDias(this.dataVisualizada(), 1));
+  }
+
+  aoEscolherData(event: Event): void {
+    const valor = (event.target as HTMLInputElement).value;
+    if (valor) this.irParaDia(valor);
   }
 
   abrirAcao(acao: CategoriaRegistro): void {
@@ -221,6 +246,8 @@ export class AlunoRotinaComponent implements OnInit {
   protected readonly iconeCategoria = iconeCategoria;
   protected readonly horaRegistro = horaRegistro;
   protected readonly resolverFotoUrls = resolverFotoUrls;
+  protected readonly rotuloData = rotuloData;
+  protected readonly hojeIso = hojeIso;
 
   private horaAtual(): string {
     const agora = new Date();
