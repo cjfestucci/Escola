@@ -13,13 +13,33 @@
 
   <h2 class="titulo-timeline">Hoje</h2>
 
+  @if (!carregando() && registros().length > 0) {
+    <div class="filtro-categorias">
+      <button type="button" class="chip-categoria" [class.ativa]="!filtroCategoria()" (click)="filtroCategoria.set(null)">
+        Todos
+      </button>
+      @for (categoria of categoriasFiltro; track categoria) {
+        <button
+          type="button"
+          class="chip-categoria"
+          [class.ativa]="filtroCategoria() === categoria"
+          (click)="filtroCategoria.set(categoria)"
+        >
+          {{ iconeCategoria(categoria) }} {{ rotuloCategoriaCurto(categoria) }}
+        </button>
+      }
+    </div>
+  }
+
   @if (carregando()) {
     <p>Carregando...</p>
   } @else if (registros().length === 0) {
     <p class="vazio">Ainda não há registros hoje.</p>
+  } @else if (registrosFiltrados().length === 0) {
+    <p class="vazio">Nenhum registro dessa categoria hoje.</p>
   } @else {
     <ul class="timeline">
-      @for (registro of registros(); track registro.id) {
+      @for (registro of registrosFiltrados(); track registro.id) {
         <li class="item-timeline">
           <span class="icone">{{ iconeCategoria(registro.categoria) }}</span>
           <div class="conteudo">

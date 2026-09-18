@@ -124,6 +124,29 @@
   text-decoration: underline;
 }
 
+.filtro-categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.chip-categoria {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+
+  &.ativa {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+  }
+}
+
 .acoes-rapidas {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

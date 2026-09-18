@@ -18,7 +18,13 @@ import { SessaoService } from '../../services/sessao.service';
 import { UploadService } from '../../services/upload.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
-import { horaRegistro, iconeCategoria, resolverFotoUrls, rotuloCategoria } from '../../shared/registro-rotina-display';
+import {
+  horaRegistro,
+  iconeCategoria,
+  resolverFotoUrls,
+  rotuloCategoria,
+  rotuloCategoriaCurto
+} from '../../shared/registro-rotina-display';
 import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
 import { SeletorHorarioComponent } from '../../shared/seletor-horario/seletor-horario.component';
 
@@ -43,6 +49,12 @@ export class AlunoRotinaComponent implements OnInit {
   readonly aluno = signal<Aluno | null>(null);
   readonly registros = signal<RegistroRotina[]>([]);
   readonly carregando = signal(true);
+
+  readonly filtroCategoria = signal<CategoriaRegistro | null>(null);
+  readonly registrosFiltrados = computed(() => {
+    const categoria = this.filtroCategoria();
+    return categoria ? this.registros().filter((r) => r.categoria === categoria) : this.registros();
+  });
 
   readonly dataVisualizada = signal(hojeIso());
   readonly ehHoje = computed(() => this.dataVisualizada() === hojeIso());
@@ -240,11 +252,13 @@ export class AlunoRotinaComponent implements OnInit {
   }
 
   protected readonly rotuloCategoria = rotuloCategoria;
+  protected readonly rotuloCategoriaCurto = rotuloCategoriaCurto;
   protected readonly iconeCategoria = iconeCategoria;
   protected readonly horaRegistro = horaRegistro;
   protected readonly resolverFotoUrls = resolverFotoUrls;
   protected readonly rotuloData = rotuloData;
   protected readonly hojeIso = hojeIso;
+  protected readonly categoriasFiltro: CategoriaRegistro[] = ['Alimentacao', 'Sono', 'Higiene', 'Humor', 'Momento'];
 
   private horaAtual(): string {
     const agora = new Date();

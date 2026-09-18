@@ -63,11 +63,27 @@
     </div>
   }
 
+  @if (!carregando() && alunos().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por nome..."
+        [ngModel]="filtroNome()"
+        (ngModelChange)="filtroNome.set($event)"
+      />
+    </div>
+  }
+
   @if (carregando()) {
     <p>Carregando...</p>
+  } @else if (alunos().length === 0) {
+    <p class="vazio">Nenhum aluno nesta turma.</p>
+  } @else if (alunosFiltrados().length === 0) {
+    <p class="vazio">Nenhum aluno encontrado com esse filtro.</p>
   } @else {
     <div class="grade-alunos">
-      @for (aluno of alunos(); track aluno.id) {
+      @for (aluno of alunosFiltrados(); track aluno.id) {
         <button type="button" class="cartao-aluno" (click)="abrir(aluno)">
           <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
           <span class="nome">{{ aluno.nome }}</span>

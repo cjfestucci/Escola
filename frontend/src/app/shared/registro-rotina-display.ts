@@ -9,6 +9,14 @@ const ICONES: Record<CategoriaRegistro, string> = {
   Momento: '📷'
 };
 
+const ROTULOS_CATEGORIA: Record<CategoriaRegistro, string> = {
+  Alimentacao: 'Comida',
+  Sono: 'Sono',
+  Higiene: 'Higiene',
+  Humor: 'Humor',
+  Momento: 'Momento'
+};
+
 const REFEICOES: Record<Refeicao, string> = { Cafe: 'Café', Almoco: 'Almoço', Lanche: 'Lanche' };
 const STATUS_ALIMENTACAO: Record<StatusAlimentacao, string> = {
   ComeuTudo: 'comeu tudo',
@@ -24,6 +32,10 @@ const HUMORES: Record<Humor, string> = {
 
 export function iconeCategoria(categoria: CategoriaRegistro): string {
   return ICONES[categoria];
+}
+
+export function rotuloCategoriaCurto(categoria: CategoriaRegistro): string {
+  return ROTULOS_CATEGORIA[categoria];
 }
 
 export function rotuloCategoria(registro: RegistroRotina): string {

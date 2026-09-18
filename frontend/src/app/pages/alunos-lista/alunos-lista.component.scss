@@ -26,6 +26,27 @@
   }
 }
 
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.campo-busca {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+}
+
+.vazio {
+  color: var(--cor-texto-suave);
+}
+
 .grade-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

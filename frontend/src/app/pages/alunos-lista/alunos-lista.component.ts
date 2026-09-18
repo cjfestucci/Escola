@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
@@ -11,7 +12,7 @@ import { idadeFormatada } from '../../shared/data-utils';
 
 @Component({
   selector: 'app-alunos-lista',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './alunos-lista.component.html',
   styleUrl: './alunos-lista.component.scss'
 })
@@ -25,6 +26,13 @@ export class AlunosListaComponent implements OnInit {
   readonly alunos = signal<Aluno[]>([]);
   readonly resumo = signal<ResumoDashboard | null>(null);
   readonly carregando = signal(true);
+
+  readonly filtroNome = signal('');
+
+  readonly alunosFiltrados = computed(() => {
+    const nome = this.filtroNome().trim().toLowerCase();
+    return !nome ? this.alunos() : this.alunos().filter((aluno) => aluno.nome.toLowerCase().includes(nome));
+  });
 
   ngOnInit(): void {
     const usuarioId = this.sessao.educadorId();

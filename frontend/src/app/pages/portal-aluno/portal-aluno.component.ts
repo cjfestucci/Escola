@@ -1,12 +1,18 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
-import { RegistroRotina } from '../../models/registro-rotina.model';
+import { CategoriaRegistro, RegistroRotina } from '../../models/registro-rotina.model';
 import { AlunoService } from '../../services/aluno.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
-import { horaRegistro, iconeCategoria, resolverFotoUrls, rotuloCategoria } from '../../shared/registro-rotina-display';
+import {
+  horaRegistro,
+  iconeCategoria,
+  resolverFotoUrls,
+  rotuloCategoria,
+  rotuloCategoriaCurto
+} from '../../shared/registro-rotina-display';
 
 @Component({
   selector: 'app-portal-aluno',
@@ -27,10 +33,18 @@ export class PortalAlunoComponent implements OnInit {
   readonly registros = signal<RegistroRotina[]>([]);
   readonly carregando = signal(true);
 
+  readonly filtroCategoria = signal<CategoriaRegistro | null>(null);
+  readonly registrosFiltrados = computed(() => {
+    const categoria = this.filtroCategoria();
+    return categoria ? this.registros().filter((r) => r.categoria === categoria) : this.registros();
+  });
+
   protected readonly rotuloCategoria = rotuloCategoria;
+  protected readonly rotuloCategoriaCurto = rotuloCategoriaCurto;
   protected readonly iconeCategoria = iconeCategoria;
   protected readonly horaRegistro = horaRegistro;
   protected readonly resolverFotoUrls = resolverFotoUrls;
+  protected readonly categoriasFiltro: CategoriaRegistro[] = ['Alimentacao', 'Sono', 'Higiene', 'Humor', 'Momento'];
 
   ngOnInit(): void {
     if (!this.sessao.responsavelId()) {
