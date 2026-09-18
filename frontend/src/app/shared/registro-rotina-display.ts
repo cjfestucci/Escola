@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { CategoriaRegistro, Humor, RegistroRotina, Refeicao, StatusAlimentacao } from '../models/registro-rotina.model';
 
 const ICONES: Record<CategoriaRegistro, string> = {
@@ -42,4 +43,10 @@ export function rotuloCategoria(registro: RegistroRotina): string {
 
 export function horaRegistro(registradoEm: string): string {
   return new Date(registradoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+/** As fotos vêm do backend como caminho relativo (ex.: "/uploads/xyz.jpg"); aqui vira URL completa. */
+export function resolverFotoUrl(fotoUrl: string | null): string | null {
+  if (!fotoUrl) return null;
+  return `${environment.fileOrigin}${fotoUrl}`;
 }

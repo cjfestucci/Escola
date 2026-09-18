@@ -14,7 +14,8 @@ import {
 import { AlunoService } from '../../services/aluno.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
-import { horaRegistro, iconeCategoria, rotuloCategoria } from '../../shared/registro-rotina-display';
+import { UploadService } from '../../services/upload.service';
+import { horaRegistro, iconeCategoria, resolverFotoUrl, rotuloCategoria } from '../../shared/registro-rotina-display';
 
 type AcaoRapida = CategoriaRegistro | null;
 
@@ -30,6 +31,7 @@ export class AlunoRotinaComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly rotinaService = inject(RotinaService);
   private readonly sessao = inject(SessaoService);
+  private readonly uploadService = inject(UploadService);
 
   private alunoId = '';
 
@@ -39,6 +41,8 @@ export class AlunoRotinaComponent implements OnInit {
   readonly enviando = signal(false);
 
   readonly acaoAtiva = signal<AcaoRapida>(null);
+  readonly fotoUrl = signal<string | null>(null);
+  readonly enviandoFoto = signal(false);
 
   // campos do formulário rápido — só os relevantes para a ação ativa são usados
   observacao = '';
@@ -78,10 +82,26 @@ export class AlunoRotinaComponent implements OnInit {
     this.acaoAtiva.set(this.acaoAtiva() === acao ? null : acao);
     this.observacao = '';
     this.horaInicioSono = this.horaAtual();
+    this.fotoUrl.set(null);
   }
 
   fecharAcao(): void {
     this.acaoAtiva.set(null);
+    this.fotoUrl.set(null);
+  }
+
+  aoSelecionarFoto(event: Event): void {
+    const arquivo = (event.target as HTMLInputElement).files?.[0];
+    if (!arquivo) return;
+
+    this.enviandoFoto.set(true);
+    this.uploadService.enviarFoto(arquivo).subscribe({
+      next: (resultado) => {
+        this.fotoUrl.set(resultado.url);
+        this.enviandoFoto.set(false);
+      },
+      error: () => this.enviandoFoto.set(false)
+    });
   }
 
   voltar(): void {
@@ -94,7 +114,7 @@ export class AlunoRotinaComponent implements OnInit {
     if (!usuarioId || !acao) return;
 
     this.enviando.set(true);
-    const base = { usuarioId, observacao: this.observacao || null };
+    const base = { usuarioId, observacao: this.observacao || null, fotoUrl: this.fotoUrl() };
 
     const requisicao$ = (() => {
       switch (acao) {
@@ -137,6 +157,7 @@ export class AlunoRotinaComponent implements OnInit {
   protected readonly rotuloCategoria = rotuloCategoria;
   protected readonly iconeCategoria = iconeCategoria;
   protected readonly horaRegistro = horaRegistro;
+  protected readonly resolverFotoUrl = resolverFotoUrl;
 
   private horaAtual(): string {
     const agora = new Date();

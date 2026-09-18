@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,12 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
+var pastaUploads = Path.Combine(
+    builder.Environment.WebRootPath ?? Path.Combine(builder.Environment.ContentRootPath, "wwwroot"),
+    "uploads");
+Directory.CreateDirectory(pastaUploads);
+builder.Services.AddSingleton<IFotoStorage>(new LocalFotoStorage(pastaUploads));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -38,6 +45,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors(FrontendCorsPolicy);
+
+app.UseStaticFiles();
 
 app.UseAuthorization();
 

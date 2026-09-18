@@ -30,6 +30,9 @@
             @if (registro.observacao) {
               <p class="observacao">{{ registro.observacao }}</p>
             }
+            @if (registro.fotoUrl) {
+              <img class="foto" [src]="resolverFotoUrl(registro.fotoUrl)" alt="Foto do registro" />
+            }
             <span class="autor">por {{ registro.criadoPorNome }}</span>
           </div>
         </li>

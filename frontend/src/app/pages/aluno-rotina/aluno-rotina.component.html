@@ -67,6 +67,16 @@
         <textarea [(ngModel)]="observacao" rows="2"></textarea>
       </label>
 
+      <label>Foto (opcional)
+        <input type="file" accept="image/*" capture="environment" (change)="aoSelecionarFoto($event)" />
+      </label>
+
+      @if (enviandoFoto()) {
+        <p class="dica">Enviando foto...</p>
+      } @else if (fotoUrl()) {
+        <img class="preview-foto" [src]="resolverFotoUrl(fotoUrl())" alt="Prévia da foto" />
+      }
+
       <div class="botoes">
         <button type="button" class="secundario" (click)="fecharAcao()">Cancelar</button>
         <button type="button" class="primario" [disabled]="enviando()" (click)="confirmar()">
@@ -94,6 +104,9 @@
             </div>
             @if (registro.observacao) {
               <p class="observacao">{{ registro.observacao }}</p>
+            }
+            @if (registro.fotoUrl) {
+              <img class="foto" [src]="resolverFotoUrl(registro.fotoUrl)" alt="Foto do registro" />
             }
             <span class="autor">por {{ registro.criadoPorNome }}</span>
           </div>
