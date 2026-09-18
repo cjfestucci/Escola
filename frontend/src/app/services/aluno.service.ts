@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { Aluno, Turma } from '../models/aluno.model';
+import { Aluno, AlunoDetalhe, CriarOuEditarAluno, Turma } from '../models/aluno.model';
 
 @Injectable({ providedIn: 'root' })
 export class AlunoService {
@@ -20,7 +20,19 @@ export class AlunoService {
     return this.http.get<Aluno[]>(`${this.baseUrl}/alunos`, { params });
   }
 
-  obterAluno(id: string): Observable<Aluno> {
-    return this.http.get<Aluno>(`${this.baseUrl}/alunos/${id}`);
+  obterAluno(id: string): Observable<AlunoDetalhe> {
+    return this.http.get<AlunoDetalhe>(`${this.baseUrl}/alunos/${id}`);
+  }
+
+  criar(payload: CriarOuEditarAluno): Observable<AlunoDetalhe> {
+    return this.http.post<AlunoDetalhe>(`${this.baseUrl}/alunos`, payload);
+  }
+
+  editar(id: string, payload: CriarOuEditarAluno): Observable<AlunoDetalhe> {
+    return this.http.put<AlunoDetalhe>(`${this.baseUrl}/alunos/${id}`, payload);
+  }
+
+  excluir(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/alunos/${id}`);
   }
 }

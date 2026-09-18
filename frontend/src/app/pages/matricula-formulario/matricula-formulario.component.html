@@ -1,0 +1,105 @@
+<div class="container container--estreito">
+  <button type="button" class="voltar" (click)="cancelar()">&larr; Matrícula</button>
+
+  <h1>{{ titulo }}</h1>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="painel-formulario">
+      @if (erro(); as mensagem) {
+        <p class="mensagem-erro">{{ mensagem }}</p>
+      }
+
+      <label>Nome completo
+        <input type="text" [(ngModel)]="nome" placeholder="Ex.: Lucas Souza" />
+      </label>
+
+      <label>Data de nascimento
+        <input type="date" [(ngModel)]="dataNascimento" />
+      </label>
+
+      <label>Turma
+        <select [(ngModel)]="turmaId">
+          <option value="" disabled>Selecione...</option>
+          @for (turma of turmas(); track turma.id) {
+            <option [value]="turma.id">{{ turma.nome }}</option>
+          }
+        </select>
+      </label>
+
+      <label>Foto (opcional)</label>
+      @if (fotoUrl()) {
+        <div class="preview-foto-wrapper">
+          <img class="preview-foto" [src]="resolverFotoUrl(fotoUrl()!)" alt="Foto do aluno" />
+          <button type="button" class="remover-foto" (click)="removerFoto()" aria-label="Remover foto">×</button>
+        </div>
+      } @else if (enviandoFoto()) {
+        <p class="dica">Enviando foto...</p>
+      } @else {
+        <input type="file" accept="image/*" (change)="aoSelecionarFoto($event)" />
+      }
+
+      <hr />
+
+      <div class="cabecalho-secao">
+        <span>Responsáveis</span>
+        <button type="button" class="botao-texto" (click)="adicionarResponsavel()">+ Adicionar</button>
+      </div>
+
+      @for (responsavel of responsaveis(); track $index) {
+        <div class="cartao-responsavel">
+          <div class="linha-responsavel-topo">
+            <strong>Responsável {{ $index + 1 }}</strong>
+            @if (responsaveis().length > 1) {
+              <button type="button" class="botao-texto botao-texto--perigo" (click)="removerResponsavel($index)">Remover</button>
+            }
+          </div>
+
+          <label>Nome
+            <input
+              type="text"
+              [ngModel]="responsavel.nome"
+              (ngModelChange)="atualizarResponsavel($index, 'nome', $event)"
+              placeholder="Nome completo"
+            />
+          </label>
+
+          <label>E-mail
+            <input
+              type="email"
+              [ngModel]="responsavel.email"
+              (ngModelChange)="atualizarResponsavel($index, 'email', $event)"
+              placeholder="email@exemplo.com"
+            />
+          </label>
+
+          <label>Telefone (opcional)
+            <input
+              type="tel"
+              [ngModel]="responsavel.telefone"
+              (ngModelChange)="atualizarResponsavel($index, 'telefone', $event)"
+              placeholder="(11) 99999-9999"
+            />
+          </label>
+
+          <label class="linha-checkbox">
+            <input
+              type="checkbox"
+              [ngModel]="responsavel.responsavelFinanceiro"
+              (ngModelChange)="atualizarResponsavel($index, 'responsavelFinanceiro', $event)"
+            />
+            Responsável financeiro
+          </label>
+        </div>
+      }
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

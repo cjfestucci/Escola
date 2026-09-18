@@ -24,3 +24,13 @@ export function rotuloData(dataIso: string): string {
   });
   return rotulo.charAt(0).toUpperCase() + rotulo.slice(1);
 }
+
+export function idadeFormatada(dataNascimento: string): string {
+  const nascimento = new Date(dataNascimento);
+  const hoje = new Date();
+  let meses = (hoje.getFullYear() - nascimento.getFullYear()) * 12 + (hoje.getMonth() - nascimento.getMonth());
+  if (hoje.getDate() < nascimento.getDate()) meses--;
+
+  if (meses < 24) return `${meses} meses`;
+  return `${Math.floor(meses / 12)} anos`;
+}

@@ -36,6 +36,24 @@ export const routes: Routes = [
       import('./pages/turma-formulario/turma-formulario.component').then((m) => m.TurmaFormularioComponent)
   },
   {
+    path: 'matricula',
+    pathMatch: 'full',
+    data: { titulo: 'Matrícula' },
+    loadComponent: () => import('./pages/matricula-lista/matricula-lista.component').then((m) => m.MatriculaListaComponent)
+  },
+  {
+    path: 'matricula/novo',
+    data: { titulo: 'Novo aluno' },
+    loadComponent: () =>
+      import('./pages/matricula-formulario/matricula-formulario.component').then((m) => m.MatriculaFormularioComponent)
+  },
+  {
+    path: 'matricula/:id/editar',
+    data: { titulo: 'Editar aluno' },
+    loadComponent: () =>
+      import('./pages/matricula-formulario/matricula-formulario.component').then((m) => m.MatriculaFormularioComponent)
+  },
+  {
     path: 'portal',
     pathMatch: 'full',
     data: { titulo: 'Portal dos Pais' },

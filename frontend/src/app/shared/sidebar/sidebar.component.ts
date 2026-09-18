@@ -7,11 +7,12 @@ import { SessaoService } from '../../services/sessao.service';
 interface ItemNav {
   rotulo: string;
   rota: string;
-  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas';
+  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula';
 }
 
 const ITENS_EDUCADOR: ItemNav[] = [
   { rotulo: 'Turma', rota: '/alunos', icone: 'users' },
+  { rotulo: 'Matrícula', rota: '/matricula', icone: 'matricula' },
   { rotulo: 'Turmas (cadastro)', rota: '/turmas', icone: 'turmas' }
 ];
 const ITENS_PORTAL: ItemNav[] = [{ rotulo: 'Meus Filhos', rota: '/portal/filhos', icone: 'home' }];

@@ -7,6 +7,7 @@ import { AlunoService } from '../../services/aluno.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { SessaoService } from '../../services/sessao.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { idadeFormatada } from '../../shared/data-utils';
 
 @Component({
   selector: 'app-alunos-lista',
@@ -69,13 +70,5 @@ export class AlunosListaComponent implements OnInit {
     this.router.navigate(['/alunos', aluno.id]);
   }
 
-  idade(dataNascimento: string): string {
-    const nascimento = new Date(dataNascimento);
-    const hoje = new Date();
-    let meses = (hoje.getFullYear() - nascimento.getFullYear()) * 12 + (hoje.getMonth() - nascimento.getMonth());
-    if (hoje.getDate() < nascimento.getDate()) meses--;
-
-    if (meses < 24) return `${meses} meses`;
-    return `${Math.floor(meses / 12)} anos`;
-  }
+  protected readonly idade = idadeFormatada;
 }

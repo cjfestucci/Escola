@@ -27,3 +27,23 @@ export interface Aluno {
   turmaId: string;
   turmaNome: string;
 }
+
+export interface ResponsavelResumo {
+  id: string | null;
+  nome: string;
+  email: string;
+  telefone: string | null;
+  responsavelFinanceiro: boolean;
+}
+
+export interface AlunoDetalhe extends Aluno {
+  responsaveis: ResponsavelResumo[];
+}
+
+export interface CriarOuEditarAluno {
+  nome: string;
+  dataNascimento: string;
+  turmaId: string;
+  fotoUrl: string | null;
+  responsaveis: ResponsavelResumo[];
+}

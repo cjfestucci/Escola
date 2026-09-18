@@ -22,7 +22,13 @@ export class ContextoService {
 
   private calcular(url: string): Contexto {
     if (url.startsWith('/portal')) return 'portal';
-    if (url.startsWith('/alunos') || url.startsWith('/entrar') || url.startsWith('/turmas')) return 'educador';
+    if (
+      url.startsWith('/alunos') ||
+      url.startsWith('/entrar') ||
+      url.startsWith('/turmas') ||
+      url.startsWith('/matricula')
+    )
+      return 'educador';
     return null;
   }
 }

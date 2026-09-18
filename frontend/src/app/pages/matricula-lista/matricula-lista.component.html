@@ -1,0 +1,51 @@
+<div class="container">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Alunos matriculados na escola.</p>
+    <button type="button" class="botao-primario" (click)="novo()">+ Novo Aluno</button>
+  </div>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro">{{ mensagem }}</p>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (alunos().length === 0) {
+    <p class="vazio">Nenhum aluno matriculado ainda.</p>
+  } @else {
+    <ul class="lista-alunos">
+      @for (aluno of alunos(); track aluno.id) {
+        <li class="cartao-aluno">
+          <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
+
+          <div class="info-aluno">
+            <strong>{{ aluno.nome }}</strong>
+            <span class="detalhe">{{ idade(aluno.dataNascimento) }} · {{ aluno.turmaNome }}</span>
+          </div>
+
+          @if (confirmandoExclusaoId() === aluno.id) {
+            <div class="confirmar-exclusao">
+              <span>Excluir aluno?</span>
+              <div class="acoes">
+                <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
+                <button
+                  type="button"
+                  class="botao-texto botao-texto--perigo"
+                  [disabled]="excluindoId() === aluno.id"
+                  (click)="confirmarExclusao(aluno)"
+                >
+                  {{ excluindoId() === aluno.id ? 'Excluindo...' : 'Excluir' }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="acoes">
+              <button type="button" class="botao-icone" (click)="editar(aluno)" aria-label="Editar aluno">✏️</button>
+              <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(aluno.id)" aria-label="Excluir aluno">🗑️</button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>
