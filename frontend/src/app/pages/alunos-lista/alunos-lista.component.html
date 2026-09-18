@@ -1,6 +1,21 @@
 <div class="container">
   <p class="subtitulo">Toque em um aluno para ver e lançar a rotina do dia.</p>
 
+  @if (sessao.turmas().length > 1) {
+    <div class="seletor-turmas">
+      @for (turma of sessao.turmas(); track turma.id) {
+        <button
+          type="button"
+          class="pilula-turma"
+          [class.ativa]="sessao.turmaAtivaId() === turma.id"
+          (click)="selecionarTurma(turma.id)"
+        >
+          {{ turma.nome }}
+        </button>
+      }
+    </div>
+  }
+
   @if (resumo(); as r) {
     <div class="grade-stats">
       <div class="cartao-stat">
@@ -28,8 +43,8 @@
           </svg>
         </span>
         <div>
-          <span class="stat-valor">{{ r.totalTurmas }}</span>
-          <span class="stat-rotulo">Turmas</span>
+          <span class="stat-valor">{{ sessao.turmas().length || r.totalTurmas }}</span>
+          <span class="stat-rotulo">Minhas Turmas</span>
         </div>
       </div>
 

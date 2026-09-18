@@ -13,4 +13,7 @@ public class Usuario
     /// <summary>Preenchido quando Papel == Responsavel, ligando o login ao cadastro do responsável.</summary>
     public Guid? ResponsavelId { get; set; }
     public Responsavel? Responsavel { get; set; }
+
+    /// <summary>Turmas do educador (Papel == Educador) — pode ter mais de uma.</summary>
+    public ICollection<TurmaEducador> Turmas { get; set; } = new List<TurmaEducador>();
 }

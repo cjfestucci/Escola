@@ -6,6 +6,7 @@ import { ResumoDashboard } from '../../models/resumo-dashboard.model';
 import { AlunoService } from '../../services/aluno.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { SessaoService } from '../../services/sessao.service';
+import { UsuarioService } from '../../services/usuario.service';
 
 @Component({
   selector: 'app-alunos-lista',
@@ -16,7 +17,8 @@ import { SessaoService } from '../../services/sessao.service';
 export class AlunosListaComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly dashboardService = inject(DashboardService);
-  private readonly sessao = inject(SessaoService);
+  private readonly usuarioService = inject(UsuarioService);
+  protected readonly sessao = inject(SessaoService);
   private readonly router = inject(Router);
 
   readonly alunos = signal<Aluno[]>([]);
@@ -24,12 +26,30 @@ export class AlunosListaComponent implements OnInit {
   readonly carregando = signal(true);
 
   ngOnInit(): void {
-    if (!this.sessao.educadorId()) {
+    const usuarioId = this.sessao.educadorId();
+    if (!usuarioId) {
       this.router.navigateByUrl('/entrar');
       return;
     }
 
-    this.alunoService.listarAlunos().subscribe({
+    if (this.sessao.turmas().length === 0) {
+      this.usuarioService.listarTurmas(usuarioId).subscribe({
+        next: (turmas) => {
+          this.sessao.definirTurmas(turmas);
+          this.carregarLista();
+        },
+        error: () => this.carregarLista()
+      });
+    } else {
+      this.carregarLista();
+    }
+  }
+
+  private carregarLista(): void {
+    const turmaId = this.sessao.turmaAtivaId() ?? undefined;
+
+    this.carregando.set(true);
+    this.alunoService.listarAlunos(turmaId).subscribe({
       next: (alunos) => {
         this.alunos.set(alunos);
         this.carregando.set(false);
@@ -37,7 +57,12 @@ export class AlunosListaComponent implements OnInit {
       error: () => this.carregando.set(false)
     });
 
-    this.dashboardService.resumo().subscribe((resumo) => this.resumo.set(resumo));
+    this.dashboardService.resumo(turmaId).subscribe((resumo) => this.resumo.set(resumo));
+  }
+
+  selecionarTurma(turmaId: string): void {
+    this.sessao.definirTurmaAtiva(turmaId);
+    this.carregarLista();
   }
 
   abrir(aluno: Aluno): void {

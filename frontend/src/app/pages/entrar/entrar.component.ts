@@ -35,6 +35,12 @@ export class EntrarComponent implements OnInit {
 
   selecionar(educador: Usuario): void {
     this.sessao.definirEducador(educador.id, educador.nome);
-    this.router.navigateByUrl('/alunos');
+    this.usuarioService.listarTurmas(educador.id).subscribe({
+      next: (turmas) => {
+        this.sessao.definirTurmas(turmas);
+        this.router.navigateByUrl('/alunos');
+      },
+      error: () => this.router.navigateByUrl('/alunos')
+    });
   }
 }

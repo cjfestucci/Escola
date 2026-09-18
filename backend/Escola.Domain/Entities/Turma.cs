@@ -6,4 +6,5 @@ public class Turma
     public string Nome { get; set; } = string.Empty;
 
     public ICollection<Aluno> Alunos { get; set; } = new List<Aluno>();
+    public ICollection<TurmaEducador> Educadores { get; set; } = new List<TurmaEducador>();
 }

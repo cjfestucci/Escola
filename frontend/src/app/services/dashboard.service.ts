@@ -9,7 +9,9 @@ import { ResumoDashboard } from '../models/resumo-dashboard.model';
 export class DashboardService {
   private readonly http = inject(HttpClient);
 
-  resumo(): Observable<ResumoDashboard> {
-    return this.http.get<ResumoDashboard>(`${environment.apiUrl}/dashboard/resumo`);
+  resumo(turmaId?: string): Observable<ResumoDashboard> {
+    const params: Record<string, string> = {};
+    if (turmaId) params['turmaId'] = turmaId;
+    return this.http.get<ResumoDashboard>(`${environment.apiUrl}/dashboard/resumo`, { params });
   }
 }

@@ -26,4 +26,18 @@ public class UsuariosController(EscolaDbContext db) : ControllerBase
 
         return Ok(usuarios);
     }
+
+    [HttpGet("{id:guid}/turmas")]
+    public async Task<ActionResult<List<TurmaDto>>> ListarTurmas(Guid id)
+    {
+        if (!await db.Usuarios.AnyAsync(u => u.Id == id))
+            return NotFound("Usuário não encontrado.");
+
+        var turmas = await db.TurmaEducadores
+            .Where(te => te.UsuarioId == id)
+            .Select(te => new TurmaDto(te.Turma.Id, te.Turma.Nome, te.Turma.Alunos.Count))
+            .ToListAsync();
+
+        return Ok(turmas);
+    }
 }

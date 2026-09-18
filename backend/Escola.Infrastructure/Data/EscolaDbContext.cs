@@ -10,6 +10,7 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options) : DbCont
     public DbSet<Responsavel> Responsaveis => Set<Responsavel>();
     public DbSet<AlunoResponsavel> AlunoResponsaveis => Set<AlunoResponsavel>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<TurmaEducador> TurmaEducadores => Set<TurmaEducador>();
     public DbSet<RegistroRotina> RegistrosRotina => Set<RegistroRotina>();
     public DbSet<FotoRegistro> Fotos => Set<FotoRegistro>();
     public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();

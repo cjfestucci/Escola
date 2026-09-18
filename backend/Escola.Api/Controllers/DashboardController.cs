@@ -10,15 +10,26 @@ namespace Escola.Api.Controllers;
 public class DashboardController(EscolaDbContext db) : ControllerBase
 {
     [HttpGet("resumo")]
-    public async Task<ActionResult<ResumoDashboardDto>> Resumo()
+    public async Task<ActionResult<ResumoDashboardDto>> Resumo([FromQuery] Guid? turmaId)
     {
         var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
         var inicio = hoje.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         var fim = inicio.AddDays(1);
 
-        var totalAlunos = await db.Alunos.CountAsync();
-        var totalTurmas = await db.Turmas.CountAsync();
-        var registrosHoje = await db.RegistrosRotina.CountAsync(r => r.RegistradoEm >= inicio && r.RegistradoEm < fim);
+        var alunosQuery = db.Alunos.AsQueryable();
+        var turmasQuery = db.Turmas.AsQueryable();
+        var registrosQuery = db.RegistrosRotina.AsQueryable();
+
+        if (turmaId is { } id)
+        {
+            alunosQuery = alunosQuery.Where(a => a.TurmaId == id);
+            turmasQuery = turmasQuery.Where(t => t.Id == id);
+            registrosQuery = registrosQuery.Where(r => r.Aluno.TurmaId == id);
+        }
+
+        var totalAlunos = await alunosQuery.CountAsync();
+        var totalTurmas = await turmasQuery.CountAsync();
+        var registrosHoje = await registrosQuery.CountAsync(r => r.RegistradoEm >= inicio && r.RegistradoEm < fim);
 
         return Ok(new ResumoDashboardDto(totalAlunos, totalTurmas, registrosHoje));
     }

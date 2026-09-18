@@ -3,6 +3,29 @@
   margin-bottom: 20px;
 }
 
+.seletor-turmas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.pilula-turma {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+
+  &.ativa {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+  }
+}
+
 .grade-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

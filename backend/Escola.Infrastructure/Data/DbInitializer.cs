@@ -84,6 +84,13 @@ public static class DbInitializer
         context.Responsaveis.AddRange(responsaveis);
         context.AlunoResponsaveis.AddRange(vinculos);
 
+        // Professora Ana fica com duas turmas, pra já nascer demonstrando o vínculo múltiplo.
+        context.TurmaEducadores.AddRange(
+            new TurmaEducador { TurmaId = turmaBercario1.Id, UsuarioId = professoraAna.Id },
+            new TurmaEducador { TurmaId = turmaBercario2.Id, UsuarioId = professoraAna.Id },
+            new TurmaEducador { TurmaId = turmaMaternal1.Id, UsuarioId = professoraBia.Id },
+            new TurmaEducador { TurmaId = turmaJardim1.Id, UsuarioId = professorCaio.Id });
+
         Aluno AlunoPor(string nome) => alunos.Single(a => a.Nome == nome);
         Usuario EducadorDe(string nomeAluno) => dados.Single(d => d.Aluno == nomeAluno).Educador;
 
