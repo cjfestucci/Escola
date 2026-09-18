@@ -39,6 +39,13 @@
                 <path d="M18.5 8v5M16 10.5h5" />
               </svg>
             }
+            @case ('usuarios') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" />
+                <path d="m15.5 6.5 1.3 1.3 2.2-2.4" />
+              </svg>
+            }
           }
         </span>
         {{ item.rotulo }}
@@ -85,8 +92,6 @@
         <span class="nome-usuario">{{ sessao.responsavelNome() }}</span>
       </div>
     }
-    <button type="button" class="botao-trocar-area" (click)="trocarArea()">
-      {{ contextoService.contexto() === 'portal' ? 'Área do educador' : 'Portal dos Pais' }}
-    </button>
+    <button type="button" class="botao-trocar-area" (click)="sair()">Sair</button>
   </div>
 </aside>

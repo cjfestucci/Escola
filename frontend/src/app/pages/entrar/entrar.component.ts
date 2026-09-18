@@ -1,46 +1,43 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { Usuario } from '../../models/usuario.model';
-import { SessaoService } from '../../services/sessao.service';
-import { UsuarioService } from '../../services/usuario.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-entrar',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './entrar.component.html',
   styleUrl: './entrar.component.scss'
 })
-export class EntrarComponent implements OnInit {
-  private readonly usuarioService = inject(UsuarioService);
-  private readonly sessao = inject(SessaoService);
+export class EntrarComponent {
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  readonly educadores = signal<Usuario[]>([]);
-  readonly carregando = signal(true);
-  readonly erro = signal(false);
+  email = '';
+  senha = '';
 
-  ngOnInit(): void {
-    this.usuarioService.listarEducadores().subscribe({
-      next: (educadores) => {
-        this.educadores.set(educadores);
-        this.carregando.set(false);
+  readonly entrando = signal(false);
+  readonly erro = signal<string | null>(null);
+
+  entrar(): void {
+    this.erro.set(null);
+
+    if (!this.email.trim() || !this.senha) {
+      this.erro.set('Informe e-mail e senha.');
+      return;
+    }
+
+    this.entrando.set(true);
+    this.auth.entrar(this.email.trim(), this.senha).subscribe({
+      next: (resposta) => {
+        this.entrando.set(false);
+        this.router.navigateByUrl(resposta.papel === 'Responsavel' ? '/portal/filhos' : '/alunos');
       },
-      error: () => {
-        this.erro.set(true);
-        this.carregando.set(false);
+      error: (resposta) => {
+        this.entrando.set(false);
+        this.erro.set(resposta.status === 401 ? 'E-mail ou senha inválidos.' : 'Não foi possível entrar. Tente novamente.');
       }
-    });
-  }
-
-  selecionar(educador: Usuario): void {
-    this.sessao.definirEducador(educador.id, educador.nome);
-    this.usuarioService.listarTurmas(educador.id).subscribe({
-      next: (turmas) => {
-        this.sessao.definirTurmas(turmas);
-        this.router.navigateByUrl('/alunos');
-      },
-      error: () => this.router.navigateByUrl('/alunos')
     });
   }
 }

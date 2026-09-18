@@ -2,6 +2,7 @@ import { Component, inject, output, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
+import { AuthService } from '../../services/auth.service';
 import { ContextoService } from '../../services/contexto.service';
 import { SessaoService } from '../../services/sessao.service';
 
@@ -13,6 +14,7 @@ import { SessaoService } from '../../services/sessao.service';
 })
 export class TopbarComponent {
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
   protected readonly contextoService = inject(ContextoService);
   protected readonly sessao = inject(SessaoService);
 
@@ -26,14 +28,10 @@ export class TopbarComponent {
     });
   }
 
-  trocar(): void {
-    if (this.contextoService.contexto() === 'portal') {
-      this.sessao.sairResponsavel();
-      this.router.navigateByUrl('/portal');
-    } else {
-      this.sessao.sairEducador();
-      this.router.navigateByUrl('/entrar');
-    }
+  sair(): void {
+    this.auth.sair();
+    this.sessao.limpar();
+    this.router.navigateByUrl('/entrar');
   }
 
   private tituloAtual(): string {

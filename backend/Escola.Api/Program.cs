@@ -1,7 +1,10 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Storage;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +17,26 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<EscolaDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+var jwtChave = builder.Configuration["Jwt:Chave"]
+    ?? throw new InvalidOperationException("Configuração Jwt:Chave ausente.");
+var jwtEmissor = builder.Configuration["Jwt:Emissor"] ?? "RotinaEscola";
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtEmissor,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtChave)),
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+builder.Services.AddAuthorization();
 
 const string FrontendCorsPolicy = "FrontendDev";
 builder.Services.AddCors(options =>
@@ -40,6 +63,7 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<EscolaDbContext>();
     await DbInitializer.SeedAsync(db);
+    await DbInitializer.GarantirAcessosAsync(db);
 }
 
 app.UseHttpsRedirection();
@@ -48,6 +72,7 @@ app.UseCors(FrontendCorsPolicy);
 
 app.UseStaticFiles();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

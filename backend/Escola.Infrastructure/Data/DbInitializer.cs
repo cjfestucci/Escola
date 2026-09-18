@@ -1,5 +1,6 @@
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Infrastructure.Data;
@@ -7,6 +8,9 @@ namespace Escola.Infrastructure.Data;
 /// <summary>Dados de exemplo para desenvolvimento e demonstração, enquanto o módulo de Matrícula não existe.</summary>
 public static class DbInitializer
 {
+    /// <summary>Senha padrão de todas as contas de desenvolvimento (seed e backfill) — nunca usar em produção.</summary>
+    public const string SenhaDev = "escola123";
+
     public static async Task SeedAsync(EscolaDbContext context)
     {
         if (await context.Turmas.AnyAsync())
@@ -36,22 +40,40 @@ public static class DbInitializer
         };
         var turmas = new[] { turmaBercario1, turmaBercario2, turmaMaternal1, turmaJardim1 };
 
+        var senhaDevHash = SenhaHasher.Hash(SenhaDev);
+
         var professoraAna = new Usuario
         {
             Id = Guid.NewGuid(), Nome = "Professora Ana", Email = "ana@escola.dev",
-            SenhaHash = "seed-sem-senha", Papel = PapelUsuario.Educador
+            SenhaHash = senhaDevHash, Papel = PapelUsuario.Educador
         };
         var professoraBia = new Usuario
         {
             Id = Guid.NewGuid(), Nome = "Professora Bia", Email = "bia@escola.dev",
-            SenhaHash = "seed-sem-senha", Papel = PapelUsuario.Educador
+            SenhaHash = senhaDevHash, Papel = PapelUsuario.Educador
         };
         var professorCaio = new Usuario
         {
             Id = Guid.NewGuid(), Nome = "Professor Caio", Email = "caio@escola.dev",
-            SenhaHash = "seed-sem-senha", Papel = PapelUsuario.Educador
+            SenhaHash = senhaDevHash, Papel = PapelUsuario.Educador
         };
         var educadores = new[] { professoraAna, professoraBia, professorCaio };
+
+        var admin = new Usuario
+        {
+            Id = Guid.NewGuid(), Nome = "Admin Geral", Email = "admin@escola.dev",
+            SenhaHash = senhaDevHash, Papel = PapelUsuario.Admin
+        };
+        var coordenadora = new Usuario
+        {
+            Id = Guid.NewGuid(), Nome = "Coordenadora Marina", Email = "coordenacao@escola.dev",
+            SenhaHash = senhaDevHash, Papel = PapelUsuario.Coordenador
+        };
+        var financeiro = new Usuario
+        {
+            Id = Guid.NewGuid(), Nome = "Financeiro Tatiane", Email = "financeiro@escola.dev",
+            SenhaHash = senhaDevHash, Papel = PapelUsuario.Financeiro
+        };
 
         // (nome do aluno, data de nascimento, turma, educador responsável pelos registros,
         //  nome do responsável, e-mail do responsável, telefone, segundo responsável opcional)
@@ -72,6 +94,13 @@ public static class DbInitializer
         var alunos = new List<Aluno>();
         var responsaveis = new List<Responsavel>();
         var vinculos = new List<AlunoResponsavel>();
+        var loginsResponsaveis = new List<Usuario>();
+
+        Usuario LoginDoResponsavel(Responsavel responsavel) => new()
+        {
+            Id = Guid.NewGuid(), Nome = responsavel.Nome, Email = responsavel.Email,
+            SenhaHash = senhaDevHash, Papel = PapelUsuario.Responsavel, ResponsavelId = responsavel.Id
+        };
 
         foreach (var d in dados)
         {
@@ -80,6 +109,7 @@ public static class DbInitializer
 
             var responsavel1 = new Responsavel { Id = Guid.NewGuid(), Nome = d.Resp1, Email = d.Email1, Telefone = d.Tel1 };
             responsaveis.Add(responsavel1);
+            loginsResponsaveis.Add(LoginDoResponsavel(responsavel1));
             vinculos.Add(new AlunoResponsavel { AlunoId = aluno.Id, ResponsavelId = responsavel1.Id, ResponsavelFinanceiro = true });
 
             if (d.Resp2 is not null)
@@ -90,12 +120,15 @@ public static class DbInitializer
                     Email = $"{d.Resp2.Split(' ')[0].ToLowerInvariant()}@example.com"
                 };
                 responsaveis.Add(responsavel2);
+                loginsResponsaveis.Add(LoginDoResponsavel(responsavel2));
                 vinculos.Add(new AlunoResponsavel { AlunoId = aluno.Id, ResponsavelId = responsavel2.Id, ResponsavelFinanceiro = false });
             }
         }
 
         context.Turmas.AddRange(turmas);
         context.Usuarios.AddRange(educadores);
+        context.Usuarios.AddRange(admin, coordenadora, financeiro);
+        context.Usuarios.AddRange(loginsResponsaveis);
         context.Alunos.AddRange(alunos);
         context.Responsaveis.AddRange(responsaveis);
         context.AlunoResponsaveis.AddRange(vinculos);
@@ -154,5 +187,65 @@ public static class DbInitializer
         context.RegistrosRotina.AddRange(registros);
 
         await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Backfill idempotente pra bancos de dev que já existiam antes do login de verdade: garante senha
+    /// real nas contas seed antigas, cria o login de cada responsável que ainda não tem um, e garante as
+    /// contas de Admin/Coordenador/Financeiro. Roda toda vez (mesmo se SeedAsync não fez nada), sem duplicar.
+    /// </summary>
+    public static async Task GarantirAcessosAsync(EscolaDbContext context)
+    {
+        var senhaDevHash = SenhaHasher.Hash(SenhaDev);
+        var houveAlteracao = false;
+
+        var usuariosSemSenhaReal = await context.Usuarios
+            .Where(u => u.SenhaHash == "seed-sem-senha")
+            .ToListAsync();
+        foreach (var usuario in usuariosSemSenhaReal)
+        {
+            usuario.SenhaHash = senhaDevHash;
+            houveAlteracao = true;
+        }
+
+        var responsaveisSemLogin = await context.Responsaveis
+            .Where(r => !context.Usuarios.Any(u => u.ResponsavelId == r.Id))
+            .ToListAsync();
+        foreach (var responsavel in responsaveisSemLogin)
+        {
+            // E-mail pode já estar em uso por uma conta de equipe (ex.: alguém que também é responsável) —
+            // nesse caso não cria um segundo login, só deixa sem vínculo mesmo.
+            if (await context.Usuarios.AnyAsync(u => u.Email.ToLower() == responsavel.Email.ToLower()))
+                continue;
+
+            context.Usuarios.Add(new Usuario
+            {
+                Id = Guid.NewGuid(), Nome = responsavel.Nome, Email = responsavel.Email,
+                SenhaHash = senhaDevHash, Papel = PapelUsuario.Responsavel, ResponsavelId = responsavel.Id
+            });
+            houveAlteracao = true;
+        }
+
+        var contasEquipe = new (string Nome, string Email, PapelUsuario Papel)[]
+        {
+            ("Admin Geral", "admin@escola.dev", PapelUsuario.Admin),
+            ("Coordenadora Marina", "coordenacao@escola.dev", PapelUsuario.Coordenador),
+            ("Financeiro Tatiane", "financeiro@escola.dev", PapelUsuario.Financeiro)
+        };
+        foreach (var conta in contasEquipe)
+        {
+            if (await context.Usuarios.AnyAsync(u => u.Email.ToLower() == conta.Email))
+                continue;
+
+            context.Usuarios.Add(new Usuario
+            {
+                Id = Guid.NewGuid(), Nome = conta.Nome, Email = conta.Email,
+                SenhaHash = senhaDevHash, Papel = conta.Papel
+            });
+            houveAlteracao = true;
+        }
+
+        if (houveAlteracao)
+            await context.SaveChangesAsync();
     }
 }

@@ -1,18 +1,24 @@
+using Escola.Api.Auth;
 using Escola.Api.Dtos;
+using Escola.Api.Dtos.Requests;
+using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Api.Controllers;
 
-// Sem login ainda: usado pelo front para deixar o educador se identificar
-// numa lista, até a autenticação de verdade existir.
 [ApiController]
 [Route("api/usuarios")]
+[Authorize]
 public class UsuariosController(EscolaDbContext db) : ControllerBase
 {
+    /// <summary>Lista por papel — usado pra montar o seletor de professor ao cadastrar turma.</summary>
     [HttpGet]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<ActionResult<List<UsuarioDto>>> Listar([FromQuery] string? papel)
     {
         var query = db.Usuarios.AsQueryable();
@@ -21,15 +27,119 @@ public class UsuariosController(EscolaDbContext db) : ControllerBase
             query = query.Where(u => u.Papel == papelEnum);
 
         var usuarios = await query
+            .OrderBy(u => u.Nome)
             .Select(u => new UsuarioDto(u.Id, u.Nome, u.Papel.ToString()))
             .ToListAsync();
 
         return Ok(usuarios);
     }
 
+    /// <summary>Contas da equipe (todos os papéis exceto Responsável) — tela de gestão de usuários.</summary>
+    [HttpGet("contas")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<List<UsuarioContaDto>>> ListarContas()
+    {
+        var contas = await db.Usuarios
+            .Where(u => u.Papel != PapelUsuario.Responsavel)
+            .OrderBy(u => u.Nome)
+            .Select(u => new UsuarioContaDto(u.Id, u.Nome, u.Email, u.Papel.ToString()))
+            .ToListAsync();
+
+        return Ok(contas);
+    }
+
+    [HttpPost("contas")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<SenhaGeradaDto>> CriarConta(CriarUsuarioRequest request)
+    {
+        if (request.Papel == PapelUsuario.Responsavel)
+            return BadRequest("Contas de responsável são criadas pela Matrícula, não por aqui.");
+
+        if (string.IsNullOrWhiteSpace(request.Nome) || string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest("Nome e e-mail são obrigatórios.");
+
+        var email = request.Email.Trim();
+        if (await db.Usuarios.AnyAsync(u => u.Email.ToLower() == email.ToLower()))
+            return BadRequest("Já existe uma conta com esse e-mail.");
+
+        var senha = GeradorSenhaTemporaria.Gerar();
+        var usuario = new Usuario
+        {
+            Id = Guid.NewGuid(), Nome = request.Nome.Trim(), Email = email,
+            SenhaHash = SenhaHasher.Hash(senha), Papel = request.Papel
+        };
+        db.Usuarios.Add(usuario);
+        await db.SaveChangesAsync();
+
+        return Ok(new SenhaGeradaDto(usuario.Nome, usuario.Email, senha));
+    }
+
+    [HttpPut("contas/{id:guid}")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<UsuarioContaDto>> EditarConta(Guid id, EditarUsuarioRequest request)
+    {
+        if (request.Papel == PapelUsuario.Responsavel)
+            return BadRequest("Contas de responsável são geridas pela Matrícula, não por aqui.");
+
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
+        if (usuario is null) return NotFound("Conta não encontrada.");
+
+        if (string.IsNullOrWhiteSpace(request.Nome) || string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest("Nome e e-mail são obrigatórios.");
+
+        var email = request.Email.Trim();
+        if (await db.Usuarios.AnyAsync(u => u.Id != id && u.Email.ToLower() == email.ToLower()))
+            return BadRequest("Já existe uma conta com esse e-mail.");
+
+        usuario.Nome = request.Nome.Trim();
+        usuario.Email = email;
+        usuario.Papel = request.Papel;
+        await db.SaveChangesAsync();
+
+        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString()));
+    }
+
+    [HttpPost("contas/{id:guid}/redefinir-senha")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<SenhaGeradaDto>> RedefinirSenha(Guid id)
+    {
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
+        if (usuario is null) return NotFound("Conta não encontrada.");
+
+        var senha = GeradorSenhaTemporaria.Gerar();
+        usuario.SenhaHash = SenhaHasher.Hash(senha);
+        await db.SaveChangesAsync();
+
+        return Ok(new SenhaGeradaDto(usuario.Nome, usuario.Email, senha));
+    }
+
+    [HttpDelete("contas/{id:guid}")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<IActionResult> ExcluirConta(Guid id)
+    {
+        var usuarioLogadoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (id.ToString() == usuarioLogadoId)
+            return BadRequest("Você não pode excluir a própria conta.");
+
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
+        if (usuario is null) return NotFound("Conta não encontrada.");
+
+        db.Usuarios.Remove(usuario);
+        await db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    /// <summary>Um educador só vê as próprias turmas; Admin/Coordenador podem consultar qualquer um.</summary>
     [HttpGet("{id:guid}/turmas")]
+    [Authorize(Roles = $"{GruposDePapeis.Equipe}")]
     public async Task<ActionResult<List<TurmaDto>>> ListarTurmas(Guid id)
     {
+        var ehGestao = User.IsInRole("Admin") || User.IsInRole("Coordenador");
+        var usuarioLogadoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!ehGestao && id.ToString() != usuarioLogadoId)
+            return Forbid();
+
         if (!await db.Usuarios.AnyAsync(u => u.Id == id))
             return NotFound("Usuário não encontrado.");
 

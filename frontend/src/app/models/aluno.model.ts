@@ -36,8 +36,15 @@ export interface ResponsavelResumo {
   responsavelFinanceiro: boolean;
 }
 
+export interface SenhaGeradaResponsavel {
+  nome: string;
+  email: string;
+  senha: string;
+}
+
 export interface AlunoDetalhe extends Aluno {
   responsaveis: ResponsavelResumo[];
+  senhasGeradas: SenhaGeradaResponsavel[];
 }
 
 export interface CriarOuEditarAluno {

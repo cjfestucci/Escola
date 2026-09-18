@@ -13,12 +13,12 @@
     @if (contextoService.contexto() === 'educador' && sessao.educadorNome(); as nome) {
       <span class="avatar-topbar">{{ nome.charAt(0) }}</span>
       <span class="nome-topbar">{{ nome }}</span>
-      <button type="button" class="botao-trocar" (click)="trocar()">Trocar</button>
+      <button type="button" class="botao-trocar" (click)="sair()">Sair</button>
     }
     @if (contextoService.contexto() === 'portal' && sessao.responsavelNome(); as nome) {
       <span class="avatar-topbar">{{ nome.charAt(0) }}</span>
       <span class="nome-topbar">{{ nome }}</span>
-      <button type="button" class="botao-trocar" (click)="trocar()">Trocar</button>
+      <button type="button" class="botao-trocar" (click)="sair()">Sair</button>
     }
   </div>
 </header>

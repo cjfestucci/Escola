@@ -1,34 +1,17 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { Injectable, computed, inject } from '@angular/core';
+
+import { AuthService } from './auth.service';
 
 export type Contexto = 'educador' | 'portal' | null;
 
-/** Deriva se a rota atual é da área do educador ou do Portal dos Pais, pro shell (sidebar/topbar) se adaptar. */
+/** Deriva se a identidade logada é da equipe ou do Portal dos Pais, pro shell (sidebar/topbar) se adaptar. */
 @Injectable({ providedIn: 'root' })
 export class ContextoService {
-  private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
-  private readonly url = signal(this.router.url);
-
-  readonly contexto = signal<Contexto>(this.calcular(this.router.url));
-
-  constructor() {
-    this.router.events.pipe(filter((evento) => evento instanceof NavigationEnd)).subscribe(() => {
-      this.url.set(this.router.url);
-      this.contexto.set(this.calcular(this.router.url));
-    });
-  }
-
-  private calcular(url: string): Contexto {
-    if (url.startsWith('/portal')) return 'portal';
-    if (
-      url.startsWith('/alunos') ||
-      url.startsWith('/entrar') ||
-      url.startsWith('/turmas') ||
-      url.startsWith('/matricula')
-    )
-      return 'educador';
+  readonly contexto = computed<Contexto>(() => {
+    if (this.auth.ehResponsavel()) return 'portal';
+    if (this.auth.ehEquipe()) return 'educador';
     return null;
-  }
+  });
 }

@@ -1,7 +1,9 @@
 <div class="container">
   <div class="cabecalho-pagina">
     <p class="subtitulo">Alunos matriculados na escola.</p>
-    <button type="button" class="botao-primario" (click)="novo()">+ Novo Aluno</button>
+    @if (auth.ehGestao()) {
+      <button type="button" class="botao-primario" (click)="novo()">+ Novo Aluno</button>
+    }
   </div>
 
   @if (erro(); as mensagem) {
@@ -61,7 +63,7 @@
                 </button>
               </div>
             </div>
-          } @else {
+          } @else if (auth.ehGestao()) {
             <div class="acoes">
               <button type="button" class="botao-icone" (click)="editar(aluno)" aria-label="Editar aluno">✏️</button>
               <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(aluno.id)" aria-label="Excluir aluno">🗑️</button>

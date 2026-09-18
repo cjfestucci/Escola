@@ -1,11 +1,14 @@
+using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Infrastructure.Storage;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Escola.Api.Controllers;
 
 [ApiController]
 [Route("api/uploads")]
+[Authorize(Roles = GruposDePapeis.Equipe)]
 public class UploadsController(IFotoStorage fotoStorage) : ControllerBase
 {
     private static readonly HashSet<string> TiposPermitidos = new(StringComparer.OrdinalIgnoreCase)

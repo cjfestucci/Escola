@@ -1,18 +1,23 @@
 <div class="entrar">
-  <h1>Quem está lançando?</h1>
-  <p class="subtitulo">Selecione seu nome para abrir a rotina das turmas.</p>
+  <span class="marca-icone">🏫</span>
+  <h1>Rotina Escola</h1>
+  <p class="subtitulo">Entre com seu e-mail e senha.</p>
 
-  @if (carregando()) {
-    <p>Carregando...</p>
-  } @else if (erro()) {
-    <p class="erro">Não foi possível carregar a lista. Verifique se a API está rodando.</p>
-  } @else {
-    <div class="lista-educadores">
-      @for (educador of educadores(); track educador.id) {
-        <button type="button" class="cartao-educador" (click)="selecionar(educador)">
-          {{ educador.nome }}
-        </button>
-      }
-    </div>
-  }
+  <form class="formulario" (ngSubmit)="entrar()">
+    @if (erro(); as mensagem) {
+      <p class="erro">{{ mensagem }}</p>
+    }
+
+    <label>E-mail
+      <input type="email" [(ngModel)]="email" name="email" placeholder="voce@escola.dev" autocomplete="username" />
+    </label>
+
+    <label>Senha
+      <input type="password" [(ngModel)]="senha" name="senha" placeholder="••••••••" autocomplete="current-password" />
+    </label>
+
+    <button type="submit" class="botao-entrar" [disabled]="entrando()">
+      {{ entrando() ? 'Entrando...' : 'Entrar' }}
+    </button>
+  </form>
 </div>

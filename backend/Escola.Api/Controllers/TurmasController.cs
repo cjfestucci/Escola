@@ -1,7 +1,9 @@
+using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
 using Escola.Domain.Entities;
 using Escola.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +11,7 @@ namespace Escola.Api.Controllers;
 
 [ApiController]
 [Route("api/turmas")]
+[Authorize(Roles = GruposDePapeis.Equipe)]
 public class TurmasController(EscolaDbContext db) : ControllerBase
 {
     [HttpGet]
@@ -26,6 +29,7 @@ public class TurmasController(EscolaDbContext db) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<ActionResult<TurmaDto>> Criar(CriarOuEditarTurmaRequest request)
     {
         var erro = await ValidarAsync(request);
@@ -51,6 +55,7 @@ public class TurmasController(EscolaDbContext db) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<ActionResult<TurmaDto>> Editar(Guid id, CriarOuEditarTurmaRequest request)
     {
         var erro = await ValidarAsync(request);
@@ -75,6 +80,7 @@ public class TurmasController(EscolaDbContext db) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<IActionResult> Excluir(Guid id)
     {
         var turma = await db.Turmas.Include(t => t.Alunos).FirstOrDefaultAsync(t => t.Id == id);

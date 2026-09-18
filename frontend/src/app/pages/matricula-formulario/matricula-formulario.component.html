@@ -5,6 +5,14 @@
 
   @if (carregando()) {
     <p>Carregando...</p>
+  } @else if (senhasGeradas().length > 0) {
+    <div class="aviso-senha">
+      <strong>Aluno matriculado! Acesso do Portal dos Pais criado — anote as senhas, elas só aparecem esta vez:</strong>
+      @for (sg of senhasGeradas(); track sg.email) {
+        <p>{{ sg.nome }} ({{ sg.email }}) — <span class="senha">{{ sg.senha }}</span></p>
+      }
+      <button type="button" class="botao-primario" (click)="continuar()">Continuar</button>
+    </div>
   } @else {
     <div class="painel-formulario">
       @if (erro(); as mensagem) {

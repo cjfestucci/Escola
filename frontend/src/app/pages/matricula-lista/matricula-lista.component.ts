@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
 import { AlunoService } from '../../services/aluno.service';
+import { AuthService } from '../../services/auth.service';
 import { idadeFormatada } from '../../shared/data-utils';
 
 interface OpcaoTurma {
@@ -20,6 +21,7 @@ interface OpcaoTurma {
 export class MatriculaListaComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly router = inject(Router);
+  protected readonly auth = inject(AuthService);
 
   readonly alunos = signal<Aluno[]>([]);
   readonly carregando = signal(true);

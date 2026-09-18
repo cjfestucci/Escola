@@ -1,8 +1,17 @@
 .entrar {
-  max-width: 420px;
+  max-width: 360px;
   margin: 0 auto;
-  padding: 48px 20px;
+  padding: 64px 20px;
   text-align: center;
+}
+
+.marca-icone {
+  font-size: 2.4rem;
+}
+
+h1 {
+  margin: 8px 0 4px;
+  font-size: 1.3rem;
 }
 
 .subtitulo {
@@ -10,28 +19,55 @@
   margin-bottom: 24px;
 }
 
-.lista-educadores {
+.formulario {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+  text-align: left;
 }
 
-.cartao-educador {
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio);
-  padding: 16px;
-  font-size: 1rem;
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
   font-weight: 600;
-  box-shadow: var(--sombra);
+  color: var(--cor-texto-suave);
+}
 
-  &:active {
-    background: var(--cor-primaria);
-    color: #fff;
-    border-color: var(--cor-primaria);
+input {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+}
+
+.botao-entrar {
+  background: var(--cor-primaria);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 4px;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  &:active:not(:disabled) {
+    background: var(--cor-primaria-escura);
   }
 }
 
 .erro {
   color: #b3261e;
+  background: #fdecea;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0;
+  font-size: 0.85rem;
 }

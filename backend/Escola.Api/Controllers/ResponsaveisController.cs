@@ -1,29 +1,25 @@
+using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Api.Controllers;
 
-// Sem login ainda: o Portal dos Pais usa essa lista pra deixar o responsável
-// se identificar, até a autenticação de verdade existir.
 [ApiController]
 [Route("api/responsaveis")]
+[Authorize]
 public class ResponsaveisController(EscolaDbContext db) : ControllerBase
 {
-    [HttpGet]
-    public async Task<ActionResult<List<ResponsavelDto>>> Listar()
-    {
-        var responsaveis = await db.Responsaveis
-            .Select(r => new ResponsavelDto(r.Id, r.Nome))
-            .ToListAsync();
-
-        return Ok(responsaveis);
-    }
-
     [HttpGet("{id:guid}/alunos")]
     public async Task<ActionResult<List<AlunoDto>>> ListarAlunos(Guid id)
     {
+        // Um responsável só pode ver os próprios filhos; a equipe pode consultar qualquer um (suporte).
+        var ehEquipe = User.IsInRole("Admin") || User.IsInRole("Coordenador") || User.IsInRole("Educador") || User.IsInRole("Financeiro");
+        if (!ehEquipe && User.FindFirst("responsavelId")?.Value != id.ToString())
+            return Forbid();
+
         if (!await db.Responsaveis.AnyAsync(r => r.Id == id))
             return NotFound("Responsável não encontrado.");
 

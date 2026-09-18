@@ -1,5 +1,7 @@
+using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +9,7 @@ namespace Escola.Api.Controllers;
 
 [ApiController]
 [Route("api/dashboard")]
+[Authorize(Roles = GruposDePapeis.Equipe)]
 public class DashboardController(EscolaDbContext db) : ControllerBase
 {
     [HttpGet("resumo")]

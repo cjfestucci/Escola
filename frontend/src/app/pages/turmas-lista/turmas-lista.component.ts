@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Periodo, Turma } from '../../models/aluno.model';
+import { AuthService } from '../../services/auth.service';
 import { TurmaService } from '../../services/turma.service';
 
 const ROTULO_PERIODO: Record<string, string> = {
@@ -28,6 +29,7 @@ interface OpcaoProfessor {
 export class TurmasListaComponent implements OnInit {
   private readonly turmaService = inject(TurmaService);
   private readonly router = inject(Router);
+  protected readonly auth = inject(AuthService);
 
   readonly turmas = signal<Turma[]>([]);
   readonly carregando = signal(true);

@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ResponsavelResumo, Turma } from '../../models/aluno.model';
+import { ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/aluno.model';
 import { AlunoService } from '../../services/aluno.service';
 import { TurmaService } from '../../services/turma.service';
 import { UploadService } from '../../services/upload.service';
@@ -38,6 +38,7 @@ export class MatriculaFormularioComponent implements OnInit {
   readonly fotoUrl = signal<string | null>(null);
   readonly responsaveis = signal<ResponsavelResumo[]>([novoResponsavelVazio()]);
   readonly calendarioNascimentoAberto = signal(false);
+  readonly senhasGeradas = signal<SenhaGeradaResponsavel[]>([]);
 
   nome = '';
   dataNascimento = '';
@@ -145,12 +146,23 @@ export class MatriculaFormularioComponent implements OnInit {
       : this.alunoService.criar(payload);
 
     requisicao$.subscribe({
-      next: () => this.router.navigateByUrl('/matricula'),
+      next: (resultado) => {
+        if (resultado.senhasGeradas?.length > 0) {
+          this.senhasGeradas.set(resultado.senhasGeradas);
+          this.salvando.set(false);
+        } else {
+          this.router.navigateByUrl('/matricula');
+        }
+      },
       error: (resposta) => {
         this.salvando.set(false);
         this.erro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar o aluno.');
       }
     });
+  }
+
+  continuar(): void {
+    this.router.navigateByUrl('/matricula');
   }
 
   cancelar(): void {

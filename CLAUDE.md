@@ -18,3 +18,15 @@ Componentes nativos do HTML seguem o idioma do **navegador**, não o `lang` da p
 
 - `confirm()` / `alert()` nativos do navegador — não usar; o padrão do projeto é confirmação inline (ex.: `confirmandoExclusaoId` signal + botões de confirmar/cancelar no próprio item da lista).
 - Formatação de data/hora: sempre passar `'pt-BR'` explicitamente em `toLocaleDateString`/`toLocaleTimeString`/`Intl.DateTimeFormat`. Nunca usar `.toString()`/`.toDateString()` puro (sempre em inglês). Utilitários prontos em `frontend/src/app/shared/data-utils.ts` (`hojeIso`, `rotuloData`, `formatarDataAbsoluta`, `idadeFormatada`).
+
+## Login e perfis (autenticação real, desde 2026-09-18)
+
+Todo mundo loga com e-mail + senha — equipe (Admin, Coordenador, Educador/Professor, Financeiro) e Responsável (Pais), pela mesma tela (`/entrar`). `PapelUsuario` (`backend/Escola.Domain/Enums/PapelUsuario.cs`) tem esses 5 valores; `Educador` é o nome interno pro papel que aparece como "Professor" nas telas.
+
+- **Token**: JWT de 30 dias (sem refresh token — prioriza não pedir senha de novo, é um pilot pequeno). Configurado em `appsettings.Development.json` (`Jwt:Chave`/`Emissor`/`DiasValidade`), emitido por `AuthController.Entrar` (`POST /api/auth/entrar`).
+- **Frontend**: `AuthService` (`frontend/src/app/services/auth.service.ts`) decodifica o JWT direto no cliente (sem round-trip) e guarda em `localStorage`. `authInterceptor` anexa o header em toda chamada à API e desloga em qualquer 401. Guards em `auth.guards.ts`: `equipeGuard` (qualquer papel de equipe), `gestaoGuard` (só Admin/Coordenador), `portalGuard` (só Responsável).
+- **Backend**: todo controller tem `[Authorize]`; grupos de papéis reutilizáveis em `Escola.Api/Auth/GruposDePapeis.cs` (`Equipe`, `Gestao`, `Responsavel`). Criar/editar/excluir Turma e Aluno (Matrícula) é só `Gestao` — um Educador só visualiza essas listas agora (antes qualquer um podia mexer).
+- **Senhas**: hash PBKDF2 próprio em `Escola.Infrastructure/Auth/SenhaHasher.cs` (sem dependência do ASP.NET Identity). Contas de equipe são criadas manualmente por Admin/Coordenador na tela **Usuários** (`/usuarios`, só aparece pra quem é Gestão) — a senha inicial é gerada (`GeradorSenhaTemporaria`) e mostrada **uma única vez** na tela, sem ficar guardada em texto puro em lugar nenhum.
+- **Responsável (Pais)**: não tem tela de cadastro própria — o login (`Usuario` com `Papel = Responsavel`, ligado via `ResponsavelId`) é criado automaticamente na primeira vez que esse e-mail aparece como responsável de um aluno na Matrícula (`AlunosController.SincronizarResponsaveisAsync`). A senha gerada aparece uma vez na tela de Matrícula depois de salvar (`senhasGeradas` na resposta).
+- **Senha de dev**: todas as contas seed (`DbInitializer`) usam `escola123` — nunca usar esse padrão fora de ambiente de desenvolvimento.
+- Um Responsável só acessa os próprios filhos (checado via claim `responsavelId` no token contra `AlunoResponsaveis`) — nunca confiar em um `:id` da URL sem checar isso.

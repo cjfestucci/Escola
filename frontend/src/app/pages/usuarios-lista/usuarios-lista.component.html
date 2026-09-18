@@ -1,0 +1,93 @@
+<div class="container">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Contas de acesso da equipe (Admin, Coordenador, Professor, Financeiro).</p>
+    <button type="button" class="botao-primario" (click)="abrirNovo()">+ Nova Conta</button>
+  </div>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro">{{ mensagem }}</p>
+  }
+
+  @if (senhaGerada(); as sg) {
+    <div class="aviso-senha">
+      <strong>Conta pronta — anote a senha, ela só aparece esta vez:</strong>
+      <p>{{ sg.nome }} ({{ sg.email }})</p>
+      <p class="senha">{{ sg.senha }}</p>
+      <button type="button" class="botao-texto" (click)="senhaGerada.set(null)">Entendi</button>
+    </div>
+  }
+
+  @if (formularioAberto()) {
+    <div class="painel-formulario">
+      <label>Nome
+        <input type="text" [(ngModel)]="nome" placeholder="Nome completo" />
+      </label>
+      <label>E-mail
+        <input type="email" [(ngModel)]="email" placeholder="email@escola.dev" />
+      </label>
+      <label>Papel
+        <select [(ngModel)]="papel">
+          @for (p of papeis; track p) {
+            <option [value]="p">{{ rotuloPapel(p) }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (contas().length === 0) {
+    <p class="vazio">Nenhuma conta cadastrada ainda.</p>
+  } @else {
+    <ul class="lista-contas">
+      @for (conta of contas(); track conta.id) {
+        <li class="cartao-conta">
+          <div class="info-conta">
+            <strong>{{ conta.nome }}</strong>
+            <span class="detalhe">{{ conta.email }} · {{ rotuloPapel(conta.papel) }}</span>
+          </div>
+
+          @if (confirmandoExclusaoId() === conta.id) {
+            <div class="confirmar-exclusao">
+              <span>Excluir conta?</span>
+              <div class="acoes">
+                <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
+                <button
+                  type="button"
+                  class="botao-texto botao-texto--perigo"
+                  [disabled]="excluindoId() === conta.id"
+                  (click)="confirmarExclusao(conta)"
+                >
+                  {{ excluindoId() === conta.id ? 'Excluindo...' : 'Excluir' }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="acoes">
+              <button
+                type="button"
+                class="botao-texto"
+                [disabled]="redefinindoId() === conta.id"
+                (click)="redefinirSenha(conta)"
+              >
+                {{ redefinindoId() === conta.id ? 'Gerando...' : 'Redefinir senha' }}
+              </button>
+              <button type="button" class="botao-icone" (click)="editar(conta)" aria-label="Editar conta">✏️</button>
+              @if (conta.id !== meuId) {
+                <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(conta.id)" aria-label="Excluir conta">🗑️</button>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>
