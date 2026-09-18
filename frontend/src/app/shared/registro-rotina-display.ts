@@ -46,7 +46,10 @@ export function horaRegistro(registradoEm: string): string {
 }
 
 /** As fotos vêm do backend como caminho relativo (ex.: "/uploads/xyz.jpg"); aqui vira URL completa. */
-export function resolverFotoUrl(fotoUrl: string | null): string | null {
-  if (!fotoUrl) return null;
+export function resolverFotoUrl(fotoUrl: string): string {
   return `${environment.fileOrigin}${fotoUrl}`;
+}
+
+export function resolverFotoUrls(fotoUrls: string[]): string[] {
+  return fotoUrls.map(resolverFotoUrl);
 }

@@ -9,15 +9,19 @@
   }
 
   <div class="acoes-rapidas">
-    <button type="button" [class.ativa]="acaoAtiva() === 'Alimentacao'" (click)="abrirAcao('Alimentacao')">🍽️<span>Comida</span></button>
-    <button type="button" [class.ativa]="acaoAtiva() === 'Sono'" (click)="abrirAcao('Sono')">😴<span>Sono</span></button>
-    <button type="button" [class.ativa]="acaoAtiva() === 'Higiene'" (click)="abrirAcao('Higiene')">🧷<span>Higiene</span></button>
-    <button type="button" [class.ativa]="acaoAtiva() === 'Humor'" (click)="abrirAcao('Humor')">🙂<span>Humor</span></button>
-    <button type="button" [class.ativa]="acaoAtiva() === 'Momento'" (click)="abrirAcao('Momento')">📷<span>Momento</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Alimentacao' && !registroEmEdicaoId()" (click)="abrirAcao('Alimentacao')">🍽️<span>Comida</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Sono' && !registroEmEdicaoId()" (click)="abrirAcao('Sono')">😴<span>Sono</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Higiene' && !registroEmEdicaoId()" (click)="abrirAcao('Higiene')">🧷<span>Higiene</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Humor' && !registroEmEdicaoId()" (click)="abrirAcao('Humor')">🙂<span>Humor</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Momento' && !registroEmEdicaoId()" (click)="abrirAcao('Momento')">📷<span>Momento</span></button>
   </div>
 
   @if (acaoAtiva(); as acao) {
     <div class="painel-formulario">
+      @if (registroEmEdicaoId()) {
+        <p class="rotulo-edicao">Editando registro</p>
+      }
+
       @switch (acao) {
         @case ('Alimentacao') {
           <label>Refeição
@@ -67,14 +71,23 @@
         <textarea [(ngModel)]="observacao" rows="2"></textarea>
       </label>
 
-      <label>Foto (opcional)
-        <input type="file" accept="image/*" capture="environment" (change)="aoSelecionarFoto($event)" />
-      </label>
+      <label>Fotos (até {{ maxFotos }})</label>
+
+      @if (fotoUrls().length > 0) {
+        <div class="miniaturas-fotos">
+          @for (url of resolverFotoUrls(fotoUrls()); track url; let i = $index) {
+            <div class="miniatura">
+              <img [src]="url" alt="Foto anexada" />
+              <button type="button" class="remover-foto" (click)="removerFoto(fotoUrls()[i])" aria-label="Remover foto">×</button>
+            </div>
+          }
+        </div>
+      }
 
       @if (enviandoFoto()) {
         <p class="dica">Enviando foto...</p>
-      } @else if (fotoUrl()) {
-        <img class="preview-foto" [src]="resolverFotoUrl(fotoUrl())" alt="Prévia da foto" />
+      } @else if (fotoUrls().length < maxFotos) {
+        <input type="file" accept="image/*" capture="environment" (change)="aoSelecionarFoto($event)" />
       }
 
       <div class="botoes">
@@ -105,10 +118,37 @@
             @if (registro.observacao) {
               <p class="observacao">{{ registro.observacao }}</p>
             }
-            @if (registro.fotoUrl) {
-              <img class="foto" [src]="resolverFotoUrl(registro.fotoUrl)" alt="Foto do registro" />
+            @if (registro.fotoUrls.length > 0) {
+              <div class="galeria-fotos">
+                @for (url of resolverFotoUrls(registro.fotoUrls); track url) {
+                  <img class="foto" [src]="url" alt="Foto do registro" />
+                }
+              </div>
             }
-            <span class="autor">por {{ registro.criadoPorNome }}</span>
+            @if (confirmandoExclusaoId() === registro.id) {
+              <div class="confirmar-exclusao">
+                <span>Excluir este registro?</span>
+                <div class="acoes-item">
+                  <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
+                  <button
+                    type="button"
+                    class="botao-texto botao-texto--perigo"
+                    [disabled]="excluindoId() === registro.id"
+                    (click)="confirmarExclusao(registro)"
+                  >
+                    {{ excluindoId() === registro.id ? 'Excluindo...' : 'Excluir' }}
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="rodape-item">
+                <span class="autor">por {{ registro.criadoPorNome }}</span>
+                <div class="acoes-item">
+                  <button type="button" class="botao-icone" (click)="editarRegistro(registro)" aria-label="Editar registro">✏️</button>
+                  <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(registro.id)" aria-label="Excluir registro">🗑️</button>
+                </div>
+              </div>
+            }
           </div>
         </li>
       }

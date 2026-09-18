@@ -42,4 +42,28 @@ export class RotinaService {
   registrarMomento(alunoId: string, payload: CriarRegistroMomento): Observable<RegistroRotina> {
     return this.http.post<RegistroRotina>(`${this.baseUrl}/alunos/${alunoId}/rotina/momento`, payload);
   }
+
+  editarAlimentacao(alunoId: string, registroId: string, payload: CriarRegistroAlimentacao): Observable<RegistroRotina> {
+    return this.http.put<RegistroRotina>(`${this.baseUrl}/alunos/${alunoId}/rotina/alimentacao/${registroId}`, payload);
+  }
+
+  editarSono(alunoId: string, registroId: string, payload: CriarRegistroSono): Observable<RegistroRotina> {
+    return this.http.put<RegistroRotina>(`${this.baseUrl}/alunos/${alunoId}/rotina/sono/${registroId}`, payload);
+  }
+
+  editarHigiene(alunoId: string, registroId: string, payload: CriarRegistroHigiene): Observable<RegistroRotina> {
+    return this.http.put<RegistroRotina>(`${this.baseUrl}/alunos/${alunoId}/rotina/higiene/${registroId}`, payload);
+  }
+
+  editarHumor(alunoId: string, registroId: string, payload: CriarRegistroHumor): Observable<RegistroRotina> {
+    return this.http.put<RegistroRotina>(`${this.baseUrl}/alunos/${alunoId}/rotina/humor/${registroId}`, payload);
+  }
+
+  editarMomento(alunoId: string, registroId: string, payload: CriarRegistroMomento): Observable<RegistroRotina> {
+    return this.http.put<RegistroRotina>(`${this.baseUrl}/alunos/${alunoId}/rotina/momento/${registroId}`, payload);
+  }
+
+  excluir(alunoId: string, registroId: string, usuarioId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/alunos/${alunoId}/rotina/${registroId}`, { params: { usuarioId } });
+  }
 }

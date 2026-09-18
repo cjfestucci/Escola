@@ -38,7 +38,7 @@ public static class RegistroRotinaMapper
         Categoria: string.Empty,
         r.RegistradoEm,
         r.Observacao,
-        r.FotoUrl,
+        FotoUrls: r.Fotos.OrderBy(f => f.Ordem).Select(f => f.Url).ToList(),
         CriadoPorNome: r.CriadoPor?.Nome ?? string.Empty,
         Refeicao: null,
         StatusAlimentacao: null,

@@ -6,6 +6,7 @@ import { Aluno } from '../../models/aluno.model';
 import {
   CategoriaRegistro,
   Humor,
+  MAX_FOTOS_POR_REGISTRO,
   Refeicao,
   RegistroRotina,
   StatusAlimentacao,
@@ -15,7 +16,7 @@ import { AlunoService } from '../../services/aluno.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import { UploadService } from '../../services/upload.service';
-import { horaRegistro, iconeCategoria, resolverFotoUrl, rotuloCategoria } from '../../shared/registro-rotina-display';
+import { horaRegistro, iconeCategoria, resolverFotoUrls, rotuloCategoria } from '../../shared/registro-rotina-display';
 
 type AcaoRapida = CategoriaRegistro | null;
 
@@ -39,10 +40,15 @@ export class AlunoRotinaComponent implements OnInit {
   readonly registros = signal<RegistroRotina[]>([]);
   readonly carregando = signal(true);
   readonly enviando = signal(false);
+  readonly excluindoId = signal<string | null>(null);
+  readonly confirmandoExclusaoId = signal<string | null>(null);
 
   readonly acaoAtiva = signal<AcaoRapida>(null);
-  readonly fotoUrl = signal<string | null>(null);
+  readonly registroEmEdicaoId = signal<string | null>(null);
+  readonly fotoUrls = signal<string[]>([]);
   readonly enviandoFoto = signal(false);
+
+  readonly maxFotos = MAX_FOTOS_POR_REGISTRO;
 
   // campos do formulário rápido — só os relevantes para a ação ativa são usados
   observacao = '';
@@ -79,29 +85,78 @@ export class AlunoRotinaComponent implements OnInit {
   }
 
   abrirAcao(acao: CategoriaRegistro): void {
-    this.acaoAtiva.set(this.acaoAtiva() === acao ? null : acao);
-    this.observacao = '';
-    this.horaInicioSono = this.horaAtual();
-    this.fotoUrl.set(null);
+    const jaAberta = this.acaoAtiva() === acao && !this.registroEmEdicaoId();
+    this.limparFormulario();
+    this.acaoAtiva.set(jaAberta ? null : acao);
+  }
+
+  editarRegistro(registro: RegistroRotina): void {
+    this.limparFormulario();
+    this.acaoAtiva.set(registro.categoria);
+    this.registroEmEdicaoId.set(registro.id);
+    this.observacao = registro.observacao ?? '';
+    this.fotoUrls.set([...registro.fotoUrls]);
+
+    if (registro.refeicao) this.refeicao = registro.refeicao;
+    if (registro.statusAlimentacao) this.statusAlimentacao = registro.statusAlimentacao;
+    if (registro.horaInicio) this.horaInicioSono = registro.horaInicio.slice(0, 5);
+    if (registro.tipoHigiene) this.tipoHigiene = registro.tipoHigiene;
+    if (registro.humor) this.humor = registro.humor;
+  }
+
+  pedirConfirmacaoExclusao(registroId: string): void {
+    this.confirmandoExclusaoId.set(registroId);
+  }
+
+  cancelarExclusao(): void {
+    this.confirmandoExclusaoId.set(null);
+  }
+
+  confirmarExclusao(registro: RegistroRotina): void {
+    const usuarioId = this.sessao.educadorId();
+    if (!usuarioId) return;
+
+    this.excluindoId.set(registro.id);
+    this.rotinaService.excluir(this.alunoId, registro.id, usuarioId).subscribe({
+      next: () => {
+        this.registros.update((atual) => atual.filter((r) => r.id !== registro.id));
+        this.excluindoId.set(null);
+        this.confirmandoExclusaoId.set(null);
+      },
+      error: () => this.excluindoId.set(null)
+    });
   }
 
   fecharAcao(): void {
+    this.limparFormulario();
     this.acaoAtiva.set(null);
-    this.fotoUrl.set(null);
+  }
+
+  private limparFormulario(): void {
+    this.registroEmEdicaoId.set(null);
+    this.observacao = '';
+    this.horaInicioSono = this.horaAtual();
+    this.fotoUrls.set([]);
   }
 
   aoSelecionarFoto(event: Event): void {
-    const arquivo = (event.target as HTMLInputElement).files?.[0];
-    if (!arquivo) return;
+    const input = event.target as HTMLInputElement;
+    const arquivo = input.files?.[0];
+    input.value = '';
+    if (!arquivo || this.fotoUrls().length >= this.maxFotos) return;
 
     this.enviandoFoto.set(true);
     this.uploadService.enviarFoto(arquivo).subscribe({
       next: (resultado) => {
-        this.fotoUrl.set(resultado.url);
+        this.fotoUrls.update((atual) => [...atual, resultado.url]);
         this.enviandoFoto.set(false);
       },
       error: () => this.enviandoFoto.set(false)
     });
+  }
+
+  removerFoto(url: string): void {
+    this.fotoUrls.update((atual) => atual.filter((u) => u !== url));
   }
 
   voltar(): void {
@@ -114,39 +169,47 @@ export class AlunoRotinaComponent implements OnInit {
     if (!usuarioId || !acao) return;
 
     this.enviando.set(true);
-    const base = { usuarioId, observacao: this.observacao || null, fotoUrl: this.fotoUrl() };
+    const registroId = this.registroEmEdicaoId();
+    const base = { usuarioId, observacao: this.observacao || null, fotoUrls: this.fotoUrls() };
 
     const requisicao$ = (() => {
       switch (acao) {
-        case 'Alimentacao':
-          return this.rotinaService.registrarAlimentacao(this.alunoId, {
-            ...base,
-            refeicao: this.refeicao,
-            status: this.statusAlimentacao
-          });
-        case 'Sono':
-          return this.rotinaService.registrarSono(this.alunoId, {
-            ...base,
-            horaInicio: this.horaInicioSono
-          });
-        case 'Higiene':
-          return this.rotinaService.registrarHigiene(this.alunoId, {
-            ...base,
-            tipo: this.tipoHigiene
-          });
-        case 'Humor':
-          return this.rotinaService.registrarHumor(this.alunoId, {
-            ...base,
-            humor: this.humor
-          });
+        case 'Alimentacao': {
+          const payload = { ...base, refeicao: this.refeicao, status: this.statusAlimentacao };
+          return registroId
+            ? this.rotinaService.editarAlimentacao(this.alunoId, registroId, payload)
+            : this.rotinaService.registrarAlimentacao(this.alunoId, payload);
+        }
+        case 'Sono': {
+          const payload = { ...base, horaInicio: this.horaInicioSono };
+          return registroId
+            ? this.rotinaService.editarSono(this.alunoId, registroId, payload)
+            : this.rotinaService.registrarSono(this.alunoId, payload);
+        }
+        case 'Higiene': {
+          const payload = { ...base, tipo: this.tipoHigiene };
+          return registroId
+            ? this.rotinaService.editarHigiene(this.alunoId, registroId, payload)
+            : this.rotinaService.registrarHigiene(this.alunoId, payload);
+        }
+        case 'Humor': {
+          const payload = { ...base, humor: this.humor };
+          return registroId
+            ? this.rotinaService.editarHumor(this.alunoId, registroId, payload)
+            : this.rotinaService.registrarHumor(this.alunoId, payload);
+        }
         case 'Momento':
-          return this.rotinaService.registrarMomento(this.alunoId, base);
+          return registroId
+            ? this.rotinaService.editarMomento(this.alunoId, registroId, base)
+            : this.rotinaService.registrarMomento(this.alunoId, base);
       }
     })();
 
     requisicao$.subscribe({
       next: (registro) => {
-        this.registros.update((atual) => [registro, ...atual]);
+        this.registros.update((atual) =>
+          registroId ? atual.map((r) => (r.id === registro.id ? registro : r)) : [registro, ...atual]
+        );
         this.enviando.set(false);
         this.fecharAcao();
       },
@@ -157,7 +220,7 @@ export class AlunoRotinaComponent implements OnInit {
   protected readonly rotuloCategoria = rotuloCategoria;
   protected readonly iconeCategoria = iconeCategoria;
   protected readonly horaRegistro = horaRegistro;
-  protected readonly resolverFotoUrl = resolverFotoUrl;
+  protected readonly resolverFotoUrls = resolverFotoUrls;
 
   private horaAtual(): string {
     const agora = new Date();

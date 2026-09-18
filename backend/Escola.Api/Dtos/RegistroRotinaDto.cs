@@ -10,7 +10,7 @@ public record RegistroRotinaDto(
     string Categoria,
     DateTime RegistradoEm,
     string? Observacao,
-    string? FotoUrl,
+    IReadOnlyList<string> FotoUrls,
     string CriadoPorNome,
     string? Refeicao,
     string? StatusAlimentacao,

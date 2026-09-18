@@ -5,13 +5,15 @@ export type StatusAlimentacao = 'ComeuTudo' | 'Parcial' | 'Recusou';
 export type TipoHigiene = 'TrocaFralda' | 'Banheiro';
 export type Humor = 'Feliz' | 'Agitado' | 'Sonolento' | 'Choroso';
 
+export const MAX_FOTOS_POR_REGISTRO = 4;
+
 export interface RegistroRotina {
   id: string;
   alunoId: string;
   categoria: CategoriaRegistro;
   registradoEm: string;
   observacao: string | null;
-  fotoUrl: string | null;
+  fotoUrls: string[];
   criadoPorNome: string;
   refeicao: Refeicao | null;
   statusAlimentacao: StatusAlimentacao | null;
@@ -24,7 +26,7 @@ export interface RegistroRotina {
 interface CampoComum {
   usuarioId: string;
   observacao?: string | null;
-  fotoUrl?: string | null;
+  fotoUrls?: string[] | null;
 }
 
 export interface CriarRegistroAlimentacao extends CampoComum {

@@ -6,7 +6,7 @@ import { RegistroRotina } from '../../models/registro-rotina.model';
 import { AlunoService } from '../../services/aluno.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
-import { horaRegistro, iconeCategoria, resolverFotoUrl, rotuloCategoria } from '../../shared/registro-rotina-display';
+import { horaRegistro, iconeCategoria, resolverFotoUrls, rotuloCategoria } from '../../shared/registro-rotina-display';
 
 @Component({
   selector: 'app-portal-aluno',
@@ -30,7 +30,7 @@ export class PortalAlunoComponent implements OnInit {
   protected readonly rotuloCategoria = rotuloCategoria;
   protected readonly iconeCategoria = iconeCategoria;
   protected readonly horaRegistro = horaRegistro;
-  protected readonly resolverFotoUrl = resolverFotoUrl;
+  protected readonly resolverFotoUrls = resolverFotoUrls;
 
   ngOnInit(): void {
     if (!this.sessao.responsavelId()) {

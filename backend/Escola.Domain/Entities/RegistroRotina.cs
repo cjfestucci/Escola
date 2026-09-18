@@ -16,5 +16,7 @@ public abstract class RegistroRotina
 
     public DateTime RegistradoEm { get; set; }
     public string? Observacao { get; set; }
-    public string? FotoUrl { get; set; }
+
+    /// <summary>Até 4 fotos, na ordem em que foram anexadas.</summary>
+    public ICollection<FotoRegistro> Fotos { get; set; } = new List<FotoRegistro>();
 }
