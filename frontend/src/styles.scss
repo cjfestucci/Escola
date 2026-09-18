@@ -1,13 +1,29 @@
 :root {
-  --cor-primaria: #ff8552;
-  --cor-primaria-escura: #e06a3a;
-  --cor-fundo: #fdf8f4;
+  --cor-primaria: #6c5dd3;
+  --cor-primaria-escura: #5645b5;
+  --cor-fundo: #f4f6fb;
   --cor-superficie: #ffffff;
-  --cor-texto: #2b2420;
-  --cor-texto-suave: #766b62;
-  --cor-borda: #ece1d8;
+  --cor-texto: #1f2430;
+  --cor-texto-suave: #6b7280;
+  --cor-borda: #e5e7eb;
   --raio: 14px;
-  --sombra: 0 2px 10px rgba(43, 36, 32, 0.08);
+  --sombra: 0 2px 10px rgba(31, 36, 48, 0.06);
+
+  --sidebar-largura: 260px;
+  --topbar-altura: 64px;
+  --cor-sidebar-fundo: #5b3fd9;
+  --cor-sidebar-texto: rgba(255, 255, 255, 0.72);
+  --cor-sidebar-texto-ativo: #ffffff;
+  --cor-sidebar-item-ativo: rgba(255, 255, 255, 0.14);
+
+  --cor-stat-roxo-fundo: #ece9fd;
+  --cor-stat-roxo-texto: #6c5dd3;
+  --cor-stat-verde-fundo: #dcfce7;
+  --cor-stat-verde-texto: #16a34a;
+  --cor-stat-ambar-fundo: #fef3c7;
+  --cor-stat-ambar-texto: #d97706;
+  --cor-stat-azul-fundo: #cffafe;
+  --cor-stat-azul-texto: #0891b2;
 }
 
 * {
@@ -40,7 +56,7 @@ button {
 }
 
 .container {
-  max-width: 560px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 24px 16px 40px;
+  padding: 24px 20px 48px;
 }

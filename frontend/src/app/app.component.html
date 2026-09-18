@@ -1,7 +1,13 @@
-<app-header />
+<app-sidebar [aberto]="menuAberto()" (fechar)="menuAberto.set(false)" />
 
-<main class="app-main">
-  <router-outlet></router-outlet>
-</main>
+@if (menuAberto()) {
+  <div class="app-backdrop" (click)="menuAberto.set(false)"></div>
+}
 
-<app-footer />
+<div class="app-area">
+  <app-topbar (abrirMenu)="menuAberto.set(true)" />
+
+  <main class="app-conteudo">
+    <router-outlet></router-outlet>
+  </main>
+</div>

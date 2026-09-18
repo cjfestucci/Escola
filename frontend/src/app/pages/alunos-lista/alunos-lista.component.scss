@@ -3,9 +3,75 @@
   margin-bottom: 20px;
 }
 
+.grade-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.cartao-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 16px;
+  box-shadow: var(--sombra);
+}
+
+.stat-icone {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  &--roxo {
+    background: var(--cor-stat-roxo-fundo);
+    color: var(--cor-stat-roxo-texto);
+  }
+
+  &--verde {
+    background: var(--cor-stat-verde-fundo);
+    color: var(--cor-stat-verde-texto);
+  }
+
+  &--ambar {
+    background: var(--cor-stat-ambar-fundo);
+    color: var(--cor-stat-ambar-texto);
+  }
+
+  &--azul {
+    background: var(--cor-stat-azul-fundo);
+    color: var(--cor-stat-azul-texto);
+  }
+}
+
+.stat-valor {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-rotulo {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
 .grade-alunos {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 12px;
 }
 

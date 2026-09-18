@@ -1,0 +1,148 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-largura);
+  background: var(--cor-sidebar-fundo);
+  color: var(--cor-sidebar-texto);
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px;
+  overflow-y: auto;
+  z-index: 30;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+
+  &.aberta {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 900px) {
+  .sidebar {
+    transform: none;
+  }
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 6px 10px 22px;
+}
+
+.marca-icone {
+  font-size: 1.3rem;
+}
+
+.secao-titulo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 14px 10px 6px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--cor-sidebar-texto);
+    font-weight: 600;
+    font-size: 0.92rem;
+
+    &.ativo {
+      background: var(--cor-sidebar-item-ativo);
+      color: var(--cor-sidebar-texto-ativo);
+    }
+  }
+}
+
+.nav-desabilitado {
+  .item-desabilitado {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    color: rgba(255, 255, 255, 0.35);
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: default;
+  }
+}
+
+.icone {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.rodape-sidebar {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 12px;
+}
+
+.avatar-usuario {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.nome-usuario {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.botao-trocar-area {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 10px;
+  padding: 9px 10px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-align: left;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.18);
+  }
+}

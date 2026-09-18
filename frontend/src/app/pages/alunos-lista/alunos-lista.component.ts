@@ -2,7 +2,9 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
+import { ResumoDashboard } from '../../models/resumo-dashboard.model';
 import { AlunoService } from '../../services/aluno.service';
+import { DashboardService } from '../../services/dashboard.service';
 import { SessaoService } from '../../services/sessao.service';
 
 @Component({
@@ -13,10 +15,12 @@ import { SessaoService } from '../../services/sessao.service';
 })
 export class AlunosListaComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
+  private readonly dashboardService = inject(DashboardService);
   private readonly sessao = inject(SessaoService);
   private readonly router = inject(Router);
 
   readonly alunos = signal<Aluno[]>([]);
+  readonly resumo = signal<ResumoDashboard | null>(null);
   readonly carregando = signal(true);
 
   ngOnInit(): void {
@@ -32,6 +36,8 @@ export class AlunosListaComponent implements OnInit {
       },
       error: () => this.carregando.set(false)
     });
+
+    this.dashboardService.resumo().subscribe((resumo) => this.resumo.set(resumo));
   }
 
   abrir(aluno: Aluno): void {

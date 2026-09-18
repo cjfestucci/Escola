@@ -1,0 +1,77 @@
+<aside class="sidebar" [class.aberta]="aberto()">
+  <div class="marca">
+    <span class="marca-icone">🏫</span>
+    <span class="marca-texto">Rotina Escola</span>
+  </div>
+
+  <p class="secao-titulo">Menu</p>
+  <nav class="nav">
+    @for (item of itensPrincipais(); track item.rota) {
+      <a [routerLink]="item.rota" routerLinkActive="ativo" (click)="aoNavegar()">
+        <span class="icone">
+          @switch (item.icone) {
+            @case ('users') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="8" r="3" />
+                <path d="M4 20c0-3.5 2.5-6 5-6s5 2.5 5 6" />
+                <circle cx="17" cy="9" r="2.2" />
+                <path d="M14.8 20c.2-2.7 1.6-4.4 3.4-4.9" />
+              </svg>
+            }
+            @case ('home') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 11 12 4l8 7" />
+                <path d="M6 10v10h5v-6h2v6h5V10" />
+              </svg>
+            }
+          }
+        </span>
+        {{ item.rotulo }}
+      </a>
+    }
+  </nav>
+
+  <p class="secao-titulo">Em breve</p>
+  <nav class="nav nav-desabilitado">
+    @for (item of itensEmBreve; track item.rotulo) {
+      <span class="item-desabilitado">
+        <span class="icone">
+          @switch (item.icone) {
+            @case ('book') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6c2-1 5-1 8 1.5 3-2.5 6-2.5 8-1.5v13c-2-1-5-1-8 1.5-3-2.5-6-2.5-8-1.5V6Z" />
+                <path d="M12 7.5v13" />
+              </svg>
+            }
+            @case ('wallet') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="6" width="18" height="13" rx="2" />
+                <path d="M3 10h18" />
+                <circle cx="17" cy="14.5" r="1" fill="currentColor" stroke="none" />
+              </svg>
+            }
+          }
+        </span>
+        {{ item.rotulo }}
+      </span>
+    }
+  </nav>
+
+  <div class="rodape-sidebar">
+    @if (contextoService.contexto() === 'educador' && sessao.educadorNome()) {
+      <div class="usuario">
+        <span class="avatar-usuario">{{ sessao.educadorNome()!.charAt(0) }}</span>
+        <span class="nome-usuario">{{ sessao.educadorNome() }}</span>
+      </div>
+    }
+    @if (contextoService.contexto() === 'portal' && sessao.responsavelNome()) {
+      <div class="usuario">
+        <span class="avatar-usuario">{{ sessao.responsavelNome()!.charAt(0) }}</span>
+        <span class="nome-usuario">{{ sessao.responsavelNome() }}</span>
+      </div>
+    }
+    <button type="button" class="botao-trocar-area" (click)="trocarArea()">
+      {{ contextoService.contexto() === 'portal' ? 'Área do educador' : 'Portal dos Pais' }}
+    </button>
+  </div>
+</aside>
