@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -27,7 +27,9 @@ type AcaoRapida = CategoriaRegistro | null;
   templateUrl: './aluno-rotina.component.html',
   styleUrl: './aluno-rotina.component.scss'
 })
-export class AlunoRotinaComponent implements OnInit {
+export class AlunoRotinaComponent implements OnInit, AfterViewInit {
+  @ViewChild('dataInput') private dataInputRef?: ElementRef<HTMLInputElement>;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly alunoService = inject(AlunoService);
@@ -78,6 +80,14 @@ export class AlunoRotinaComponent implements OnInit {
     this.carregarTimeline();
   }
 
+  ngAfterViewInit(): void {
+    this.sincronizarInputData();
+  }
+
+  private sincronizarInputData(): void {
+    if (this.dataInputRef) this.dataInputRef.nativeElement.value = this.dataVisualizada();
+  }
+
   private carregarTimeline(): void {
     this.carregando.set(true);
     this.rotinaService.listarDoDia(this.alunoId, this.dataVisualizada()).subscribe({
@@ -91,6 +101,7 @@ export class AlunoRotinaComponent implements OnInit {
 
   irParaDia(dataIso: string): void {
     this.dataVisualizada.set(dataIso);
+    this.sincronizarInputData();
     this.fecharAcao();
     this.carregarTimeline();
   }

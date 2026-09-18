@@ -10,10 +10,15 @@
 
   <div class="navegador-data">
     <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
-    <div class="data-atual">
+    <button type="button" class="data-atual" (click)="dataInput.showPicker()">
       <span class="rotulo-dia">{{ rotuloData(dataVisualizada()) }}</span>
-      <input type="date" [value]="dataVisualizada()" [max]="hojeIso()" (change)="aoEscolherData($event)" />
-    </div>
+      <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="5" width="16" height="16" rx="2" />
+        <path d="M4 10h16" />
+        <path d="M8 3v4M16 3v4" />
+      </svg>
+    </button>
+    <input #dataInput type="date" class="input-data-oculto" [max]="hojeIso()" (change)="aoEscolherData($event)" />
     <button type="button" class="botao-nav-data" [disabled]="ehHoje()" (click)="diaSeguinte()" aria-label="Próximo dia">›</button>
   </div>
 

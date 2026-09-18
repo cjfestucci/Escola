@@ -60,29 +60,41 @@
 }
 
 .data-atual {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   min-width: 140px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 8px;
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
 }
 
 .rotulo-dia {
   font-weight: 700;
   font-size: 0.95rem;
-  pointer-events: none;
 }
 
-.data-atual input[type='date'] {
+.icone-calendario {
+  width: 16px;
+  height: 16px;
+  color: var(--cor-texto-suave);
+  flex-shrink: 0;
+}
+
+.input-data-oculto {
   position: absolute;
-  inset: 0;
+  width: 0;
+  height: 0;
   opacity: 0;
-  width: 100%;
-  cursor: pointer;
+  pointer-events: none;
+  border: none;
 }
 
 .aviso-somente-leitura {
