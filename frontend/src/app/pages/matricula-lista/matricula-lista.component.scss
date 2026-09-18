@@ -7,6 +7,43 @@
   flex-wrap: wrap;
 }
 
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.campo-busca {
+  flex: 1;
+  min-width: 180px;
+}
+
+.campo-busca,
+.campo-turma {
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+}
+
+.botao-limpar {
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
+}
+
 .subtitulo {
   color: var(--cor-texto-suave);
   margin: 0;

@@ -8,13 +8,36 @@
     <p class="mensagem-erro">{{ mensagem }}</p>
   }
 
+  @if (!carregando() && alunos().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por nome..."
+        [ngModel]="filtroNome()"
+        (ngModelChange)="filtroNome.set($event)"
+      />
+      <select class="campo-turma" [ngModel]="filtroTurmaId()" (ngModelChange)="filtroTurmaId.set($event)">
+        <option value="">Todas as turmas</option>
+        @for (turma of turmasDisponiveis(); track turma.id) {
+          <option [value]="turma.id">{{ turma.nome }}</option>
+        }
+      </select>
+      @if (filtroNome() || filtroTurmaId()) {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
   @if (carregando()) {
     <p>Carregando...</p>
   } @else if (alunos().length === 0) {
     <p class="vazio">Nenhum aluno matriculado ainda.</p>
+  } @else if (alunosFiltrados().length === 0) {
+    <p class="vazio">Nenhum aluno encontrado com esses filtros.</p>
   } @else {
     <ul class="lista-alunos">
-      @for (aluno of alunos(); track aluno.id) {
+      @for (aluno of alunosFiltrados(); track aluno.id) {
         <li class="cartao-aluno">
           <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
 

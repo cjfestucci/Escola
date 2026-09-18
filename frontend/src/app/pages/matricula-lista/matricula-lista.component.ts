@@ -1,13 +1,19 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
 import { AlunoService } from '../../services/aluno.service';
 import { idadeFormatada } from '../../shared/data-utils';
 
+interface OpcaoTurma {
+  id: string;
+  nome: string;
+}
+
 @Component({
   selector: 'app-matricula-lista',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './matricula-lista.component.html',
   styleUrl: './matricula-lista.component.scss'
 })
@@ -20,6 +26,28 @@ export class MatriculaListaComponent implements OnInit {
   readonly erro = signal<string | null>(null);
   readonly confirmandoExclusaoId = signal<string | null>(null);
   readonly excluindoId = signal<string | null>(null);
+
+  readonly filtroNome = signal('');
+  readonly filtroTurmaId = signal('');
+
+  readonly turmasDisponiveis = computed<OpcaoTurma[]>(() => {
+    const porId = new Map<string, string>();
+    for (const aluno of this.alunos()) porId.set(aluno.turmaId, aluno.turmaNome);
+    return [...porId.entries()]
+      .map(([id, nome]) => ({ id, nome }))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  });
+
+  readonly alunosFiltrados = computed(() => {
+    const nome = this.filtroNome().trim().toLowerCase();
+    const turmaId = this.filtroTurmaId();
+
+    return this.alunos().filter((aluno) => {
+      const bateNome = !nome || aluno.nome.toLowerCase().includes(nome);
+      const bateTurma = !turmaId || aluno.turmaId === turmaId;
+      return bateNome && bateTurma;
+    });
+  });
 
   protected readonly idade = idadeFormatada;
 
@@ -36,6 +64,11 @@ export class MatriculaListaComponent implements OnInit {
       },
       error: () => this.carregando.set(false)
     });
+  }
+
+  limparFiltros(): void {
+    this.filtroNome.set('');
+    this.filtroTurmaId.set('');
   }
 
   novo(): void {
