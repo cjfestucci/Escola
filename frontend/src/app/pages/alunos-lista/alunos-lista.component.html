@@ -1,0 +1,18 @@
+<div class="container">
+  <h1>Turma</h1>
+  <p class="subtitulo">Toque em um aluno para ver e lançar a rotina do dia.</p>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="grade-alunos">
+      @for (aluno of alunos(); track aluno.id) {
+        <button type="button" class="cartao-aluno" (click)="abrir(aluno)">
+          <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
+          <span class="nome">{{ aluno.nome }}</span>
+          <span class="idade">{{ idade(aluno.dataNascimento) }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

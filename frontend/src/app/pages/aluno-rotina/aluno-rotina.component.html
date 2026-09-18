@@ -1,0 +1,104 @@
+<div class="container">
+  <button type="button" class="voltar" (click)="voltar()">&larr; Turma</button>
+
+  @if (aluno(); as a) {
+    <header class="cabecalho">
+      <span class="avatar">{{ a.nome.charAt(0) }}</span>
+      <h1>{{ a.nome }}</h1>
+    </header>
+  }
+
+  <div class="acoes-rapidas">
+    <button type="button" [class.ativa]="acaoAtiva() === 'Alimentacao'" (click)="abrirAcao('Alimentacao')">🍽️<span>Comida</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Sono'" (click)="abrirAcao('Sono')">😴<span>Sono</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Higiene'" (click)="abrirAcao('Higiene')">🧷<span>Higiene</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Humor'" (click)="abrirAcao('Humor')">🙂<span>Humor</span></button>
+    <button type="button" [class.ativa]="acaoAtiva() === 'Momento'" (click)="abrirAcao('Momento')">📷<span>Momento</span></button>
+  </div>
+
+  @if (acaoAtiva(); as acao) {
+    <div class="painel-formulario">
+      @switch (acao) {
+        @case ('Alimentacao') {
+          <label>Refeição
+            <select [(ngModel)]="refeicao">
+              <option value="Cafe">Café</option>
+              <option value="Almoco">Almoço</option>
+              <option value="Lanche">Lanche</option>
+            </select>
+          </label>
+          <label>Como comeu
+            <select [(ngModel)]="statusAlimentacao">
+              <option value="ComeuTudo">Comeu tudo</option>
+              <option value="Parcial">Comeu parte</option>
+              <option value="Recusou">Recusou</option>
+            </select>
+          </label>
+        }
+        @case ('Sono') {
+          <label>Início do sono
+            <input type="time" [(ngModel)]="horaInicioSono" />
+          </label>
+        }
+        @case ('Higiene') {
+          <label>Tipo
+            <select [(ngModel)]="tipoHigiene">
+              <option value="TrocaFralda">Troca de fralda</option>
+              <option value="Banheiro">Foi ao banheiro</option>
+            </select>
+          </label>
+        }
+        @case ('Humor') {
+          <label>Como está
+            <select [(ngModel)]="humor">
+              <option value="Feliz">Feliz</option>
+              <option value="Agitado">Agitado</option>
+              <option value="Sonolento">Sonolento</option>
+              <option value="Choroso">Choroso</option>
+            </select>
+          </label>
+        }
+        @case ('Momento') {
+          <p class="dica">Um registro livre na linha do tempo — útil para uma foto ou observação rápida.</p>
+        }
+      }
+
+      <label>Observação (opcional)
+        <textarea [(ngModel)]="observacao" rows="2"></textarea>
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="fecharAcao()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="enviando()" (click)="confirmar()">
+          {{ enviando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <h2 class="titulo-timeline">Hoje</h2>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (registros().length === 0) {
+    <p class="vazio">Nenhum registro ainda hoje.</p>
+  } @else {
+    <ul class="timeline">
+      @for (registro of registros(); track registro.id) {
+        <li class="item-timeline">
+          <span class="icone">{{ iconeCategoria(registro.categoria) }}</span>
+          <div class="conteudo">
+            <div class="linha-topo">
+              <strong>{{ rotuloCategoria(registro) }}</strong>
+              <span class="hora">{{ horaRegistro(registro.registradoEm) }}</span>
+            </div>
+            @if (registro.observacao) {
+              <p class="observacao">{{ registro.observacao }}</p>
+            }
+            <span class="autor">por {{ registro.criadoPorNome }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

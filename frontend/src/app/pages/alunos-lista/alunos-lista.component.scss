@@ -1,0 +1,49 @@
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin-bottom: 20px;
+}
+
+.grade-alunos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.cartao-aluno {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px 10px;
+  box-shadow: var(--sombra);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--cor-primaria);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.nome {
+  font-weight: 600;
+  text-align: center;
+}
+
+.idade {
+  color: var(--cor-texto-suave);
+  font-size: 0.85rem;
+}
