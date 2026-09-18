@@ -6,6 +6,8 @@ import { ResponsavelResumo, Turma } from '../../models/aluno.model';
 import { AlunoService } from '../../services/aluno.service';
 import { TurmaService } from '../../services/turma.service';
 import { UploadService } from '../../services/upload.service';
+import { CalendarioComponent } from '../../shared/calendario/calendario.component';
+import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
 import { resolverFotoUrl } from '../../shared/registro-rotina-display';
 import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
 
@@ -15,7 +17,7 @@ function novoResponsavelVazio(): ResponsavelResumo {
 
 @Component({
   selector: 'app-matricula-formulario',
-  imports: [FormsModule, SeletorArquivoComponent],
+  imports: [FormsModule, SeletorArquivoComponent, CalendarioComponent],
   templateUrl: './matricula-formulario.component.html',
   styleUrl: './matricula-formulario.component.scss'
 })
@@ -35,12 +37,15 @@ export class MatriculaFormularioComponent implements OnInit {
   readonly erro = signal<string | null>(null);
   readonly fotoUrl = signal<string | null>(null);
   readonly responsaveis = signal<ResponsavelResumo[]>([novoResponsavelVazio()]);
+  readonly calendarioNascimentoAberto = signal(false);
 
   nome = '';
   dataNascimento = '';
   turmaId = '';
 
   protected readonly resolverFotoUrl = resolverFotoUrl;
+  protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
+  protected readonly hojeIso = hojeIso;
 
   get titulo(): string {
     return this.alunoId ? 'Editar aluno' : 'Novo aluno';
@@ -69,6 +74,11 @@ export class MatriculaFormularioComponent implements OnInit {
     } else {
       this.carregando.set(false);
     }
+  }
+
+  selecionarNascimento(dataIso: string): void {
+    this.dataNascimento = dataIso;
+    this.calendarioNascimentoAberto.set(false);
   }
 
   aoSelecionarFoto(arquivo: File): void {

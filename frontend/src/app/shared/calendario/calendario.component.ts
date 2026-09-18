@@ -32,7 +32,7 @@ interface CelulaDia {
   styleUrl: './calendario.component.scss'
 })
 export class CalendarioComponent implements OnChanges {
-  @Input({ required: true }) dataSelecionada!: string;
+  @Input() dataSelecionada = '';
   @Input() dataMaxima: string | null = null;
   @Output() readonly escolher = new EventEmitter<string>();
 
@@ -43,7 +43,7 @@ export class CalendarioComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['dataSelecionada']?.firstChange) {
-      const [ano, mes] = this.dataSelecionada.split('-').map(Number);
+      const [ano, mes] = (this.dataSelecionada || hojeIso()).split('-').map(Number);
       this.ano = ano;
       this.mes = mes - 1;
     }

@@ -47,6 +47,48 @@ h1 {
   color: var(--cor-texto-suave);
 }
 
+.ancora-calendario {
+  position: relative;
+}
+
+.campo-data {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
+}
+
+.icone-calendario {
+  width: 16px;
+  height: 16px;
+  color: var(--cor-texto-suave);
+  flex-shrink: 0;
+}
+
+.popover-calendario {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+}
+
+.backdrop-calendario {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
 .preview-foto-wrapper {
   position: relative;
   width: fit-content;

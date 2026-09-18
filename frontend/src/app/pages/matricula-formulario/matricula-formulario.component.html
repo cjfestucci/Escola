@@ -15,9 +15,27 @@
         <input type="text" [(ngModel)]="nome" placeholder="Ex.: Lucas Souza" />
       </label>
 
-      <label>Data de nascimento
-        <input type="date" [(ngModel)]="dataNascimento" />
-      </label>
+      <label>Data de nascimento</label>
+      <div class="ancora-calendario">
+        <button type="button" class="campo-data" (click)="calendarioNascimentoAberto.set(!calendarioNascimentoAberto())">
+          <span>{{ dataNascimento ? formatarDataAbsoluta(dataNascimento) : 'Selecionar data' }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
+        </button>
+
+        @if (calendarioNascimentoAberto()) {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="dataNascimento" [dataMaxima]="hojeIso()" (escolher)="selecionarNascimento($event)" />
+          </div>
+        }
+      </div>
+
+      @if (calendarioNascimentoAberto()) {
+        <div class="backdrop-calendario" (click)="calendarioNascimentoAberto.set(false)"></div>
+      }
 
       <label>Turma
         <select [(ngModel)]="turmaId">

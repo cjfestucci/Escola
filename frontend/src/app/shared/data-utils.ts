@@ -25,6 +25,11 @@ export function rotuloData(dataIso: string): string {
   return rotulo.charAt(0).toUpperCase() + rotulo.slice(1);
 }
 
+export function formatarDataAbsoluta(dataIso: string): string {
+  const data = new Date(`${dataIso}T00:00:00Z`);
+  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+}
+
 export function idadeFormatada(dataNascimento: string): string {
   const nascimento = new Date(dataNascimento);
   const hoje = new Date();
