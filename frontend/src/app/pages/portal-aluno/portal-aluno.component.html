@@ -1,0 +1,39 @@
+<div class="container">
+  <button type="button" class="voltar" (click)="voltar()">&larr; Filhos</button>
+
+  @if (aluno(); as a) {
+    <header class="cabecalho">
+      <span class="avatar">{{ a.nome.charAt(0) }}</span>
+      <div>
+        <h1>{{ a.nome }}</h1>
+        <span class="turma">{{ a.turmaNome }}</span>
+      </div>
+    </header>
+  }
+
+  <h2 class="titulo-timeline">Hoje</h2>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (registros().length === 0) {
+    <p class="vazio">Ainda não há registros hoje.</p>
+  } @else {
+    <ul class="timeline">
+      @for (registro of registros(); track registro.id) {
+        <li class="item-timeline">
+          <span class="icone">{{ iconeCategoria(registro.categoria) }}</span>
+          <div class="conteudo">
+            <div class="linha-topo">
+              <strong>{{ rotuloCategoria(registro) }}</strong>
+              <span class="hora">{{ horaRegistro(registro.registradoEm) }}</span>
+            </div>
+            @if (registro.observacao) {
+              <p class="observacao">{{ registro.observacao }}</p>
+            }
+            <span class="autor">por {{ registro.criadoPorNome }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

@@ -1,0 +1,19 @@
+<div class="container">
+  <h1>Seus filhos</h1>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (filhos().length === 0) {
+    <p class="vazio">Nenhum aluno vinculado a este cadastro.</p>
+  } @else {
+    <div class="grade-alunos">
+      @for (aluno of filhos(); track aluno.id) {
+        <button type="button" class="cartao-aluno" (click)="abrir(aluno)">
+          <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
+          <span class="nome">{{ aluno.nome }}</span>
+          <span class="turma">{{ aluno.turmaNome }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

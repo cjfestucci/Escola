@@ -14,6 +14,7 @@ import {
 import { AlunoService } from '../../services/aluno.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
+import { horaRegistro, iconeCategoria, rotuloCategoria } from '../../shared/registro-rotina-display';
 
 type AcaoRapida = CategoriaRegistro | null;
 
@@ -133,40 +134,9 @@ export class AlunoRotinaComponent implements OnInit {
     });
   }
 
-  rotuloCategoria(registro: RegistroRotina): string {
-    switch (registro.categoria) {
-      case 'Alimentacao':
-        return `${this.rotuloRefeicao(registro.refeicao)} — ${this.rotuloStatusAlimentacao(registro.statusAlimentacao)}`;
-      case 'Sono':
-        return registro.horaFim ? `Dormiu ${registro.horaInicio}–${registro.horaFim}` : `Dormiu às ${registro.horaInicio}`;
-      case 'Higiene':
-        return registro.tipoHigiene === 'TrocaFralda' ? 'Troca de fralda' : 'Foi ao banheiro';
-      case 'Humor':
-        return this.rotuloHumor(registro.humor);
-      case 'Momento':
-        return 'Momento registrado';
-    }
-  }
-
-  iconeCategoria(categoria: CategoriaRegistro): string {
-    return { Alimentacao: '🍽️', Sono: '😴', Higiene: '🧷', Humor: '🙂', Momento: '📷' }[categoria];
-  }
-
-  horaRegistro(registradoEm: string): string {
-    return new Date(registradoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  private rotuloRefeicao(v: Refeicao | null): string {
-    return { Cafe: 'Café', Almoco: 'Almoço', Lanche: 'Lanche' }[v ?? 'Lanche'];
-  }
-
-  private rotuloStatusAlimentacao(v: StatusAlimentacao | null): string {
-    return { ComeuTudo: 'comeu tudo', Parcial: 'comeu parte', Recusou: 'recusou' }[v ?? 'Parcial'];
-  }
-
-  private rotuloHumor(v: Humor | null): string {
-    return { Feliz: 'Feliz 😊', Agitado: 'Agitado 🙃', Sonolento: 'Sonolento 😪', Choroso: 'Choroso 😢' }[v ?? 'Feliz'];
-  }
+  protected readonly rotuloCategoria = rotuloCategoria;
+  protected readonly iconeCategoria = iconeCategoria;
+  protected readonly horaRegistro = horaRegistro;
 
   private horaAtual(): string {
     const agora = new Date();
