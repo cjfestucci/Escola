@@ -1,0 +1,53 @@
+<div class="container container--estreito">
+  <button type="button" class="voltar" (click)="cancelar()">&larr; Turmas</button>
+
+  <h1>{{ titulo }}</h1>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="painel-formulario">
+      @if (erro(); as mensagem) {
+        <p class="mensagem-erro">{{ mensagem }}</p>
+      }
+
+      <label>Nome
+        <input type="text" [(ngModel)]="nome" placeholder="Ex.: Berçário 1" />
+      </label>
+
+      <label>Período
+        <select [(ngModel)]="periodo">
+          <option value="Manha">Manhã</option>
+          <option value="Tarde">Tarde</option>
+          <option value="Integral">Integral</option>
+          <option value="Noite">Noite</option>
+        </select>
+      </label>
+
+      <div class="linha-horarios">
+        <label>Horário de entrada
+          <input type="time" [(ngModel)]="horarioEntrada" />
+        </label>
+        <label>Horário de saída
+          <input type="time" [(ngModel)]="horarioSaida" />
+        </label>
+      </div>
+
+      <label>Professor (opcional)
+        <select [(ngModel)]="professorId">
+          <option value="">— Nenhum —</option>
+          @for (educador of educadores(); track educador.id) {
+            <option [value]="educador.id">{{ educador.nome }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

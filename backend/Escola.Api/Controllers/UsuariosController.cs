@@ -33,11 +33,13 @@ public class UsuariosController(EscolaDbContext db) : ControllerBase
         if (!await db.Usuarios.AnyAsync(u => u.Id == id))
             return NotFound("Usuário não encontrado.");
 
-        var turmas = await db.TurmaEducadores
-            .Where(te => te.UsuarioId == id)
-            .Select(te => new TurmaDto(te.Turma.Id, te.Turma.Nome, te.Turma.Alunos.Count))
+        var turmas = await db.Turmas
+            .Include(t => t.Alunos)
+            .Include(t => t.Educadores).ThenInclude(te => te.Usuario)
+            .Where(t => t.Educadores.Any(te => te.UsuarioId == id))
+            .OrderBy(t => t.Nome)
             .ToListAsync();
 
-        return Ok(turmas);
+        return Ok(turmas.Select(t => t.ToDto()));
     }
 }

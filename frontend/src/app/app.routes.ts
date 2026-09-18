@@ -18,6 +18,24 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/aluno-rotina/aluno-rotina.component').then((m) => m.AlunoRotinaComponent)
   },
   {
+    path: 'turmas',
+    pathMatch: 'full',
+    data: { titulo: 'Turmas' },
+    loadComponent: () => import('./pages/turmas-lista/turmas-lista.component').then((m) => m.TurmasListaComponent)
+  },
+  {
+    path: 'turmas/nova',
+    data: { titulo: 'Nova turma' },
+    loadComponent: () =>
+      import('./pages/turma-formulario/turma-formulario.component').then((m) => m.TurmaFormularioComponent)
+  },
+  {
+    path: 'turmas/:id/editar',
+    data: { titulo: 'Editar turma' },
+    loadComponent: () =>
+      import('./pages/turma-formulario/turma-formulario.component').then((m) => m.TurmaFormularioComponent)
+  },
+  {
     path: 'portal',
     pathMatch: 'full',
     data: { titulo: 'Portal dos Pais' },

@@ -14,10 +14,26 @@ public static class DbInitializer
 
         var agora = DateTime.UtcNow;
 
-        var turmaBercario1 = new Turma { Id = Guid.NewGuid(), Nome = "Berçário 1" };
-        var turmaBercario2 = new Turma { Id = Guid.NewGuid(), Nome = "Berçário 2" };
-        var turmaMaternal1 = new Turma { Id = Guid.NewGuid(), Nome = "Maternal 1" };
-        var turmaJardim1 = new Turma { Id = Guid.NewGuid(), Nome = "Jardim I" };
+        var turmaBercario1 = new Turma
+        {
+            Id = Guid.NewGuid(), Nome = "Berçário 1", Periodo = Periodo.Manha,
+            HorarioEntrada = new TimeOnly(7, 0), HorarioSaida = new TimeOnly(12, 0)
+        };
+        var turmaBercario2 = new Turma
+        {
+            Id = Guid.NewGuid(), Nome = "Berçário 2", Periodo = Periodo.Tarde,
+            HorarioEntrada = new TimeOnly(13, 0), HorarioSaida = new TimeOnly(18, 0)
+        };
+        var turmaMaternal1 = new Turma
+        {
+            Id = Guid.NewGuid(), Nome = "Maternal 1", Periodo = Periodo.Manha,
+            HorarioEntrada = new TimeOnly(7, 30), HorarioSaida = new TimeOnly(12, 30)
+        };
+        var turmaJardim1 = new Turma
+        {
+            Id = Guid.NewGuid(), Nome = "Jardim I", Periodo = Periodo.Integral,
+            HorarioEntrada = new TimeOnly(7, 0), HorarioSaida = new TimeOnly(18, 0)
+        };
         var turmas = new[] { turmaBercario1, turmaBercario2, turmaMaternal1, turmaJardim1 };
 
         var professoraAna = new Usuario

@@ -59,4 +59,8 @@ button {
   max-width: 1040px;
   margin: 0 auto;
   padding: 24px 20px 48px;
+
+  &--estreito {
+    max-width: 480px;
+  }
 }
