@@ -8,13 +8,43 @@
     <p class="mensagem-erro">{{ mensagem }}</p>
   }
 
+  @if (!carregando() && turmas().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por nome..."
+        [ngModel]="filtroNome()"
+        (ngModelChange)="filtroNome.set($event)"
+      />
+      <select class="campo-filtro" [ngModel]="filtroPeriodo()" (ngModelChange)="filtroPeriodo.set($event)">
+        <option value="">Todos os períodos</option>
+        @for (periodo of periodos; track periodo) {
+          <option [value]="periodo">{{ rotuloPeriodo(periodo) }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroProfessorId()" (ngModelChange)="filtroProfessorId.set($event)">
+        <option value="">Todos os professores</option>
+        <option [value]="semProfessor">Sem professor</option>
+        @for (professor of professoresDisponiveis(); track professor.id) {
+          <option [value]="professor.id">{{ professor.nome }}</option>
+        }
+      </select>
+      @if (filtroNome() || filtroPeriodo() || filtroProfessorId()) {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
   @if (carregando()) {
     <p>Carregando...</p>
   } @else if (turmas().length === 0) {
     <p class="vazio">Nenhuma turma cadastrada ainda.</p>
+  } @else if (turmasFiltradas().length === 0) {
+    <p class="vazio">Nenhuma turma encontrada com esses filtros.</p>
   } @else {
     <ul class="lista-turmas">
-      @for (turma of turmas(); track turma.id) {
+      @for (turma of turmasFiltradas(); track turma.id) {
         <li class="cartao-turma">
           <div class="info-turma">
             <strong>{{ turma.nome }}</strong>

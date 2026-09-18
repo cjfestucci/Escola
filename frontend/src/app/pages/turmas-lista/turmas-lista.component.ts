@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { Turma } from '../../models/aluno.model';
+import { Periodo, Turma } from '../../models/aluno.model';
 import { TurmaService } from '../../services/turma.service';
 
 const ROTULO_PERIODO: Record<string, string> = {
@@ -11,9 +12,16 @@ const ROTULO_PERIODO: Record<string, string> = {
   Noite: 'Noite'
 };
 
+const SEM_PROFESSOR = 'sem-professor';
+
+interface OpcaoProfessor {
+  id: string;
+  nome: string;
+}
+
 @Component({
   selector: 'app-turmas-lista',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './turmas-lista.component.html',
   styleUrl: './turmas-lista.component.scss'
 })
@@ -27,8 +35,46 @@ export class TurmasListaComponent implements OnInit {
   readonly confirmandoExclusaoId = signal<string | null>(null);
   readonly excluindoId = signal<string | null>(null);
 
+  readonly filtroNome = signal('');
+  readonly filtroPeriodo = signal<Periodo | ''>('');
+  readonly filtroProfessorId = signal('');
+
+  protected readonly periodos: Periodo[] = ['Manha', 'Tarde', 'Integral', 'Noite'];
+  protected readonly semProfessor = SEM_PROFESSOR;
+
+  readonly professoresDisponiveis = computed<OpcaoProfessor[]>(() => {
+    const porId = new Map<string, string>();
+    for (const turma of this.turmas()) {
+      if (turma.professorId) porId.set(turma.professorId, turma.professorNome ?? '');
+    }
+    return [...porId.entries()]
+      .map(([id, nome]) => ({ id, nome }))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  });
+
+  readonly turmasFiltradas = computed(() => {
+    const nome = this.filtroNome().trim().toLowerCase();
+    const periodo = this.filtroPeriodo();
+    const professorId = this.filtroProfessorId();
+
+    return this.turmas().filter((turma) => {
+      const bateNome = !nome || turma.nome.toLowerCase().includes(nome);
+      const batePeriodo = !periodo || turma.periodo === periodo;
+      const bateProfessor =
+        !professorId ||
+        (professorId === SEM_PROFESSOR ? !turma.professorId : turma.professorId === professorId);
+      return bateNome && batePeriodo && bateProfessor;
+    });
+  });
+
   ngOnInit(): void {
     this.carregar();
+  }
+
+  limparFiltros(): void {
+    this.filtroNome.set('');
+    this.filtroPeriodo.set('');
+    this.filtroProfessorId.set('');
   }
 
   private carregar(): void {
