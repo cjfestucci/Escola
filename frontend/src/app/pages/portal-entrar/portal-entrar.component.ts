@@ -34,7 +34,7 @@ export class PortalEntrarComponent implements OnInit {
   }
 
   selecionar(responsavel: Responsavel): void {
-    this.sessao.definirResponsavel(responsavel.id);
+    this.sessao.definirResponsavel(responsavel.id, responsavel.nome);
     this.router.navigateByUrl('/portal/filhos');
   }
 }
