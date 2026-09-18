@@ -123,7 +123,7 @@
       @if (enviandoFoto()) {
         <p class="dica">Enviando foto...</p>
       } @else if (fotoUrls().length < maxFotos) {
-        <input type="file" accept="image/*" capture="environment" (change)="aoSelecionarFoto($event)" />
+        <app-seletor-arquivo rotulo="📷 Adicionar foto" [capturarCamera]="true" (arquivoSelecionado)="aoSelecionarFoto($event)" />
       }
 
       <div class="botoes">

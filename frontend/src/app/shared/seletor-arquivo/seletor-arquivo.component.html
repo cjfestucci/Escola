@@ -1,0 +1,11 @@
+<button type="button" class="botao-seletor-arquivo" [disabled]="desabilitado()" (click)="inputArquivo.click()">
+  {{ rotulo() }}
+</button>
+<input
+  #inputArquivo
+  type="file"
+  class="input-oculto"
+  [accept]="aceitar()"
+  [attr.capture]="capturarCamera() ? 'environment' : null"
+  (change)="aoSelecionar($event)"
+/>

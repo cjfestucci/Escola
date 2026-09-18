@@ -19,12 +19,13 @@ import { UploadService } from '../../services/upload.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import { horaRegistro, iconeCategoria, resolverFotoUrls, rotuloCategoria } from '../../shared/registro-rotina-display';
+import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
 
 type AcaoRapida = CategoriaRegistro | null;
 
 @Component({
   selector: 'app-aluno-rotina',
-  imports: [FormsModule, CalendarioComponent],
+  imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent],
   templateUrl: './aluno-rotina.component.html',
   styleUrl: './aluno-rotina.component.scss'
 })
@@ -162,11 +163,8 @@ export class AlunoRotinaComponent implements OnInit {
     this.fotoUrls.set([]);
   }
 
-  aoSelecionarFoto(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const arquivo = input.files?.[0];
-    input.value = '';
-    if (!arquivo || this.fotoUrls().length >= this.maxFotos) return;
+  aoSelecionarFoto(arquivo: File): void {
+    if (this.fotoUrls().length >= this.maxFotos) return;
 
     this.enviandoFoto.set(true);
     this.uploadService.enviarFoto(arquivo).subscribe({

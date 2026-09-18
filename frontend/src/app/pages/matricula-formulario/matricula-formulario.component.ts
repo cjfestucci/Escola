@@ -7,6 +7,7 @@ import { AlunoService } from '../../services/aluno.service';
 import { TurmaService } from '../../services/turma.service';
 import { UploadService } from '../../services/upload.service';
 import { resolverFotoUrl } from '../../shared/registro-rotina-display';
+import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
 
 function novoResponsavelVazio(): ResponsavelResumo {
   return { id: null, nome: '', email: '', telefone: null, responsavelFinanceiro: false };
@@ -14,7 +15,7 @@ function novoResponsavelVazio(): ResponsavelResumo {
 
 @Component({
   selector: 'app-matricula-formulario',
-  imports: [FormsModule],
+  imports: [FormsModule, SeletorArquivoComponent],
   templateUrl: './matricula-formulario.component.html',
   styleUrl: './matricula-formulario.component.scss'
 })
@@ -70,12 +71,7 @@ export class MatriculaFormularioComponent implements OnInit {
     }
   }
 
-  aoSelecionarFoto(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const arquivo = input.files?.[0];
-    input.value = '';
-    if (!arquivo) return;
-
+  aoSelecionarFoto(arquivo: File): void {
     this.enviandoFoto.set(true);
     this.uploadService.enviarFoto(arquivo).subscribe({
       next: (resultado) => {

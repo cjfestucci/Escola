@@ -37,7 +37,7 @@
       } @else if (enviandoFoto()) {
         <p class="dica">Enviando foto...</p>
       } @else {
-        <input type="file" accept="image/*" (change)="aoSelecionarFoto($event)" />
+        <app-seletor-arquivo rotulo="📷 Escolher foto" (arquivoSelecionado)="aoSelecionarFoto($event)" />
       }
 
       <hr />
