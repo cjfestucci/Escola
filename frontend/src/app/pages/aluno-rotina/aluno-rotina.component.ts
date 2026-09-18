@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -16,6 +16,7 @@ import { AlunoService } from '../../services/aluno.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import { UploadService } from '../../services/upload.service';
+import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import { horaRegistro, iconeCategoria, resolverFotoUrls, rotuloCategoria } from '../../shared/registro-rotina-display';
 
@@ -23,13 +24,11 @@ type AcaoRapida = CategoriaRegistro | null;
 
 @Component({
   selector: 'app-aluno-rotina',
-  imports: [FormsModule],
+  imports: [FormsModule, CalendarioComponent],
   templateUrl: './aluno-rotina.component.html',
   styleUrl: './aluno-rotina.component.scss'
 })
-export class AlunoRotinaComponent implements OnInit, AfterViewInit {
-  @ViewChild('dataInput') private dataInputRef?: ElementRef<HTMLInputElement>;
-
+export class AlunoRotinaComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly alunoService = inject(AlunoService);
@@ -45,6 +44,7 @@ export class AlunoRotinaComponent implements OnInit, AfterViewInit {
 
   readonly dataVisualizada = signal(hojeIso());
   readonly ehHoje = computed(() => this.dataVisualizada() === hojeIso());
+  readonly calendarioAberto = signal(false);
   readonly enviando = signal(false);
   readonly excluindoId = signal<string | null>(null);
   readonly confirmandoExclusaoId = signal<string | null>(null);
@@ -80,14 +80,6 @@ export class AlunoRotinaComponent implements OnInit, AfterViewInit {
     this.carregarTimeline();
   }
 
-  ngAfterViewInit(): void {
-    this.sincronizarInputData();
-  }
-
-  private sincronizarInputData(): void {
-    if (this.dataInputRef) this.dataInputRef.nativeElement.value = this.dataVisualizada();
-  }
-
   private carregarTimeline(): void {
     this.carregando.set(true);
     this.rotinaService.listarDoDia(this.alunoId, this.dataVisualizada()).subscribe({
@@ -101,7 +93,7 @@ export class AlunoRotinaComponent implements OnInit, AfterViewInit {
 
   irParaDia(dataIso: string): void {
     this.dataVisualizada.set(dataIso);
-    this.sincronizarInputData();
+    this.calendarioAberto.set(false);
     this.fecharAcao();
     this.carregarTimeline();
   }
@@ -113,11 +105,6 @@ export class AlunoRotinaComponent implements OnInit, AfterViewInit {
   diaSeguinte(): void {
     if (this.ehHoje()) return;
     this.irParaDia(somarDias(this.dataVisualizada(), 1));
-  }
-
-  aoEscolherData(event: Event): void {
-    const valor = (event.target as HTMLInputElement).value;
-    if (valor) this.irParaDia(valor);
   }
 
   abrirAcao(acao: CategoriaRegistro): void {

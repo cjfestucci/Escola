@@ -1,0 +1,29 @@
+<div class="calendario">
+  <div class="cabecalho-calendario">
+    <button type="button" (click)="mesAnterior()" aria-label="Mês anterior">‹</button>
+    <span class="nome-mes">{{ nomeMesAno }}</span>
+    <button type="button" [disabled]="mesSeguinteDesabilitado" (click)="mesSeguinte()" aria-label="Próximo mês">›</button>
+  </div>
+
+  <div class="grade-dias-semana">
+    @for (nome of nomesDiaSemana; track nome) {
+      <span>{{ nome }}</span>
+    }
+  </div>
+
+  <div class="grade-dias">
+    @for (celula of celulas; track celula.dataIso) {
+      <button
+        type="button"
+        class="celula-dia"
+        [class.fora-do-mes]="celula.foraDoMes"
+        [class.hoje]="ehHoje(celula.dataIso)"
+        [class.selecionado]="ehSelecionado(celula.dataIso)"
+        [disabled]="diaDesabilitado(celula.dataIso)"
+        (click)="selecionar(celula.dataIso)"
+      >
+        {{ celula.dia }}
+      </button>
+    }
+  </div>
+</div>

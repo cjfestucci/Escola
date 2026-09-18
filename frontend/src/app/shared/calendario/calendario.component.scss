@@ -1,0 +1,86 @@
+.calendario {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: 12px;
+  width: 260px;
+}
+
+.cabecalho-calendario {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  button {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--cor-borda);
+    background: var(--cor-superficie);
+    font-size: 1rem;
+    line-height: 1;
+
+    &:disabled {
+      opacity: 0.35;
+    }
+
+    &:active:not(:disabled) {
+      border-color: var(--cor-primaria);
+    }
+  }
+}
+
+.nome-mes {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.grade-dias-semana,
+.grade-dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.grade-dias-semana span {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--cor-texto-suave);
+  padding-bottom: 6px;
+}
+
+.celula-dia {
+  background: none;
+  border: none;
+  border-radius: 8px;
+  height: 32px;
+  font-size: 0.82rem;
+  color: var(--cor-texto);
+
+  &.fora-do-mes {
+    color: var(--cor-texto-suave);
+    opacity: 0.5;
+  }
+
+  &.hoje {
+    font-weight: 700;
+    color: var(--cor-primaria-escura);
+  }
+
+  &.selecionado {
+    background: var(--cor-primaria);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  &:disabled {
+    color: var(--cor-texto-suave);
+    opacity: 0.3;
+  }
+
+  &:active:not(:disabled):not(.selecionado) {
+    background: var(--cor-fundo);
+  }
+}
