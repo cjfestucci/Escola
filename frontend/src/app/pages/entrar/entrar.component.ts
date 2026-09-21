@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -14,8 +15,9 @@ export class EntrarComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  email = '';
-  senha = '';
+  // Só em dev, pra agilizar teste manual — nunca preenche sozinho em produção.
+  email = environment.production ? '' : 'admin@escola.dev';
+  senha = environment.production ? '' : 'escola123';
 
   readonly entrando = signal(false);
   readonly erro = signal<string | null>(null);
