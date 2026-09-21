@@ -7,7 +7,7 @@ export const routes: Routes = [
   { path: 'portal', pathMatch: 'full', redirectTo: 'entrar' },
   {
     path: 'entrar',
-    data: { titulo: 'Entrar' },
+    data: { titulo: 'Rotina Escola' },
     loadComponent: () => import('./pages/entrar/entrar.component').then((m) => m.EntrarComponent)
   },
   {

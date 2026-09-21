@@ -19,6 +19,8 @@ export class EntrarComponent {
 
   readonly entrando = signal(false);
   readonly erro = signal<string | null>(null);
+  readonly mostrarSenha = signal(false);
+  readonly mostrarAjudaSenha = signal(false);
 
   entrar(): void {
     this.erro.set(null);
