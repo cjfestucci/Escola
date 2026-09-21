@@ -14,7 +14,7 @@ import { SessaoService } from '../../services/sessao.service';
 })
 export class TopbarComponent {
   private readonly router = inject(Router);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   protected readonly contextoService = inject(ContextoService);
   protected readonly sessao = inject(SessaoService);
 

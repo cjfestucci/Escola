@@ -1,10 +1,12 @@
-<app-sidebar [aberto]="menuAberto()" (fechar)="menuAberto.set(false)" />
+@if (auth.estaLogado()) {
+  <app-sidebar [aberto]="menuAberto()" (fechar)="menuAberto.set(false)" />
 
-@if (menuAberto()) {
-  <div class="app-backdrop" (click)="menuAberto.set(false)"></div>
+  @if (menuAberto()) {
+    <div class="app-backdrop" (click)="menuAberto.set(false)"></div>
+  }
 }
 
-<div class="app-area">
+<div class="app-area" [class.app-area--sem-sidebar]="!auth.estaLogado()">
   <app-topbar (abrirMenu)="menuAberto.set(true)" />
 
   <main class="app-conteudo">

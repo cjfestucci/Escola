@@ -23,6 +23,10 @@
 @media (min-width: 900px) {
   .app-area {
     margin-left: var(--sidebar-largura);
+
+    &--sem-sidebar {
+      margin-left: 0;
+    }
   }
 
   .app-backdrop {

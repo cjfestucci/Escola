@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+import { AuthService } from './services/auth.service';
 import { SidebarComponent } from './shared/sidebar/sidebar.component';
 import { TopbarComponent } from './shared/topbar/topbar.component';
 
@@ -11,5 +12,6 @@ import { TopbarComponent } from './shared/topbar/topbar.component';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
+  protected readonly auth = inject(AuthService);
   protected readonly menuAberto = signal(false);
 }
