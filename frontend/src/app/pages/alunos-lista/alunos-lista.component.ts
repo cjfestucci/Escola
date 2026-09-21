@@ -10,6 +10,12 @@ import { SessaoService } from '../../services/sessao.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { idadeFormatada } from '../../shared/data-utils';
 
+interface GrupoTurma {
+  turmaId: string;
+  turmaNome: string;
+  alunos: Aluno[];
+}
+
 @Component({
   selector: 'app-alunos-lista',
   imports: [FormsModule],
@@ -32,6 +38,22 @@ export class AlunosListaComponent implements OnInit {
   readonly alunosFiltrados = computed(() => {
     const nome = this.filtroNome().trim().toLowerCase();
     return !nome ? this.alunos() : this.alunos().filter((aluno) => aluno.nome.toLowerCase().includes(nome));
+  });
+
+  /** Quem não tem turma própria (Admin, Coordenador, Financeiro) vê todo mundo de uma vez — melhor agrupado por turma. */
+  readonly agruparPorTurma = computed(() => this.sessao.turmas().length === 0);
+
+  readonly gruposPorTurma = computed<GrupoTurma[]>(() => {
+    const porId = new Map<string, GrupoTurma>();
+    for (const aluno of this.alunosFiltrados()) {
+      let grupo = porId.get(aluno.turmaId);
+      if (!grupo) {
+        grupo = { turmaId: aluno.turmaId, turmaNome: aluno.turmaNome, alunos: [] };
+        porId.set(aluno.turmaId, grupo);
+      }
+      grupo.alunos.push(aluno);
+    }
+    return [...porId.values()].sort((a, b) => a.turmaNome.localeCompare(b.turmaNome, 'pt-BR'));
   });
 
   ngOnInit(): void {
