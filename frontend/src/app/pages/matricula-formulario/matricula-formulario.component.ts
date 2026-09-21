@@ -3,7 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/aluno.model';
+import { FichaSaude } from '../../models/ficha-saude.model';
 import { AlunoService } from '../../services/aluno.service';
+import { FichaSaudeService } from '../../services/ficha-saude.service';
 import { TurmaService } from '../../services/turma.service';
 import { UploadService } from '../../services/upload.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
@@ -14,6 +16,8 @@ import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-ar
 function novoResponsavelVazio(): ResponsavelResumo {
   return { id: null, nome: '', email: '', telefone: null, responsavelFinanceiro: false };
 }
+
+const TIPOS_SANGUINEOS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 @Component({
   selector: 'app-matricula-formulario',
@@ -27,6 +31,7 @@ export class MatriculaFormularioComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly turmaService = inject(TurmaService);
   private readonly uploadService = inject(UploadService);
+  private readonly fichaSaudeService = inject(FichaSaudeService);
 
   private alunoId: string | null = null;
 
@@ -40,16 +45,39 @@ export class MatriculaFormularioComponent implements OnInit {
   readonly calendarioNascimentoAberto = signal(false);
   readonly senhasGeradas = signal<SenhaGeradaResponsavel[]>([]);
 
+  readonly carregandoFicha = signal(false);
+  readonly salvandoFicha = signal(false);
+  readonly erroFicha = signal<string | null>(null);
+  readonly fichaSalvaEm = signal<string | null>(null);
+
   nome = '';
   dataNascimento = '';
   turmaId = '';
 
+  tipoSanguineo = '';
+  alergias = '';
+  restricoesAlimentares = '';
+  medicamentosEmUso = '';
+  condicoesSaude = '';
+  planoSaude = '';
+  pediatraNome = '';
+  pediatraTelefone = '';
+  contatoEmergenciaNome = '';
+  contatoEmergenciaTelefone = '';
+  vacinacaoEmDia = false;
+  autorizaUsoImagem = false;
+
   protected readonly resolverFotoUrl = resolverFotoUrl;
   protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
   protected readonly hojeIso = hojeIso;
+  protected readonly tiposSanguineos = TIPOS_SANGUINEOS;
 
   get titulo(): string {
     return this.alunoId ? 'Editar aluno' : 'Novo aluno';
+  }
+
+  get ehEdicao(): boolean {
+    return !!this.alunoId;
   }
 
   ngOnInit(): void {
@@ -72,9 +100,67 @@ export class MatriculaFormularioComponent implements OnInit {
           this.carregando.set(false);
         }
       });
+      this.carregarFicha(this.alunoId);
     } else {
       this.carregando.set(false);
     }
+  }
+
+  private carregarFicha(alunoId: string): void {
+    this.carregandoFicha.set(true);
+    this.fichaSaudeService.obter(alunoId).subscribe({
+      next: (ficha) => {
+        this.tipoSanguineo = ficha.tipoSanguineo ?? '';
+        this.alergias = ficha.alergias ?? '';
+        this.restricoesAlimentares = ficha.restricoesAlimentares ?? '';
+        this.medicamentosEmUso = ficha.medicamentosEmUso ?? '';
+        this.condicoesSaude = ficha.condicoesSaude ?? '';
+        this.planoSaude = ficha.planoSaude ?? '';
+        this.pediatraNome = ficha.pediatraNome ?? '';
+        this.pediatraTelefone = ficha.pediatraTelefone ?? '';
+        this.contatoEmergenciaNome = ficha.contatoEmergenciaNome ?? '';
+        this.contatoEmergenciaTelefone = ficha.contatoEmergenciaTelefone ?? '';
+        this.vacinacaoEmDia = ficha.vacinacaoEmDia;
+        this.autorizaUsoImagem = ficha.autorizaUsoImagem;
+        this.carregandoFicha.set(false);
+      },
+      error: () => this.carregandoFicha.set(false)
+    });
+  }
+
+  salvarFicha(): void {
+    if (!this.alunoId) return;
+
+    this.erroFicha.set(null);
+    this.fichaSalvaEm.set(null);
+
+    const payload: FichaSaude = {
+      tipoSanguineo: this.tipoSanguineo || null,
+      alergias: this.alergias || null,
+      restricoesAlimentares: this.restricoesAlimentares || null,
+      medicamentosEmUso: this.medicamentosEmUso || null,
+      condicoesSaude: this.condicoesSaude || null,
+      planoSaude: this.planoSaude || null,
+      pediatraNome: this.pediatraNome || null,
+      pediatraTelefone: this.pediatraTelefone || null,
+      contatoEmergenciaNome: this.contatoEmergenciaNome || null,
+      contatoEmergenciaTelefone: this.contatoEmergenciaTelefone || null,
+      vacinacaoEmDia: this.vacinacaoEmDia,
+      autorizaUsoImagem: this.autorizaUsoImagem,
+      atualizadoEm: null
+    };
+
+    this.salvandoFicha.set(true);
+    this.fichaSaudeService.salvar(this.alunoId, payload).subscribe({
+      next: () => {
+        this.salvandoFicha.set(false);
+        this.fichaSalvaEm.set('Ficha de saúde salva.');
+      },
+      error: () => {
+        this.salvandoFicha.set(false);
+        this.erroFicha.set('Não foi possível salvar a ficha de saúde.');
+      }
+    });
   }
 
   selecionarNascimento(dataIso: string): void {

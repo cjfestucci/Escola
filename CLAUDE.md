@@ -30,3 +30,10 @@ Todo mundo loga com e-mail + senha — equipe (Admin, Coordenador, Educador/Prof
 - **Responsável (Pais)**: não tem tela de cadastro própria — o login (`Usuario` com `Papel = Responsavel`, ligado via `ResponsavelId`) é criado automaticamente na primeira vez que esse e-mail aparece como responsável de um aluno na Matrícula (`AlunosController.SincronizarResponsaveisAsync`). A senha gerada aparece uma vez na tela de Matrícula depois de salvar (`senhasGeradas` na resposta).
 - **Senha de dev**: todas as contas seed (`DbInitializer`) usam `escola123` — nunca usar esse padrão fora de ambiente de desenvolvimento.
 - Um Responsável só acessa os próprios filhos (checado via claim `responsavelId` no token contra `AlunoResponsaveis`) — nunca confiar em um `:id` da URL sem checar isso.
+
+## Ficha de saúde (desde 2026-09-21)
+
+Registro de saúde do aluno — 1:1 com `Aluno` (`FichaSaude`, criada sob demanda, `PUT` faz upsert). Endpoints em `/api/alunos/{alunoId}/ficha-saude`: `GET` para Equipe (qualquer aluno) e Responsável (só o próprio filho — mesmo padrão de checagem via `responsavelId`); `PUT` só `Gestao`.
+
+- Editada em `matricula-formulario` (aparece só em modo edição, não ao cadastrar um aluno novo) — salva com botão próprio ("Salvar ficha de saúde"), separado do salvar do aluno.
+- Mostrada de forma resumida (alergias, restrições alimentares, medicamentos, condições de saúde) como um alerta visível no topo de `aluno-rotina`, pro educador ver antes de registrar a rotina do dia. Só aparece o que estiver preenchido — sem ficha ainda, sem alerta.

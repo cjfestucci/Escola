@@ -31,6 +31,7 @@ h1 {
   }
 
   select,
+  textarea,
   input:not([type='checkbox']) {
     font-family: inherit;
     font-size: 1rem;
@@ -39,6 +40,15 @@ h1 {
     border: 1px solid var(--cor-borda);
     color: var(--cor-texto);
   }
+
+  textarea {
+    resize: vertical;
+  }
+}
+
+.titulo-secao {
+  font-size: 1.05rem;
+  margin: 28px 0 0;
 }
 
 .dica {
@@ -176,6 +186,15 @@ hr {
 .mensagem-erro {
   color: #b3261e;
   background: #fdecea;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.mensagem-sucesso {
+  color: #1e7e34;
+  background: #eafbea;
   border-radius: 8px;
   padding: 10px 12px;
   margin: 0;

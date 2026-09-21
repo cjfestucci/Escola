@@ -127,5 +127,87 @@
         </button>
       </div>
     </div>
+
+    @if (ehEdicao) {
+      <h2 class="titulo-secao">Ficha de saúde</h2>
+
+      @if (carregandoFicha()) {
+        <p>Carregando...</p>
+      } @else {
+        <div class="painel-formulario">
+          @if (erroFicha(); as mensagem) {
+            <p class="mensagem-erro">{{ mensagem }}</p>
+          }
+          @if (fichaSalvaEm(); as mensagem) {
+            <p class="mensagem-sucesso">{{ mensagem }}</p>
+          }
+
+          <label>Tipo sanguíneo
+            <select [(ngModel)]="tipoSanguineo">
+              <option value="">Não informado</option>
+              @for (tipo of tiposSanguineos; track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+          </label>
+
+          <label>Alergias
+            <textarea [(ngModel)]="alergias" rows="2" placeholder="Ex.: Amendoim, lactose..."></textarea>
+          </label>
+
+          <label>Restrições alimentares
+            <textarea [(ngModel)]="restricoesAlimentares" rows="2"></textarea>
+          </label>
+
+          <label>Medicamentos em uso
+            <textarea [(ngModel)]="medicamentosEmUso" rows="2"></textarea>
+          </label>
+
+          <label>Condições de saúde / observações
+            <textarea [(ngModel)]="condicoesSaude" rows="2"></textarea>
+          </label>
+
+          <label>Plano de saúde (opcional)
+            <input type="text" [(ngModel)]="planoSaude" placeholder="Ex.: Unimed" />
+          </label>
+
+          <div class="cabecalho-secao">
+            <span>Pediatra (opcional)</span>
+          </div>
+          <label>Nome
+            <input type="text" [(ngModel)]="pediatraNome" />
+          </label>
+          <label>Telefone
+            <input type="tel" [(ngModel)]="pediatraTelefone" placeholder="(11) 99999-9999" />
+          </label>
+
+          <div class="cabecalho-secao">
+            <span>Contato de emergência (opcional)</span>
+          </div>
+          <label>Nome
+            <input type="text" [(ngModel)]="contatoEmergenciaNome" placeholder="Se diferente dos responsáveis" />
+          </label>
+          <label>Telefone
+            <input type="tel" [(ngModel)]="contatoEmergenciaTelefone" placeholder="(11) 99999-9999" />
+          </label>
+
+          <label class="linha-checkbox">
+            <input type="checkbox" [(ngModel)]="vacinacaoEmDia" />
+            Vacinação em dia
+          </label>
+
+          <label class="linha-checkbox">
+            <input type="checkbox" [(ngModel)]="autorizaUsoImagem" />
+            Autoriza uso de imagem (fotos na rotina, materiais da escola)
+          </label>
+
+          <div class="botoes">
+            <button type="button" class="primario" [disabled]="salvandoFicha()" (click)="salvarFicha()">
+              {{ salvandoFicha() ? 'Salvando...' : 'Salvar ficha de saúde' }}
+            </button>
+          </div>
+        </div>
+      }
+    }
   }
 </div>

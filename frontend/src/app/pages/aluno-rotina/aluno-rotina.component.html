@@ -8,6 +8,15 @@
     </header>
   }
 
+  @if (alertasSaude().length > 0) {
+    <div class="alerta-saude">
+      <strong>⚠️ Atenção</strong>
+      @for (alerta of alertasSaude(); track alerta.rotulo) {
+        <p><span class="rotulo-alerta">{{ alerta.rotulo }}:</span> {{ alerta.texto }}</p>
+      }
+    </div>
+  }
+
   <div class="navegador-data">
     <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
 

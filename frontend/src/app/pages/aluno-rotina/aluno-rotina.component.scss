@@ -31,6 +31,28 @@
   }
 }
 
+.alerta-saude {
+  background: #fff4e5;
+  border: 1px solid #f3c988;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  p {
+    margin: 2px 0;
+  }
+
+  .rotulo-alerta {
+    font-weight: 600;
+  }
+}
+
 .navegador-data {
   display: flex;
   align-items: center;

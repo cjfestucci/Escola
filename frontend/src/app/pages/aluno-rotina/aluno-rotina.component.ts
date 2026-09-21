@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
+import { FichaSaude } from '../../models/ficha-saude.model';
 import {
   CategoriaRegistro,
   Humor,
@@ -13,6 +14,7 @@ import {
   TipoHigiene
 } from '../../models/registro-rotina.model';
 import { AlunoService } from '../../services/aluno.service';
+import { FichaSaudeService } from '../../services/ficha-saude.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import { UploadService } from '../../services/upload.service';
@@ -40,6 +42,7 @@ export class AlunoRotinaComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly alunoService = inject(AlunoService);
+  private readonly fichaSaudeService = inject(FichaSaudeService);
   private readonly rotinaService = inject(RotinaService);
   private readonly sessao = inject(SessaoService);
   private readonly uploadService = inject(UploadService);
@@ -49,6 +52,18 @@ export class AlunoRotinaComponent implements OnInit {
   readonly aluno = signal<Aluno | null>(null);
   readonly registros = signal<RegistroRotina[]>([]);
   readonly carregando = signal(true);
+
+  readonly fichaSaude = signal<FichaSaude | null>(null);
+  readonly alertasSaude = computed(() => {
+    const f = this.fichaSaude();
+    if (!f) return [];
+    const alertas: { rotulo: string; texto: string }[] = [];
+    if (f.alergias) alertas.push({ rotulo: 'Alergias', texto: f.alergias });
+    if (f.restricoesAlimentares) alertas.push({ rotulo: 'Restrições alimentares', texto: f.restricoesAlimentares });
+    if (f.medicamentosEmUso) alertas.push({ rotulo: 'Medicamentos em uso', texto: f.medicamentosEmUso });
+    if (f.condicoesSaude) alertas.push({ rotulo: 'Condições de saúde', texto: f.condicoesSaude });
+    return alertas;
+  });
 
   readonly filtroCategoria = signal<CategoriaRegistro | null>(null);
   readonly registrosFiltrados = computed(() => {
@@ -91,6 +106,7 @@ export class AlunoRotinaComponent implements OnInit {
     }
 
     this.alunoService.obterAluno(this.alunoId).subscribe((aluno) => this.aluno.set(aluno));
+    this.fichaSaudeService.obter(this.alunoId).subscribe((ficha) => this.fichaSaude.set(ficha));
     this.carregarTimeline();
   }
 
