@@ -81,19 +81,6 @@
     <p class="vazio">Nenhum aluno nesta turma.</p>
   } @else if (alunosFiltrados().length === 0) {
     <p class="vazio">Nenhum aluno encontrado com esse filtro.</p>
-  } @else if (agruparPorTurma()) {
-    @for (grupo of gruposPorTurma(); track grupo.turmaId) {
-      <h2 class="titulo-grupo">{{ grupo.turmaNome }} <span class="contagem-grupo">({{ grupo.alunos.length }})</span></h2>
-      <div class="grade-alunos">
-        @for (aluno of grupo.alunos; track aluno.id) {
-          <button type="button" class="cartao-aluno" (click)="abrir(aluno)">
-            <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
-            <span class="nome">{{ aluno.nome }}</span>
-            <span class="idade">{{ idade(aluno.dataNascimento) }}</span>
-          </button>
-        }
-      </div>
-    }
   } @else {
     <div class="grade-alunos">
       @for (aluno of alunosFiltrados(); track aluno.id) {

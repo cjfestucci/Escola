@@ -113,26 +113,10 @@
   color: var(--cor-texto-suave);
 }
 
-.titulo-grupo {
-  font-size: 1rem;
-  margin: 20px 0 10px;
-
-  &:first-of-type {
-    margin-top: 0;
-  }
-}
-
-.contagem-grupo {
-  font-weight: 400;
-  color: var(--cor-texto-suave);
-  font-size: 0.85rem;
-}
-
 .grade-alunos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 12px;
-  margin-bottom: 8px;
 }
 
 .cartao-aluno {
