@@ -14,4 +14,10 @@ public static class CobrancaMapper
         c.Vencimento,
         c.Paga,
         c.PagoEm);
+
+    public static ConfiguracaoFinanceiraDto ToDto(this ConfiguracaoFinanceira c) => new(
+        c.PixChave,
+        c.PixNomeRecebedor,
+        c.PixCidade,
+        !string.IsNullOrWhiteSpace(c.PixChave) && !string.IsNullOrWhiteSpace(c.PixNomeRecebedor) && !string.IsNullOrWhiteSpace(c.PixCidade));
 }

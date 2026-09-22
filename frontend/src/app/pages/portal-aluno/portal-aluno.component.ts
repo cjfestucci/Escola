@@ -77,6 +77,12 @@ export class PortalAlunoComponent implements OnInit {
   readonly mostrarFinanceiro = signal(false);
   readonly cobrancasPendentes = computed(() => this.cobrancas().filter((c) => !c.paga).length);
 
+  readonly pixAbertoId = signal<string | null>(null);
+  readonly pixCarregando = signal(false);
+  readonly pixCodigo = signal<string | null>(null);
+  readonly pixErro = signal<string | null>(null);
+  readonly pixCopiado = signal(false);
+
   protected readonly rotuloCategoria = rotuloCategoria;
   protected readonly rotuloCategoriaCurto = rotuloCategoriaCurto;
   protected readonly iconeCategoria = iconeCategoria;
@@ -147,5 +153,36 @@ export class PortalAlunoComponent implements OnInit {
 
   voltar(): void {
     this.router.navigateByUrl('/portal/filhos');
+  }
+
+  abrirPix(cobranca: Cobranca): void {
+    this.pixAbertoId.set(cobranca.id);
+    this.pixCodigo.set(null);
+    this.pixErro.set(null);
+    this.pixCopiado.set(false);
+    this.pixCarregando.set(true);
+    this.financeiroService.obterPix(cobranca.id).subscribe({
+      next: (resposta) => {
+        this.pixCodigo.set(resposta.codigoCopiaECola);
+        this.pixCarregando.set(false);
+      },
+      error: (resposta) => {
+        this.pixErro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível gerar o código Pix.');
+        this.pixCarregando.set(false);
+      }
+    });
+  }
+
+  fecharPix(): void {
+    this.pixAbertoId.set(null);
+  }
+
+  copiarPix(): void {
+    const codigo = this.pixCodigo();
+    if (!codigo) return;
+    navigator.clipboard.writeText(codigo).then(() => {
+      this.pixCopiado.set(true);
+      setTimeout(() => this.pixCopiado.set(false), 2000);
+    });
   }
 }

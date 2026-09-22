@@ -1,8 +1,42 @@
 <div class="container">
   <div class="cabecalho-pagina">
     <p class="subtitulo">Mensalidades e cobranças por aluno.</p>
-    <button type="button" class="botao-primario" (click)="abrirNova()">+ Nova cobrança</button>
+    <div class="acoes-cabecalho">
+      @if (auth.ehGestao()) {
+        <button type="button" class="botao-secundario" (click)="abrirConfig()">⚙️ Configurar Pix</button>
+      }
+      <button type="button" class="botao-primario" (click)="abrirNova()">+ Nova cobrança</button>
+    </div>
   </div>
+
+  @if (painelConfigAberto()) {
+    <div class="painel-formulario">
+      <p class="detalhe">A chave Pix é usada para gerar o código de pagamento de cada cobrança.</p>
+
+      @if (erroConfig(); as mensagem) {
+        <p class="mensagem-erro">{{ mensagem }}</p>
+      }
+
+      <label>Chave Pix
+        <input type="text" [(ngModel)]="pixChaveConfig" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória" />
+      </label>
+
+      <label>Nome do recebedor
+        <input type="text" [(ngModel)]="pixNomeConfig" placeholder="Nome da escola" maxlength="25" />
+      </label>
+
+      <label>Cidade
+        <input type="text" [(ngModel)]="pixCidadeConfig" placeholder="Cidade da escola" maxlength="15" />
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="fecharConfig()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvandoConfig()" (click)="salvarConfig()">
+          {{ salvandoConfig() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
 
   @if (erro(); as mensagem) {
     <p class="mensagem-erro">{{ mensagem }}</p>
@@ -146,6 +180,11 @@
             </div>
           } @else {
             <div class="acoes">
+              @if (emailFeedback()?.id === cobranca.id) {
+                <span class="feedback-email" [class.feedback-email--erro]="!emailFeedback()!.sucesso">
+                  {{ emailFeedback()!.mensagem }}
+                </span>
+              }
               <button
                 type="button"
                 class="botao-texto"
@@ -154,12 +193,43 @@
               >
                 {{ cobranca.paga ? 'Marcar pendente' : 'Marcar paga' }}
               </button>
+              <button type="button" class="botao-icone" (click)="abrirPix(cobranca)" aria-label="Ver código Pix">💠</button>
+              <button
+                type="button"
+                class="botao-icone"
+                [disabled]="enviandoEmailId() === cobranca.id"
+                (click)="enviarEmail(cobranca)"
+                aria-label="Enviar por e-mail"
+              >
+                {{ enviandoEmailId() === cobranca.id ? '⏳' : '✉️' }}
+              </button>
               <button type="button" class="botao-icone" (click)="editar(cobranca)" aria-label="Editar cobrança">✏️</button>
               <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(cobranca.id)" aria-label="Excluir cobrança">🗑️</button>
+            </div>
+          }
+
+          @if (pixAbertoId() === cobranca.id) {
+            <div class="popover-pix">
+              @if (pixCarregando()) {
+                <p>Gerando código Pix...</p>
+              } @else if (pixErro()) {
+                <p class="mensagem-erro">{{ pixErro() }}</p>
+              } @else if (pixCodigo()) {
+                <p class="detalhe">Código Pix copia e cola:</p>
+                <p class="codigo-pix">{{ pixCodigo() }}</p>
+                <button type="button" class="primario" (click)="copiarPix()">
+                  {{ pixCopiado() ? 'Copiado!' : 'Copiar código' }}
+                </button>
+              }
+              <button type="button" class="botao-texto" (click)="fecharPix()">Fechar</button>
             </div>
           }
         </li>
       }
     </ul>
+  }
+
+  @if (pixAbertoId()) {
+    <div class="backdrop-calendario" (click)="fecharPix()"></div>
   }
 </div>

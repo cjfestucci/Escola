@@ -3,7 +3,14 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { Cobranca, CriarCobranca, EditarCobranca } from '../models/cobranca.model';
+import {
+  Cobranca,
+  ConfiguracaoFinanceira,
+  CriarCobranca,
+  EditarCobranca,
+  EditarConfiguracaoFinanceira,
+  PixCobranca,
+} from '../models/cobranca.model';
 
 @Injectable({ providedIn: 'root' })
 export class FinanceiroService {
@@ -39,5 +46,21 @@ export class FinanceiroService {
 
   excluir(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/financeiro/cobrancas/${id}`);
+  }
+
+  obterPix(id: string): Observable<PixCobranca> {
+    return this.http.get<PixCobranca>(`${this.baseUrl}/financeiro/cobrancas/${id}/pix`);
+  }
+
+  enviarEmail(id: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/financeiro/cobrancas/${id}/enviar-email`, {});
+  }
+
+  obterConfiguracao(): Observable<ConfiguracaoFinanceira> {
+    return this.http.get<ConfiguracaoFinanceira>(`${this.baseUrl}/financeiro/configuracao`);
+  }
+
+  editarConfiguracao(payload: EditarConfiguracaoFinanceira): Observable<ConfiguracaoFinanceira> {
+    return this.http.put<ConfiguracaoFinanceira>(`${this.baseUrl}/financeiro/configuracao`, payload);
   }
 }

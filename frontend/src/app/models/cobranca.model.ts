@@ -22,3 +22,20 @@ export interface EditarCobranca {
   valor: number;
   vencimento: string;
 }
+
+export interface ConfiguracaoFinanceira {
+  pixChave: string | null;
+  pixNomeRecebedor: string | null;
+  pixCidade: string | null;
+  configurado: boolean;
+}
+
+export interface EditarConfiguracaoFinanceira {
+  pixChave: string | null;
+  pixNomeRecebedor: string | null;
+  pixCidade: string | null;
+}
+
+export interface PixCobranca {
+  codigoCopiaECola: string;
+}

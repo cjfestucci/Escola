@@ -3,8 +3,9 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Aluno, Turma } from '../../models/aluno.model';
-import { Cobranca } from '../../models/cobranca.model';
+import { Cobranca, ConfiguracaoFinanceira } from '../../models/cobranca.model';
 import { AlunoService } from '../../services/aluno.service';
+import { AuthService } from '../../services/auth.service';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
@@ -20,6 +21,7 @@ type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado';
 export class FinanceiroListaComponent implements OnInit {
   private readonly financeiroService = inject(FinanceiroService);
   private readonly alunoService = inject(AlunoService);
+  protected readonly auth = inject(AuthService);
 
   readonly cobrancas = signal<Cobranca[]>([]);
   readonly turmas = signal<Turma[]>([]);
@@ -37,6 +39,23 @@ export class FinanceiroListaComponent implements OnInit {
   readonly calendarioAberto = signal(false);
   readonly processandoId = signal<string | null>(null);
   readonly confirmandoExclusaoId = signal<string | null>(null);
+
+  readonly configuracao = signal<ConfiguracaoFinanceira | null>(null);
+  readonly painelConfigAberto = signal(false);
+  readonly salvandoConfig = signal(false);
+  readonly erroConfig = signal<string | null>(null);
+  pixChaveConfig = '';
+  pixNomeConfig = '';
+  pixCidadeConfig = '';
+
+  readonly pixAbertoId = signal<string | null>(null);
+  readonly pixCarregando = signal(false);
+  readonly pixCodigo = signal<string | null>(null);
+  readonly pixErro = signal<string | null>(null);
+  readonly pixCopiado = signal(false);
+
+  readonly enviandoEmailId = signal<string | null>(null);
+  readonly emailFeedback = signal<{ id: string; mensagem: string; sucesso: boolean } | null>(null);
 
   alunoId = '';
   descricao = '';
@@ -73,6 +92,7 @@ export class FinanceiroListaComponent implements OnInit {
     this.alunoService.listarTurmas().subscribe((turmas) => this.turmas.set(turmas));
     this.alunoService.listarAlunos().subscribe((alunos) => this.alunos.set(alunos));
     this.carregar();
+    this.financeiroService.obterConfiguracao().subscribe((config) => this.configuracao.set(config));
   }
 
   private carregar(): void {
@@ -208,6 +228,89 @@ export class FinanceiroListaComponent implements OnInit {
         this.confirmandoExclusaoId.set(null);
       },
       error: () => this.processandoId.set(null)
+    });
+  }
+
+  abrirConfig(): void {
+    const config = this.configuracao();
+    this.pixChaveConfig = config?.pixChave ?? '';
+    this.pixNomeConfig = config?.pixNomeRecebedor ?? '';
+    this.pixCidadeConfig = config?.pixCidade ?? '';
+    this.erroConfig.set(null);
+    this.painelConfigAberto.set(true);
+  }
+
+  fecharConfig(): void {
+    this.painelConfigAberto.set(false);
+  }
+
+  salvarConfig(): void {
+    this.erroConfig.set(null);
+    this.salvandoConfig.set(true);
+    this.financeiroService
+      .editarConfiguracao({
+        pixChave: this.pixChaveConfig.trim() || null,
+        pixNomeRecebedor: this.pixNomeConfig.trim() || null,
+        pixCidade: this.pixCidadeConfig.trim() || null
+      })
+      .subscribe({
+        next: (config) => {
+          this.configuracao.set(config);
+          this.salvandoConfig.set(false);
+          this.painelConfigAberto.set(false);
+        },
+        error: (resposta) => {
+          this.salvandoConfig.set(false);
+          this.erroConfig.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a configuração.');
+        }
+      });
+  }
+
+  abrirPix(cobranca: Cobranca): void {
+    this.pixAbertoId.set(cobranca.id);
+    this.pixCodigo.set(null);
+    this.pixErro.set(null);
+    this.pixCopiado.set(false);
+    this.pixCarregando.set(true);
+    this.financeiroService.obterPix(cobranca.id).subscribe({
+      next: (resposta) => {
+        this.pixCodigo.set(resposta.codigoCopiaECola);
+        this.pixCarregando.set(false);
+      },
+      error: (resposta) => {
+        this.pixErro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível gerar o código Pix.');
+        this.pixCarregando.set(false);
+      }
+    });
+  }
+
+  fecharPix(): void {
+    this.pixAbertoId.set(null);
+  }
+
+  copiarPix(): void {
+    const codigo = this.pixCodigo();
+    if (!codigo) return;
+    navigator.clipboard.writeText(codigo).then(() => {
+      this.pixCopiado.set(true);
+      setTimeout(() => this.pixCopiado.set(false), 2000);
+    });
+  }
+
+  enviarEmail(cobranca: Cobranca): void {
+    this.enviandoEmailId.set(cobranca.id);
+    this.emailFeedback.set(null);
+    this.financeiroService.enviarEmail(cobranca.id).subscribe({
+      next: () => {
+        this.enviandoEmailId.set(null);
+        this.emailFeedback.set({ id: cobranca.id, mensagem: 'E-mail enviado!', sucesso: true });
+        setTimeout(() => this.emailFeedback.set(null), 3000);
+      },
+      error: (resposta) => {
+        this.enviandoEmailId.set(null);
+        const mensagem = typeof resposta.error === 'string' ? resposta.error : 'Não foi possível enviar o e-mail.';
+        this.emailFeedback.set({ id: cobranca.id, mensagem, sucesso: false });
+      }
     });
   }
 }

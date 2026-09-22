@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Email;
 using Escola.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,9 @@ var pastaUploads = Path.Combine(
     "uploads");
 Directory.CreateDirectory(pastaUploads);
 builder.Services.AddSingleton<IFotoStorage>(new LocalFotoStorage(pastaUploads));
+
+builder.Services.Configure<ConfiguracaoSmtp>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 var app = builder.Build();
 
