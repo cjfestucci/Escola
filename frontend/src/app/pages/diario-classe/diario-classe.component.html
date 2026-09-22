@@ -1,0 +1,148 @@
+<div class="container">
+  <p class="subtitulo">Registro pedagógico da turma — atividades do dia, compartilhado com os pais.</p>
+
+  @if (!carregandoTurmas() && sessao.turmas().length > 1) {
+    <div class="seletor-turmas">
+      @for (turma of sessao.turmas(); track turma.id) {
+        <button
+          type="button"
+          class="pilula-turma"
+          [class.ativa]="sessao.turmaAtivaId() === turma.id"
+          (click)="selecionarTurma(turma.id)"
+        >
+          {{ turma.nome }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (!carregandoTurmas() && sessao.turmas().length === 0) {
+    <p class="vazio">Nenhuma turma cadastrada ainda.</p>
+  } @else if (!carregandoTurmas()) {
+    <div class="navegador-data">
+      <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
+
+      <div class="ancora-calendario">
+        <button type="button" class="data-atual" (click)="calendarioAberto.set(!calendarioAberto())">
+          <span class="rotulo-dia">{{ rotuloData(dataVisualizada()) }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
+        </button>
+
+        @if (calendarioAberto()) {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="dataVisualizada()" [dataMaxima]="hojeIso()" (escolher)="irParaDia($event)" />
+          </div>
+        }
+      </div>
+
+      <button type="button" class="botao-nav-data" [disabled]="ehHoje()" (click)="diaSeguinte()" aria-label="Próximo dia">›</button>
+    </div>
+
+    @if (calendarioAberto()) {
+      <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+    }
+
+    @if (!formularioAberto()) {
+      <button type="button" class="botao-novo" (click)="abrirNovo()">+ Novo registro</button>
+    }
+
+    @if (formularioAberto()) {
+      <div class="painel-formulario">
+        @if (registroEmEdicaoId()) {
+          <p class="rotulo-edicao">Editando registro</p>
+        }
+
+        <label>Título
+          <input type="text" [(ngModel)]="titulo" placeholder="Ex.: Pintura com tinta guache" />
+        </label>
+
+        <label>Descrição (opcional)
+          <textarea [(ngModel)]="descricao" rows="3" placeholder="O que a turma fez, como foi..."></textarea>
+        </label>
+
+        <label>Fotos (até {{ maxFotos }})</label>
+
+        @if (fotoUrls().length > 0) {
+          <div class="miniaturas-fotos">
+            @for (url of resolverFotoUrls(fotoUrls()); track url; let i = $index) {
+              <div class="miniatura">
+                <img [src]="url" alt="Foto anexada" />
+                <button type="button" class="remover-foto" (click)="removerFoto(fotoUrls()[i])" aria-label="Remover foto">×</button>
+              </div>
+            }
+          </div>
+        }
+
+        @if (enviandoFoto()) {
+          <p class="dica">Enviando foto...</p>
+        } @else if (fotoUrls().length < maxFotos) {
+          <app-seletor-arquivo rotulo="📷 Adicionar foto" [capturarCamera]="true" (arquivoSelecionado)="aoSelecionarFoto($event)" />
+        }
+
+        <div class="botoes">
+          <button type="button" class="secundario" (click)="fecharFormulario()">Cancelar</button>
+          <button type="button" class="primario" [disabled]="enviando() || !titulo.trim()" (click)="confirmar()">
+            {{ enviando() ? 'Salvando...' : 'Salvar' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (carregando()) {
+      <p>Carregando...</p>
+    } @else if (registros().length === 0) {
+      <p class="vazio">Nenhum registro neste dia.</p>
+    } @else {
+      <ul class="timeline">
+        @for (registro of registros(); track registro.id) {
+          <li class="item-timeline">
+            <div class="conteudo">
+              <div class="linha-topo">
+                <strong>{{ registro.titulo }}</strong>
+                <span class="hora">{{ horaRegistro(registro.registradoEm) }}</span>
+              </div>
+              @if (registro.descricao) {
+                <p class="observacao">{{ registro.descricao }}</p>
+              }
+              @if (registro.fotoUrls.length > 0) {
+                <div class="galeria-fotos">
+                  @for (url of resolverFotoUrls(registro.fotoUrls); track url) {
+                    <img class="foto" [src]="url" alt="Foto do registro" />
+                  }
+                </div>
+              }
+              @if (confirmandoExclusaoId() === registro.id) {
+                <div class="confirmar-exclusao">
+                  <span>Excluir este registro?</span>
+                  <div class="acoes-item">
+                    <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
+                    <button
+                      type="button"
+                      class="botao-texto botao-texto--perigo"
+                      [disabled]="excluindoId() === registro.id"
+                      (click)="confirmarExclusao(registro)"
+                    >
+                      {{ excluindoId() === registro.id ? 'Excluindo...' : 'Excluir' }}
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="rodape-item">
+                  <span class="autor">por {{ registro.criadoPorNome }}</span>
+                  <div class="acoes-item">
+                    <button type="button" class="botao-icone" (click)="editarRegistro(registro)" aria-label="Editar registro">✏️</button>
+                    <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(registro.id)" aria-label="Excluir registro">🗑️</button>
+                  </div>
+                </div>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>

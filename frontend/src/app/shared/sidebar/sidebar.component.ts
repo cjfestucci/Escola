@@ -13,15 +13,13 @@ interface ItemNav {
 
 const ITENS_EDUCADOR: ItemNav[] = [
   { rotulo: 'Turma', rota: '/alunos', icone: 'users' },
+  { rotulo: 'Diário de Classe', rota: '/diario', icone: 'book' },
   { rotulo: 'Matrícula', rota: '/matricula', icone: 'matricula' },
   { rotulo: 'Turmas (cadastro)', rota: '/turmas', icone: 'turmas' }
 ];
 const ITEM_USUARIOS: ItemNav = { rotulo: 'Usuários', rota: '/usuarios', icone: 'usuarios' };
 const ITENS_PORTAL: ItemNav[] = [{ rotulo: 'Meus Filhos', rota: '/portal/filhos', icone: 'home' }];
-const ITENS_EM_BREVE: ItemNav[] = [
-  { rotulo: 'Diário de Classe', rota: '', icone: 'book' },
-  { rotulo: 'Financeiro', rota: '', icone: 'wallet' }
-];
+const ITENS_EM_BREVE: ItemNav[] = [{ rotulo: 'Financeiro', rota: '', icone: 'wallet' }];
 
 @Component({
   selector: 'app-sidebar',

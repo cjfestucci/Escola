@@ -15,4 +15,6 @@ public class Turma
     /// <summary>Educadores vinculados — o formulário de cadastro só define um "professor" opcional,
     /// mas o modelo já suporta mais de um (mesmo vínculo usado por "educador tem várias turmas").</summary>
     public ICollection<TurmaEducador> Educadores { get; set; } = new List<TurmaEducador>();
+
+    public ICollection<RegistroDiarioClasse> RegistrosDiario { get; set; } = new List<RegistroDiarioClasse>();
 }

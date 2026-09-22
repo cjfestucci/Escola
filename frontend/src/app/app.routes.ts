@@ -72,6 +72,13 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/usuarios-lista/usuarios-lista.component').then((m) => m.UsuariosListaComponent)
   },
   {
+    path: 'diario',
+    pathMatch: 'full',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Diário de Classe' },
+    loadComponent: () => import('./pages/diario-classe/diario-classe.component').then((m) => m.DiarioClasseComponent)
+  },
+  {
     path: 'portal/filhos',
     canActivate: [portalGuard],
     data: { titulo: 'Meus filhos' },

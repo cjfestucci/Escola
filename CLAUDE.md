@@ -39,3 +39,12 @@ Registro de saúde do aluno — 1:1 com `Aluno` (`FichaSaude`, criada sob demand
 - Editada em `matricula-formulario` (aparece só em modo edição, não ao cadastrar um aluno novo) — salva com botão próprio ("Salvar ficha de saúde"), separado do salvar do aluno.
 - Mostrada de forma resumida (alergias, restrições alimentares, medicamentos, condições de saúde) como um alerta visível no topo de `aluno-rotina`, pro educador ver antes de registrar a rotina do dia. Só aparece o que estiver preenchido — sem ficha ainda, sem alerta.
 - No Portal dos Pais (`portal-aluno`), aparece como um painel colapsável (fechado por padrão) com todos os campos, incluindo uma mensagem própria quando ainda não há nada preenchido — sempre somente leitura pro Responsável.
+
+## Diário de Classe (desde 2026-09-22)
+
+Registro pedagógico da **turma** (não do aluno individual) — atividades do dia, com fotos. Modela `RegistroDiarioClasse`/`FotoDiarioClasse` no mesmo padrão normalizado de `RegistroRotina`/`FotoRegistro` (o projeto não usa colunas-array do Postgres em nenhum lugar, mesmo sendo suportado pelo Npgsql — segue a convenção existente). Endpoints em `/api/turmas/{turmaId}/diario`.
+
+- **Autorização**: segue exatamente o padrão do `RotinaController` — `GET` pra Equipe (qualquer turma) e Responsável (só turma onde tem filho matriculado, checado via `Aluno.TurmaId` + `AlunoResponsaveis`); `POST`/`PUT`/`DELETE` só `Equipe`, sem checar se o Educador está de fato vinculado àquela turma (mesma lacuna que já existe em Rotina — deliberadamente não corrigida aqui pra manter consistência, não é regressão nova).
+- **Frontend**: página própria (`diario-classe`, rota `/diario`), com seletor de turma em pílulas — reaproveita a mesma lógica de "minhas turmas ou todas as turmas" de `alunos-lista` (Admin/Coordenador/Financeiro veem todas; Educador só as suas) — e o mesmo navegador de data em português (`app-calendario`) usado em `aluno-rotina`. Cadastro/edição com até 4 fotos, mesmo componente `app-seletor-arquivo`.
+- Estava marcado "Em breve" na sidebar — agora é item de navegação normal (ícone `book`), só resta "Financeiro" como "Em breve".
+- No Portal dos Pais (`portal-aluno`), aparece como seção "Diário da turma" somente leitura, reaproveitando o navegador de data já existente ali (mesma data da rotina individual) — sem seletor de turma próprio, porque só mostra a turma do filho que está sendo visualizado.

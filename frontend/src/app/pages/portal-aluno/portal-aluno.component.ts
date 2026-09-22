@@ -2,9 +2,11 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
+import { RegistroDiarioClasse } from '../../models/diario-classe.model';
 import { FichaSaude } from '../../models/ficha-saude.model';
 import { CategoriaRegistro, RegistroRotina } from '../../models/registro-rotina.model';
 import { AlunoService } from '../../services/aluno.service';
+import { DiarioClasseService } from '../../services/diario-classe.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
@@ -30,6 +32,7 @@ export class PortalAlunoComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly fichaSaudeService = inject(FichaSaudeService);
   private readonly rotinaService = inject(RotinaService);
+  private readonly diarioClasseService = inject(DiarioClasseService);
   private readonly sessao = inject(SessaoService);
 
   private alunoId = '';
@@ -65,6 +68,8 @@ export class PortalAlunoComponent implements OnInit {
   readonly ehHoje = computed(() => this.dataVisualizada() === hojeIso());
   readonly calendarioAberto = signal(false);
 
+  readonly registrosDiario = signal<RegistroDiarioClasse[]>([]);
+
   protected readonly rotuloCategoria = rotuloCategoria;
   protected readonly rotuloCategoriaCurto = rotuloCategoriaCurto;
   protected readonly iconeCategoria = iconeCategoria;
@@ -86,7 +91,10 @@ export class PortalAlunoComponent implements OnInit {
       return;
     }
 
-    this.alunoService.obterAluno(this.alunoId).subscribe((aluno) => this.aluno.set(aluno));
+    this.alunoService.obterAluno(this.alunoId).subscribe((aluno) => {
+      this.aluno.set(aluno);
+      this.carregarDiario();
+    });
     this.fichaSaudeService.obter(this.alunoId).subscribe((ficha) => this.fichaSaude.set(ficha));
     this.carregarTimeline();
   }
@@ -102,10 +110,21 @@ export class PortalAlunoComponent implements OnInit {
     });
   }
 
+  private carregarDiario(): void {
+    const turmaId = this.aluno()?.turmaId;
+    if (!turmaId) return;
+
+    this.diarioClasseService.listarDoDia(turmaId, this.dataVisualizada()).subscribe({
+      next: (registros) => this.registrosDiario.set(registros),
+      error: () => this.registrosDiario.set([])
+    });
+  }
+
   irParaDia(dataIso: string): void {
     this.dataVisualizada.set(dataIso);
     this.calendarioAberto.set(false);
     this.carregarTimeline();
+    this.carregarDiario();
   }
 
   diaAnterior(): void {

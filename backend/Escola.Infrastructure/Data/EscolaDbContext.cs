@@ -14,6 +14,8 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options) : DbCont
     public DbSet<TurmaEducador> TurmaEducadores => Set<TurmaEducador>();
     public DbSet<RegistroRotina> RegistrosRotina => Set<RegistroRotina>();
     public DbSet<FotoRegistro> Fotos => Set<FotoRegistro>();
+    public DbSet<RegistroDiarioClasse> RegistrosDiarioClasse => Set<RegistroDiarioClasse>();
+    public DbSet<FotoDiarioClasse> FotosDiarioClasse => Set<FotoDiarioClasse>();
     public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

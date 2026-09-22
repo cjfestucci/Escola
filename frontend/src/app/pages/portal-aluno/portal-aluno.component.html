@@ -129,4 +129,31 @@
       }
     </ul>
   }
+
+  @if (registrosDiario().length > 0) {
+    <h2 class="titulo-timeline">Diário da turma</h2>
+    <ul class="timeline">
+      @for (registro of registrosDiario(); track registro.id) {
+        <li class="item-timeline">
+          <div class="conteudo">
+            <div class="linha-topo">
+              <strong>{{ registro.titulo }}</strong>
+              <span class="hora">{{ horaRegistro(registro.registradoEm) }}</span>
+            </div>
+            @if (registro.descricao) {
+              <p class="observacao">{{ registro.descricao }}</p>
+            }
+            @if (registro.fotoUrls.length > 0) {
+              <div class="galeria-fotos">
+                @for (url of resolverFotoUrls(registro.fotoUrls); track url) {
+                  <img class="foto" [src]="url" alt="Foto do registro" />
+                }
+              </div>
+            }
+            <span class="autor">por {{ registro.criadoPorNome }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
 </div>
