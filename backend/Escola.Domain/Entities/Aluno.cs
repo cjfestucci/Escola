@@ -12,4 +12,5 @@ public class Aluno
 
     public ICollection<AlunoResponsavel> Responsaveis { get; set; } = new List<AlunoResponsavel>();
     public ICollection<RegistroRotina> RegistrosRotina { get; set; } = new List<RegistroRotina>();
+    public ICollection<Cobranca> Cobrancas { get; set; } = new List<Cobranca>();
 }

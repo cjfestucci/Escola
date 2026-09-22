@@ -5,5 +5,6 @@ public static class GruposDePapeis
 {
     public const string Equipe = "Admin,Coordenador,Educador,Financeiro";
     public const string Gestao = "Admin,Coordenador";
+    public const string Financeiro = "Admin,Coordenador,Financeiro";
     public const string Responsavel = "Responsavel";
 }

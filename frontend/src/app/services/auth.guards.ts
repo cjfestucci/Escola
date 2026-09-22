@@ -19,6 +19,14 @@ export const gestaoGuard: CanActivateFn = () => {
   return router.parseUrl(auth.ehEquipe() ? '/alunos' : '/entrar');
 };
 
+export const financeiroGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (auth.ehFinanceiro()) return true;
+  return router.parseUrl(auth.ehEquipe() ? '/alunos' : '/entrar');
+};
+
 export const portalGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);

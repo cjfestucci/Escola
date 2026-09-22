@@ -52,25 +52,6 @@
                 <path d="m15.5 6.5 1.3 1.3 2.2-2.4" />
               </svg>
             }
-          }
-        </span>
-        {{ item.rotulo }}
-      </a>
-    }
-  </nav>
-
-  <p class="secao-titulo">Em breve</p>
-  <nav class="nav nav-desabilitado">
-    @for (item of itensEmBreve; track item.rotulo) {
-      <span class="item-desabilitado">
-        <span class="icone">
-          @switch (item.icone) {
-            @case ('book') {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 6c2-1 5-1 8 1.5 3-2.5 6-2.5 8-1.5v13c-2-1-5-1-8 1.5-3-2.5-6-2.5-8-1.5V6Z" />
-                <path d="M12 7.5v13" />
-              </svg>
-            }
             @case ('wallet') {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="6" width="18" height="13" rx="2" />
@@ -81,7 +62,7 @@
           }
         </span>
         {{ item.rotulo }}
-      </span>
+      </a>
     }
   </nav>
 

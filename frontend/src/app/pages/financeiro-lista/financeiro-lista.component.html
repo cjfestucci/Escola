@@ -1,0 +1,165 @@
+<div class="container">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Mensalidades e cobranças por aluno.</p>
+    <button type="button" class="botao-primario" (click)="abrirNova()">+ Nova cobrança</button>
+  </div>
+
+  @if (erro(); as mensagem) {
+    <p class="mensagem-erro">{{ mensagem }}</p>
+  }
+
+  @if (!carregando()) {
+    <div class="grade-stats">
+      <div class="cartao-stat">
+        <span class="stat-valor">{{ resumo().pendentes }}</span>
+        <span class="stat-rotulo">Pendentes</span>
+      </div>
+      <div class="cartao-stat cartao-stat--atrasado">
+        <span class="stat-valor">{{ resumo().atrasadas }}</span>
+        <span class="stat-rotulo">Atrasadas</span>
+      </div>
+      <div class="cartao-stat">
+        <span class="stat-valor">{{ resumo().totalPendente | number: '1.2-2' }}</span>
+        <span class="stat-rotulo">Total em aberto (R$)</span>
+      </div>
+    </div>
+  }
+
+  @if (formularioAberto()) {
+    <div class="painel-formulario">
+      @if (!cobrancaEmEdicaoId()) {
+        <label>Aluno
+          <select [(ngModel)]="alunoId">
+            <option value="" disabled>Selecione...</option>
+            @for (aluno of alunos(); track aluno.id) {
+              <option [value]="aluno.id">{{ aluno.nome }} — {{ aluno.turmaNome }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      <label>Descrição
+        <input type="text" [(ngModel)]="descricao" placeholder="Ex.: Mensalidade - Outubro/2026" />
+      </label>
+
+      <label>Valor (R$)
+        <input type="number" [(ngModel)]="valor" min="0" step="0.01" placeholder="0,00" />
+      </label>
+
+      <label>Vencimento</label>
+      <div class="ancora-calendario">
+        <button type="button" class="campo-data" (click)="calendarioAberto.set(!calendarioAberto())">
+          <span>{{ vencimento ? formatarDataAbsoluta(vencimento) : 'Selecionar data' }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
+        </button>
+
+        @if (calendarioAberto()) {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="vencimento || hojeIso()" (escolher)="selecionarVencimento($event)" />
+          </div>
+        }
+      </div>
+
+      @if (calendarioAberto()) {
+        <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+      }
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!carregando() && cobrancas().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por aluno..."
+        [ngModel]="filtroNome()"
+        (ngModelChange)="filtroNome.set($event)"
+      />
+      <select class="campo-filtro" [ngModel]="filtroTurmaId()" (ngModelChange)="aoMudarTurma($event)">
+        <option value="">Todas as turmas</option>
+        @for (turma of turmas(); track turma.id) {
+          <option [value]="turma.id">{{ turma.nome }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todos">Todos os status</option>
+        <option value="pendente">Pendente</option>
+        <option value="atrasado">Atrasado</option>
+        <option value="pago">Pago</option>
+      </select>
+      @if (filtroNome() || filtroTurmaId() || filtroStatus() !== 'todos') {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (cobrancas().length === 0) {
+    <p class="vazio">Nenhuma cobrança cadastrada ainda.</p>
+  } @else if (cobrancasFiltradas().length === 0) {
+    <p class="vazio">Nenhuma cobrança encontrada com esses filtros.</p>
+  } @else {
+    <ul class="lista-cobrancas">
+      @for (cobranca of cobrancasFiltradas(); track cobranca.id) {
+        <li class="cartao-cobranca">
+          <div class="info-cobranca">
+            <strong>{{ cobranca.alunoNome }}</strong>
+            <span class="detalhe">{{ cobranca.turmaNome }} · {{ cobranca.descricao }}</span>
+            <span class="detalhe">
+              R$ {{ cobranca.valor | number: '1.2-2' }} · Vencimento {{ formatarDataAbsoluta(cobranca.vencimento) }}
+              @if (cobranca.paga) {
+                <span class="status status--pago">Pago</span>
+              } @else if (cobranca.vencimento < hojeIso()) {
+                <span class="status status--atrasado">Atrasado</span>
+              } @else {
+                <span class="status status--pendente">Pendente</span>
+              }
+            </span>
+          </div>
+
+          @if (confirmandoExclusaoId() === cobranca.id) {
+            <div class="confirmar-exclusao">
+              <span>Excluir cobrança?</span>
+              <div class="acoes">
+                <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
+                <button
+                  type="button"
+                  class="botao-texto botao-texto--perigo"
+                  [disabled]="processandoId() === cobranca.id"
+                  (click)="confirmarExclusao(cobranca)"
+                >
+                  {{ processandoId() === cobranca.id ? 'Excluindo...' : 'Excluir' }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="acoes">
+              <button
+                type="button"
+                class="botao-texto"
+                [disabled]="processandoId() === cobranca.id"
+                (click)="alternarPaga(cobranca)"
+              >
+                {{ cobranca.paga ? 'Marcar pendente' : 'Marcar paga' }}
+              </button>
+              <button type="button" class="botao-icone" (click)="editar(cobranca)" aria-label="Editar cobrança">✏️</button>
+              <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(cobranca.id)" aria-label="Excluir cobrança">🗑️</button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>

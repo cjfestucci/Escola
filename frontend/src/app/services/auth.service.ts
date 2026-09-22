@@ -27,6 +27,7 @@ export class AuthService {
   });
   readonly ehResponsavel = computed(() => this.papel() === 'Responsavel');
   readonly ehGestao = computed(() => this.papel() === 'Admin' || this.papel() === 'Coordenador');
+  readonly ehFinanceiro = computed(() => this.ehGestao() || this.papel() === 'Financeiro');
 
   entrar(email: string, senha: string): Observable<LoginResposta> {
     return this.http.post<LoginResposta>(`${this.baseUrl}/auth/entrar`, { email, senha }).pipe(

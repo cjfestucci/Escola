@@ -17,9 +17,9 @@ const ITENS_EDUCADOR: ItemNav[] = [
   { rotulo: 'Matrícula', rota: '/matricula', icone: 'matricula' },
   { rotulo: 'Turmas (cadastro)', rota: '/turmas', icone: 'turmas' }
 ];
+const ITEM_FINANCEIRO: ItemNav = { rotulo: 'Financeiro', rota: '/financeiro', icone: 'wallet' };
 const ITEM_USUARIOS: ItemNav = { rotulo: 'Usuários', rota: '/usuarios', icone: 'usuarios' };
 const ITENS_PORTAL: ItemNav[] = [{ rotulo: 'Meus Filhos', rota: '/portal/filhos', icone: 'home' }];
-const ITENS_EM_BREVE: ItemNav[] = [{ rotulo: 'Financeiro', rota: '', icone: 'wallet' }];
 
 @Component({
   selector: 'app-sidebar',
@@ -36,11 +36,13 @@ export class SidebarComponent {
   readonly aberto = input(false);
   readonly fechar = output<void>();
 
-  protected readonly itensEmBreve = ITENS_EM_BREVE;
-
   protected itensPrincipais(): ItemNav[] {
     if (this.contextoService.contexto() === 'portal') return ITENS_PORTAL;
-    return this.auth.ehGestao() ? [...ITENS_EDUCADOR, ITEM_USUARIOS] : ITENS_EDUCADOR;
+
+    const itens = [...ITENS_EDUCADOR];
+    if (this.auth.ehFinanceiro()) itens.push(ITEM_FINANCEIRO);
+    if (this.auth.ehGestao()) itens.push(ITEM_USUARIOS);
+    return itens;
   }
 
   sair(): void {

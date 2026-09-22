@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { equipeGuard, gestaoGuard, portalGuard } from './services/auth.guards';
+import { equipeGuard, financeiroGuard, gestaoGuard, portalGuard } from './services/auth.guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'alunos' },
@@ -77,6 +77,14 @@ export const routes: Routes = [
     canActivate: [equipeGuard],
     data: { titulo: 'Diário de Classe' },
     loadComponent: () => import('./pages/diario-classe/diario-classe.component').then((m) => m.DiarioClasseComponent)
+  },
+  {
+    path: 'financeiro',
+    pathMatch: 'full',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Financeiro' },
+    loadComponent: () =>
+      import('./pages/financeiro-lista/financeiro-lista.component').then((m) => m.FinanceiroListaComponent)
   },
   {
     path: 'portal/filhos',

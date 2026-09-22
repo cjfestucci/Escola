@@ -2,16 +2,18 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
+import { Cobranca } from '../../models/cobranca.model';
 import { RegistroDiarioClasse } from '../../models/diario-classe.model';
 import { FichaSaude } from '../../models/ficha-saude.model';
 import { CategoriaRegistro, RegistroRotina } from '../../models/registro-rotina.model';
 import { AlunoService } from '../../services/aluno.service';
 import { DiarioClasseService } from '../../services/diario-classe.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
+import { FinanceiroService } from '../../services/financeiro.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
-import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
+import { formatarDataAbsoluta, hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import {
   horaRegistro,
   iconeCategoria,
@@ -33,6 +35,7 @@ export class PortalAlunoComponent implements OnInit {
   private readonly fichaSaudeService = inject(FichaSaudeService);
   private readonly rotinaService = inject(RotinaService);
   private readonly diarioClasseService = inject(DiarioClasseService);
+  private readonly financeiroService = inject(FinanceiroService);
   private readonly sessao = inject(SessaoService);
 
   private alunoId = '';
@@ -70,6 +73,10 @@ export class PortalAlunoComponent implements OnInit {
 
   readonly registrosDiario = signal<RegistroDiarioClasse[]>([]);
 
+  readonly cobrancas = signal<Cobranca[]>([]);
+  readonly mostrarFinanceiro = signal(false);
+  readonly cobrancasPendentes = computed(() => this.cobrancas().filter((c) => !c.paga).length);
+
   protected readonly rotuloCategoria = rotuloCategoria;
   protected readonly rotuloCategoriaCurto = rotuloCategoriaCurto;
   protected readonly iconeCategoria = iconeCategoria;
@@ -78,6 +85,7 @@ export class PortalAlunoComponent implements OnInit {
   protected readonly categoriasFiltro: CategoriaRegistro[] = ['Alimentacao', 'Sono', 'Higiene', 'Humor', 'Momento'];
   protected readonly rotuloData = rotuloData;
   protected readonly hojeIso = hojeIso;
+  protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
 
   ngOnInit(): void {
     if (!this.sessao.responsavelId()) {
@@ -96,6 +104,7 @@ export class PortalAlunoComponent implements OnInit {
       this.carregarDiario();
     });
     this.fichaSaudeService.obter(this.alunoId).subscribe((ficha) => this.fichaSaude.set(ficha));
+    this.financeiroService.listarDoAluno(this.alunoId).subscribe((cobrancas) => this.cobrancas.set(cobrancas));
     this.carregarTimeline();
   }
 

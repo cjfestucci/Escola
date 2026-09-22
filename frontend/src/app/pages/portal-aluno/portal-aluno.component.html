@@ -52,6 +52,39 @@
     }
   }
 
+  @if (cobrancas().length > 0) {
+    <button type="button" class="botao-ficha-saude" (click)="mostrarFinanceiro.set(!mostrarFinanceiro())">
+      💰 Financeiro
+      @if (cobrancasPendentes() > 0) {
+        <span class="contagem-pendente">{{ cobrancasPendentes() }} pendente{{ cobrancasPendentes() > 1 ? 's' : '' }}</span>
+      }
+      {{ mostrarFinanceiro() ? '▲' : '▼' }}
+    </button>
+
+    @if (mostrarFinanceiro()) {
+      <div class="painel-ficha-saude">
+        @for (cobranca of cobrancas(); track cobranca.id) {
+          <div class="linha-cobranca">
+            <div>
+              <strong>{{ cobranca.descricao }}</strong>
+              <span class="detalhe-cobranca">Vencimento {{ formatarDataAbsoluta(cobranca.vencimento) }}</span>
+            </div>
+            <div class="valor-status">
+              <span class="valor">R$ {{ cobranca.valor.toFixed(2) }}</span>
+              @if (cobranca.paga) {
+                <span class="status status--pago">Pago</span>
+              } @else if (cobranca.vencimento < hojeIso()) {
+                <span class="status status--atrasado">Atrasado</span>
+              } @else {
+                <span class="status status--pendente">Pendente</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
   <div class="navegador-data">
     <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
 
