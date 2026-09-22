@@ -11,6 +11,47 @@
     </header>
   }
 
+  @if (fichaSaude(); as f) {
+    <button type="button" class="botao-ficha-saude" (click)="mostrarFicha.set(!mostrarFicha())">
+      🩺 Ficha de saúde {{ mostrarFicha() ? '▲' : '▼' }}
+    </button>
+
+    @if (mostrarFicha()) {
+      <div class="painel-ficha-saude">
+        @if (!fichaPreenchida()) {
+          <p class="vazio">Nenhuma informação de saúde registrada ainda. Fale com a escola se precisar atualizar algo.</p>
+        } @else {
+          @if (f.tipoSanguineo) {
+            <p><span class="rotulo-ficha">Tipo sanguíneo:</span> {{ f.tipoSanguineo }}</p>
+          }
+          @if (f.alergias) {
+            <p><span class="rotulo-ficha">Alergias:</span> {{ f.alergias }}</p>
+          }
+          @if (f.restricoesAlimentares) {
+            <p><span class="rotulo-ficha">Restrições alimentares:</span> {{ f.restricoesAlimentares }}</p>
+          }
+          @if (f.medicamentosEmUso) {
+            <p><span class="rotulo-ficha">Medicamentos em uso:</span> {{ f.medicamentosEmUso }}</p>
+          }
+          @if (f.condicoesSaude) {
+            <p><span class="rotulo-ficha">Condições de saúde:</span> {{ f.condicoesSaude }}</p>
+          }
+          @if (f.planoSaude) {
+            <p><span class="rotulo-ficha">Plano de saúde:</span> {{ f.planoSaude }}</p>
+          }
+          @if (f.pediatraNome) {
+            <p><span class="rotulo-ficha">Pediatra:</span> {{ f.pediatraNome }} {{ f.pediatraTelefone ? '— ' + f.pediatraTelefone : '' }}</p>
+          }
+          @if (f.contatoEmergenciaNome) {
+            <p><span class="rotulo-ficha">Contato de emergência:</span> {{ f.contatoEmergenciaNome }} {{ f.contatoEmergenciaTelefone ? '— ' + f.contatoEmergenciaTelefone : '' }}</p>
+          }
+          <p><span class="rotulo-ficha">Vacinação em dia:</span> {{ f.vacinacaoEmDia ? 'Sim' : 'Não informado' }}</p>
+          <p><span class="rotulo-ficha">Autoriza uso de imagem:</span> {{ f.autorizaUsoImagem ? 'Sim' : 'Não' }}</p>
+        }
+      </div>
+    }
+  }
+
   <h2 class="titulo-timeline">Hoje</h2>
 
   @if (!carregando() && registros().length > 0) {

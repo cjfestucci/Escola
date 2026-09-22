@@ -37,3 +37,4 @@ Registro de saúde do aluno — 1:1 com `Aluno` (`FichaSaude`, criada sob demand
 
 - Editada em `matricula-formulario` (aparece só em modo edição, não ao cadastrar um aluno novo) — salva com botão próprio ("Salvar ficha de saúde"), separado do salvar do aluno.
 - Mostrada de forma resumida (alergias, restrições alimentares, medicamentos, condições de saúde) como um alerta visível no topo de `aluno-rotina`, pro educador ver antes de registrar a rotina do dia. Só aparece o que estiver preenchido — sem ficha ainda, sem alerta.
+- No Portal dos Pais (`portal-aluno`), aparece como um painel colapsável (fechado por padrão) com todos os campos, incluindo uma mensagem própria quando ainda não há nada preenchido — sempre somente leitura pro Responsável.

@@ -2,8 +2,10 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
+import { FichaSaude } from '../../models/ficha-saude.model';
 import { CategoriaRegistro, RegistroRotina } from '../../models/registro-rotina.model';
 import { AlunoService } from '../../services/aluno.service';
+import { FichaSaudeService } from '../../services/ficha-saude.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import {
@@ -24,6 +26,7 @@ export class PortalAlunoComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly alunoService = inject(AlunoService);
+  private readonly fichaSaudeService = inject(FichaSaudeService);
   private readonly rotinaService = inject(RotinaService);
   private readonly sessao = inject(SessaoService);
 
@@ -32,6 +35,23 @@ export class PortalAlunoComponent implements OnInit {
   readonly aluno = signal<Aluno | null>(null);
   readonly registros = signal<RegistroRotina[]>([]);
   readonly carregando = signal(true);
+
+  readonly fichaSaude = signal<FichaSaude | null>(null);
+  readonly mostrarFicha = signal(false);
+  readonly fichaPreenchida = computed(() => {
+    const f = this.fichaSaude();
+    if (!f) return false;
+    return !!(
+      f.tipoSanguineo ||
+      f.alergias ||
+      f.restricoesAlimentares ||
+      f.medicamentosEmUso ||
+      f.condicoesSaude ||
+      f.planoSaude ||
+      f.pediatraNome ||
+      f.contatoEmergenciaNome
+    );
+  });
 
   readonly filtroCategoria = signal<CategoriaRegistro | null>(null);
   readonly registrosFiltrados = computed(() => {
@@ -59,6 +79,7 @@ export class PortalAlunoComponent implements OnInit {
     }
 
     this.alunoService.obterAluno(this.alunoId).subscribe((aluno) => this.aluno.set(aluno));
+    this.fichaSaudeService.obter(this.alunoId).subscribe((ficha) => this.fichaSaude.set(ficha));
     this.rotinaService.listarDoDia(this.alunoId).subscribe({
       next: (registros) => {
         this.registros.set(registros);
