@@ -30,6 +30,7 @@ Todo mundo loga com e-mail + senha — equipe (Admin, Coordenador, Educador/Prof
 - **Responsável (Pais)**: não tem tela de cadastro própria — o login (`Usuario` com `Papel = Responsavel`, ligado via `ResponsavelId`) é criado automaticamente na primeira vez que esse e-mail aparece como responsável de um aluno na Matrícula (`AlunosController.SincronizarResponsaveisAsync`). A senha gerada aparece uma vez na tela de Matrícula depois de salvar (`senhasGeradas` na resposta).
 - **Senha de dev**: todas as contas seed (`DbInitializer`) usam `escola123` — nunca usar esse padrão fora de ambiente de desenvolvimento.
 - Um Responsável só acessa os próprios filhos (checado via claim `responsavelId` no token contra `AlunoResponsaveis`) — nunca confiar em um `:id` da URL sem checar isso.
+- **Redefinir senha de Responsável**: `POST /api/responsaveis/{id}/redefinir-senha`, `Gestao` only — mesmo padrão de senha gerada mostrada uma vez, exposto na Matrícula (`matricula-formulario`) junto de cada responsável já salvo (não aparece pra um responsável ainda não persistido, sem `id`). Existe porque a tela de login aponta "fale com a coordenação" pro reset — sem esse endpoint, um Admin não tinha como de fato ajudar um Pai/Mãe que esqueceu a senha.
 
 ## Ficha de saúde (desde 2026-09-21)
 

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { Aluno } from '../models/aluno.model';
+import { SenhaGerada } from '../models/usuario.model';
 
 @Injectable({ providedIn: 'root' })
 export class ResponsavelService {
@@ -12,5 +13,9 @@ export class ResponsavelService {
 
   listarFilhos(responsavelId: string): Observable<Aluno[]> {
     return this.http.get<Aluno[]>(`${this.baseUrl}/responsaveis/${responsavelId}/alunos`);
+  }
+
+  redefinirSenha(responsavelId: string): Observable<SenhaGerada> {
+    return this.http.post<SenhaGerada>(`${this.baseUrl}/responsaveis/${responsavelId}/redefinir-senha`, {});
   }
 }

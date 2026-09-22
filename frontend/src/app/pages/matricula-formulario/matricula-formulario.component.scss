@@ -181,6 +181,29 @@ hr {
   &--perigo {
     color: #b3261e;
   }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.cartao-responsavel .botao-texto {
+  align-self: flex-start;
+}
+
+.aviso-senha-inline {
+  font-size: 0.82rem;
+  background: #eafbea;
+  border: 1px solid #b7e4b7;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0;
+
+  .senha {
+    font-family: monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
 }
 
 .mensagem-erro {

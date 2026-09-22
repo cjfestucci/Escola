@@ -1,5 +1,7 @@
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
+using Escola.Domain.Enums;
+using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,5 +33,23 @@ public class ResponsaveisController(EscolaDbContext db) : ControllerBase
             .ToListAsync();
 
         return Ok(alunos);
+    }
+
+    /// <summary>Gera uma nova senha temporária pro login do Portal dos Pais desse responsável.</summary>
+    [HttpPost("{id:guid}/redefinir-senha")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<SenhaGeradaDto>> RedefinirSenha(Guid id)
+    {
+        var responsavel = await db.Responsaveis.FirstOrDefaultAsync(r => r.Id == id);
+        if (responsavel is null) return NotFound("Responsável não encontrado.");
+
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.ResponsavelId == id && u.Papel == PapelUsuario.Responsavel);
+        if (usuario is null) return NotFound("Esse responsável ainda não tem login no Portal dos Pais.");
+
+        var senha = GeradorSenhaTemporaria.Gerar();
+        usuario.SenhaHash = SenhaHasher.Hash(senha);
+        await db.SaveChangesAsync();
+
+        return Ok(new SenhaGeradaDto(responsavel.Nome, responsavel.Email, senha));
     }
 }

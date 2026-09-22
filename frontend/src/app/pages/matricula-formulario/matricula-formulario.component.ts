@@ -6,6 +6,7 @@ import { ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/a
 import { FichaSaude } from '../../models/ficha-saude.model';
 import { AlunoService } from '../../services/aluno.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
+import { ResponsavelService } from '../../services/responsavel.service';
 import { TurmaService } from '../../services/turma.service';
 import { UploadService } from '../../services/upload.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
@@ -32,6 +33,7 @@ export class MatriculaFormularioComponent implements OnInit {
   private readonly turmaService = inject(TurmaService);
   private readonly uploadService = inject(UploadService);
   private readonly fichaSaudeService = inject(FichaSaudeService);
+  private readonly responsavelService = inject(ResponsavelService);
 
   private alunoId: string | null = null;
 
@@ -44,6 +46,8 @@ export class MatriculaFormularioComponent implements OnInit {
   readonly responsaveis = signal<ResponsavelResumo[]>([novoResponsavelVazio()]);
   readonly calendarioNascimentoAberto = signal(false);
   readonly senhasGeradas = signal<SenhaGeradaResponsavel[]>([]);
+  readonly redefinindoSenhaId = signal<string | null>(null);
+  readonly senhaResponsavelGerada = signal<SenhaGeradaResponsavel | null>(null);
 
   readonly carregandoFicha = signal(false);
   readonly salvandoFicha = signal(false);
@@ -195,6 +199,24 @@ export class MatriculaFormularioComponent implements OnInit {
     this.responsaveis.update((atual) =>
       atual.map((r, i) => (i === indice ? { ...r, [campo]: valor } : r))
     );
+  }
+
+  redefinirSenhaResponsavel(responsavel: ResponsavelResumo): void {
+    if (!responsavel.id) return;
+
+    this.erro.set(null);
+    this.senhaResponsavelGerada.set(null);
+    this.redefinindoSenhaId.set(responsavel.id);
+    this.responsavelService.redefinirSenha(responsavel.id).subscribe({
+      next: (resultado) => {
+        this.redefinindoSenhaId.set(null);
+        this.senhaResponsavelGerada.set(resultado);
+      },
+      error: () => {
+        this.redefinindoSenhaId.set(null);
+        this.erro.set('Não foi possível redefinir a senha desse responsável.');
+      }
+    });
   }
 
   salvar(): void {

@@ -117,6 +117,25 @@
             />
             Responsável financeiro
           </label>
+
+          @if (responsavel.id) {
+            <button
+              type="button"
+              class="botao-texto"
+              [disabled]="redefinindoSenhaId() === responsavel.id"
+              (click)="redefinirSenhaResponsavel(responsavel)"
+            >
+              {{ redefinindoSenhaId() === responsavel.id ? 'Gerando...' : 'Redefinir senha do Portal dos Pais' }}
+            </button>
+
+            @if (senhaResponsavelGerada(); as sg) {
+              @if (sg.email === responsavel.email) {
+                <p class="aviso-senha-inline">
+                  Nova senha (anote, só aparece esta vez): <span class="senha">{{ sg.senha }}</span>
+                </p>
+              }
+            }
+          }
         </div>
       }
 
