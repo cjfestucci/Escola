@@ -8,6 +8,8 @@ import { AlunoService } from '../../services/aluno.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
+import { CalendarioComponent } from '../../shared/calendario/calendario.component';
+import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import {
   horaRegistro,
   iconeCategoria,
@@ -18,7 +20,7 @@ import {
 
 @Component({
   selector: 'app-portal-aluno',
-  imports: [],
+  imports: [CalendarioComponent],
   templateUrl: './portal-aluno.component.html',
   styleUrl: './portal-aluno.component.scss'
 })
@@ -59,12 +61,18 @@ export class PortalAlunoComponent implements OnInit {
     return categoria ? this.registros().filter((r) => r.categoria === categoria) : this.registros();
   });
 
+  readonly dataVisualizada = signal(hojeIso());
+  readonly ehHoje = computed(() => this.dataVisualizada() === hojeIso());
+  readonly calendarioAberto = signal(false);
+
   protected readonly rotuloCategoria = rotuloCategoria;
   protected readonly rotuloCategoriaCurto = rotuloCategoriaCurto;
   protected readonly iconeCategoria = iconeCategoria;
   protected readonly horaRegistro = horaRegistro;
   protected readonly resolverFotoUrls = resolverFotoUrls;
   protected readonly categoriasFiltro: CategoriaRegistro[] = ['Alimentacao', 'Sono', 'Higiene', 'Humor', 'Momento'];
+  protected readonly rotuloData = rotuloData;
+  protected readonly hojeIso = hojeIso;
 
   ngOnInit(): void {
     if (!this.sessao.responsavelId()) {
@@ -80,13 +88,33 @@ export class PortalAlunoComponent implements OnInit {
 
     this.alunoService.obterAluno(this.alunoId).subscribe((aluno) => this.aluno.set(aluno));
     this.fichaSaudeService.obter(this.alunoId).subscribe((ficha) => this.fichaSaude.set(ficha));
-    this.rotinaService.listarDoDia(this.alunoId).subscribe({
+    this.carregarTimeline();
+  }
+
+  private carregarTimeline(): void {
+    this.carregando.set(true);
+    this.rotinaService.listarDoDia(this.alunoId, this.dataVisualizada()).subscribe({
       next: (registros) => {
         this.registros.set(registros);
         this.carregando.set(false);
       },
       error: () => this.carregando.set(false)
     });
+  }
+
+  irParaDia(dataIso: string): void {
+    this.dataVisualizada.set(dataIso);
+    this.calendarioAberto.set(false);
+    this.carregarTimeline();
+  }
+
+  diaAnterior(): void {
+    this.irParaDia(somarDias(this.dataVisualizada(), -1));
+  }
+
+  diaSeguinte(): void {
+    if (this.ehHoje()) return;
+    this.irParaDia(somarDias(this.dataVisualizada(), 1));
   }
 
   voltar(): void {

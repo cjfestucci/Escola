@@ -52,7 +52,32 @@
     }
   }
 
-  <h2 class="titulo-timeline">Hoje</h2>
+  <div class="navegador-data">
+    <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
+
+    <div class="ancora-calendario">
+      <button type="button" class="data-atual" (click)="calendarioAberto.set(!calendarioAberto())">
+        <span class="rotulo-dia">{{ rotuloData(dataVisualizada()) }}</span>
+        <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="5" width="16" height="16" rx="2" />
+          <path d="M4 10h16" />
+          <path d="M8 3v4M16 3v4" />
+        </svg>
+      </button>
+
+      @if (calendarioAberto()) {
+        <div class="popover-calendario">
+          <app-calendario [dataSelecionada]="dataVisualizada()" [dataMaxima]="hojeIso()" (escolher)="irParaDia($event)" />
+        </div>
+      }
+    </div>
+
+    <button type="button" class="botao-nav-data" [disabled]="ehHoje()" (click)="diaSeguinte()" aria-label="Próximo dia">›</button>
+  </div>
+
+  @if (calendarioAberto()) {
+    <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+  }
 
   @if (!carregando() && registros().length > 0) {
     <div class="filtro-categorias">
@@ -75,9 +100,9 @@
   @if (carregando()) {
     <p>Carregando...</p>
   } @else if (registros().length === 0) {
-    <p class="vazio">Ainda não há registros hoje.</p>
+    <p class="vazio">Nenhum registro neste dia.</p>
   } @else if (registrosFiltrados().length === 0) {
-    <p class="vazio">Nenhum registro dessa categoria hoje.</p>
+    <p class="vazio">Nenhum registro dessa categoria neste dia.</p>
   } @else {
     <ul class="timeline">
       @for (registro of registrosFiltrados(); track registro.id) {

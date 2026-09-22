@@ -37,10 +37,79 @@
   }
 }
 
-.titulo-timeline {
-  font-size: 1rem;
+.navegador-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.botao-nav-data {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--cor-texto);
+  flex-shrink: 0;
+
+  &:disabled {
+    opacity: 0.35;
+  }
+
+  &:active:not(:disabled) {
+    border-color: var(--cor-primaria);
+  }
+}
+
+.data-atual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 140px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
+}
+
+.rotulo-dia {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.icone-calendario {
+  width: 16px;
+  height: 16px;
   color: var(--cor-texto-suave);
-  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.ancora-calendario {
+  position: relative;
+}
+
+.popover-calendario {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+}
+
+.backdrop-calendario {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
 }
 
 .botao-ficha-saude {
