@@ -20,6 +20,8 @@ function novoResponsavelVazio(): ResponsavelResumo {
 
 const TIPOS_SANGUINEOS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
+type Aba = 'dados' | 'responsaveis' | 'saude';
+
 @Component({
   selector: 'app-matricula-formulario',
   imports: [FormsModule, SeletorArquivoComponent, CalendarioComponent],
@@ -48,6 +50,7 @@ export class MatriculaFormularioComponent implements OnInit {
   readonly senhasGeradas = signal<SenhaGeradaResponsavel[]>([]);
   readonly redefinindoSenhaId = signal<string | null>(null);
   readonly senhaResponsavelGerada = signal<SenhaGeradaResponsavel | null>(null);
+  readonly abaAtiva = signal<Aba>('dados');
 
   readonly carregandoFicha = signal(false);
   readonly salvandoFicha = signal(false);

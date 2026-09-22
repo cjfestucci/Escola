@@ -46,9 +46,27 @@ h1 {
   }
 }
 
-.titulo-secao {
-  font-size: 1.05rem;
-  margin: 28px 0 0;
+.abas {
+  display: flex;
+  gap: 4px;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.aba {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 4px;
+  margin-bottom: -1px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+
+  &.ativa {
+    color: var(--cor-primaria-escura);
+    border-bottom-color: var(--cor-primaria);
+  }
 }
 
 .dica {
@@ -125,12 +143,6 @@ h1 {
   font-size: 0.9rem;
   line-height: 1;
   padding: 0;
-}
-
-hr {
-  border: none;
-  border-top: 1px solid var(--cor-borda);
-  margin: 4px 0;
 }
 
 .cabecalho-secao {
@@ -211,7 +223,7 @@ hr {
   background: #fdecea;
   border-radius: 8px;
   padding: 10px 12px;
-  margin: 0;
+  margin: 12px 0 0;
   font-size: 0.85rem;
 }
 

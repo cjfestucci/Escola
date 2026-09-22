@@ -14,142 +14,160 @@
       <button type="button" class="botao-primario" (click)="continuar()">Continuar</button>
     </div>
   } @else {
-    <div class="painel-formulario">
-      @if (erro(); as mensagem) {
-        <p class="mensagem-erro">{{ mensagem }}</p>
-      }
-
-      <label>Nome completo
-        <input type="text" [(ngModel)]="nome" placeholder="Ex.: Lucas Souza" />
-      </label>
-
-      <label>Data de nascimento</label>
-      <div class="ancora-calendario">
-        <button type="button" class="campo-data" (click)="calendarioNascimentoAberto.set(!calendarioNascimentoAberto())">
-          <span>{{ dataNascimento ? formatarDataAbsoluta(dataNascimento) : 'Selecionar data' }}</span>
-          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="5" width="16" height="16" rx="2" />
-            <path d="M4 10h16" />
-            <path d="M8 3v4M16 3v4" />
-          </svg>
+    <div class="abas">
+      <button type="button" class="aba" [class.ativa]="abaAtiva() === 'dados'" (click)="abaAtiva.set('dados')">
+        Dados do aluno
+      </button>
+      <button type="button" class="aba" [class.ativa]="abaAtiva() === 'responsaveis'" (click)="abaAtiva.set('responsaveis')">
+        Responsáveis
+      </button>
+      @if (ehEdicao) {
+        <button type="button" class="aba" [class.ativa]="abaAtiva() === 'saude'" (click)="abaAtiva.set('saude')">
+          Ficha de saúde
         </button>
+      }
+    </div>
+
+    @if (erro(); as mensagem) {
+      <p class="mensagem-erro">{{ mensagem }}</p>
+    }
+
+    @if (abaAtiva() === 'dados') {
+      <div class="painel-formulario">
+        <label>Nome completo
+          <input type="text" [(ngModel)]="nome" placeholder="Ex.: Lucas Souza" />
+        </label>
+
+        <label>Data de nascimento</label>
+        <div class="ancora-calendario">
+          <button type="button" class="campo-data" (click)="calendarioNascimentoAberto.set(!calendarioNascimentoAberto())">
+            <span>{{ dataNascimento ? formatarDataAbsoluta(dataNascimento) : 'Selecionar data' }}</span>
+            <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="5" width="16" height="16" rx="2" />
+              <path d="M4 10h16" />
+              <path d="M8 3v4M16 3v4" />
+            </svg>
+          </button>
+
+          @if (calendarioNascimentoAberto()) {
+            <div class="popover-calendario">
+              <app-calendario [dataSelecionada]="dataNascimento" [dataMaxima]="hojeIso()" (escolher)="selecionarNascimento($event)" />
+            </div>
+          }
+        </div>
 
         @if (calendarioNascimentoAberto()) {
-          <div class="popover-calendario">
-            <app-calendario [dataSelecionada]="dataNascimento" [dataMaxima]="hojeIso()" (escolher)="selecionarNascimento($event)" />
+          <div class="backdrop-calendario" (click)="calendarioNascimentoAberto.set(false)"></div>
+        }
+
+        <label>Turma
+          <select [(ngModel)]="turmaId">
+            <option value="" disabled>Selecione...</option>
+            @for (turma of turmas(); track turma.id) {
+              <option [value]="turma.id">{{ turma.nome }}</option>
+            }
+          </select>
+        </label>
+
+        <label>Foto (opcional)</label>
+        @if (fotoUrl()) {
+          <div class="preview-foto-wrapper">
+            <img class="preview-foto" [src]="resolverFotoUrl(fotoUrl()!)" alt="Foto do aluno" />
+            <button type="button" class="remover-foto" (click)="removerFoto()" aria-label="Remover foto">×</button>
+          </div>
+        } @else if (enviandoFoto()) {
+          <p class="dica">Enviando foto...</p>
+        } @else {
+          <app-seletor-arquivo rotulo="📷 Escolher foto" (arquivoSelecionado)="aoSelecionarFoto($event)" />
+        }
+      </div>
+    }
+
+    @if (abaAtiva() === 'responsaveis') {
+      <div class="painel-formulario">
+        <div class="cabecalho-secao">
+          <span>Responsáveis</span>
+          <button type="button" class="botao-texto" (click)="adicionarResponsavel()">+ Adicionar</button>
+        </div>
+
+        @for (responsavel of responsaveis(); track $index) {
+          <div class="cartao-responsavel">
+            <div class="linha-responsavel-topo">
+              <strong>Responsável {{ $index + 1 }}</strong>
+              @if (responsaveis().length > 1) {
+                <button type="button" class="botao-texto botao-texto--perigo" (click)="removerResponsavel($index)">Remover</button>
+              }
+            </div>
+
+            <label>Nome
+              <input
+                type="text"
+                [ngModel]="responsavel.nome"
+                (ngModelChange)="atualizarResponsavel($index, 'nome', $event)"
+                placeholder="Nome completo"
+              />
+            </label>
+
+            <label>E-mail
+              <input
+                type="email"
+                [ngModel]="responsavel.email"
+                (ngModelChange)="atualizarResponsavel($index, 'email', $event)"
+                placeholder="email@exemplo.com"
+              />
+            </label>
+
+            <label>Telefone (opcional)
+              <input
+                type="tel"
+                [ngModel]="responsavel.telefone"
+                (ngModelChange)="atualizarResponsavel($index, 'telefone', $event)"
+                placeholder="(11) 99999-9999"
+              />
+            </label>
+
+            <label class="linha-checkbox">
+              <input
+                type="checkbox"
+                [ngModel]="responsavel.responsavelFinanceiro"
+                (ngModelChange)="atualizarResponsavel($index, 'responsavelFinanceiro', $event)"
+              />
+              Responsável financeiro
+            </label>
+
+            @if (responsavel.id) {
+              <button
+                type="button"
+                class="botao-texto"
+                [disabled]="redefinindoSenhaId() === responsavel.id"
+                (click)="redefinirSenhaResponsavel(responsavel)"
+              >
+                {{ redefinindoSenhaId() === responsavel.id ? 'Gerando...' : 'Redefinir senha do Portal dos Pais' }}
+              </button>
+
+              @if (senhaResponsavelGerada(); as sg) {
+                @if (sg.email === responsavel.email) {
+                  <p class="aviso-senha-inline">
+                    Nova senha (anote, só aparece esta vez): <span class="senha">{{ sg.senha }}</span>
+                  </p>
+                }
+              }
+            }
           </div>
         }
       </div>
+    }
 
-      @if (calendarioNascimentoAberto()) {
-        <div class="backdrop-calendario" (click)="calendarioNascimentoAberto.set(false)"></div>
-      }
-
-      <label>Turma
-        <select [(ngModel)]="turmaId">
-          <option value="" disabled>Selecione...</option>
-          @for (turma of turmas(); track turma.id) {
-            <option [value]="turma.id">{{ turma.nome }}</option>
-          }
-        </select>
-      </label>
-
-      <label>Foto (opcional)</label>
-      @if (fotoUrl()) {
-        <div class="preview-foto-wrapper">
-          <img class="preview-foto" [src]="resolverFotoUrl(fotoUrl()!)" alt="Foto do aluno" />
-          <button type="button" class="remover-foto" (click)="removerFoto()" aria-label="Remover foto">×</button>
-        </div>
-      } @else if (enviandoFoto()) {
-        <p class="dica">Enviando foto...</p>
-      } @else {
-        <app-seletor-arquivo rotulo="📷 Escolher foto" (arquivoSelecionado)="aoSelecionarFoto($event)" />
-      }
-
-      <hr />
-
-      <div class="cabecalho-secao">
-        <span>Responsáveis</span>
-        <button type="button" class="botao-texto" (click)="adicionarResponsavel()">+ Adicionar</button>
-      </div>
-
-      @for (responsavel of responsaveis(); track $index) {
-        <div class="cartao-responsavel">
-          <div class="linha-responsavel-topo">
-            <strong>Responsável {{ $index + 1 }}</strong>
-            @if (responsaveis().length > 1) {
-              <button type="button" class="botao-texto botao-texto--perigo" (click)="removerResponsavel($index)">Remover</button>
-            }
-          </div>
-
-          <label>Nome
-            <input
-              type="text"
-              [ngModel]="responsavel.nome"
-              (ngModelChange)="atualizarResponsavel($index, 'nome', $event)"
-              placeholder="Nome completo"
-            />
-          </label>
-
-          <label>E-mail
-            <input
-              type="email"
-              [ngModel]="responsavel.email"
-              (ngModelChange)="atualizarResponsavel($index, 'email', $event)"
-              placeholder="email@exemplo.com"
-            />
-          </label>
-
-          <label>Telefone (opcional)
-            <input
-              type="tel"
-              [ngModel]="responsavel.telefone"
-              (ngModelChange)="atualizarResponsavel($index, 'telefone', $event)"
-              placeholder="(11) 99999-9999"
-            />
-          </label>
-
-          <label class="linha-checkbox">
-            <input
-              type="checkbox"
-              [ngModel]="responsavel.responsavelFinanceiro"
-              (ngModelChange)="atualizarResponsavel($index, 'responsavelFinanceiro', $event)"
-            />
-            Responsável financeiro
-          </label>
-
-          @if (responsavel.id) {
-            <button
-              type="button"
-              class="botao-texto"
-              [disabled]="redefinindoSenhaId() === responsavel.id"
-              (click)="redefinirSenhaResponsavel(responsavel)"
-            >
-              {{ redefinindoSenhaId() === responsavel.id ? 'Gerando...' : 'Redefinir senha do Portal dos Pais' }}
-            </button>
-
-            @if (senhaResponsavelGerada(); as sg) {
-              @if (sg.email === responsavel.email) {
-                <p class="aviso-senha-inline">
-                  Nova senha (anote, só aparece esta vez): <span class="senha">{{ sg.senha }}</span>
-                </p>
-              }
-            }
-          }
-        </div>
-      }
-
+    @if (abaAtiva() !== 'saude') {
       <div class="botoes">
         <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
         <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
           {{ salvando() ? 'Salvando...' : 'Salvar' }}
         </button>
       </div>
-    </div>
+    }
 
-    @if (ehEdicao) {
-      <h2 class="titulo-secao">Ficha de saúde</h2>
-
+    @if (ehEdicao && abaAtiva() === 'saude') {
       @if (carregandoFicha()) {
         <p>Carregando...</p>
       } @else {
