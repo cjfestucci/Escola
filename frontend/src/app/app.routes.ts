@@ -1,14 +1,42 @@
 import { Routes } from '@angular/router';
 
-import { equipeGuard, financeiroGuard, gestaoGuard, portalGuard } from './services/auth.guards';
+import { equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard } from './services/auth.guards';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'alunos' },
+  { path: '', pathMatch: 'full', canActivate: [redirecionamentoInicialGuard], children: [] },
   { path: 'portal', pathMatch: 'full', redirectTo: 'entrar' },
   {
     path: 'entrar',
     data: { titulo: 'Rotina Escola' },
     loadComponent: () => import('./pages/entrar/entrar.component').then((m) => m.EntrarComponent)
+  },
+  {
+    path: 'dashboard',
+    pathMatch: 'full',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Dashboard' },
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent)
+  },
+  {
+    path: 'unidades',
+    pathMatch: 'full',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Unidades' },
+    loadComponent: () => import('./pages/unidades-lista/unidades-lista.component').then((m) => m.UnidadesListaComponent)
+  },
+  {
+    path: 'unidades/nova',
+    canActivate: [gestaoGuard],
+    data: { titulo: 'Nova unidade' },
+    loadComponent: () =>
+      import('./pages/unidade-formulario/unidade-formulario.component').then((m) => m.UnidadeFormularioComponent)
+  },
+  {
+    path: 'unidades/:id/editar',
+    canActivate: [gestaoGuard],
+    data: { titulo: 'Editar unidade' },
+    loadComponent: () =>
+      import('./pages/unidade-formulario/unidade-formulario.component').then((m) => m.UnidadeFormularioComponent)
   },
   {
     path: 'alunos',
@@ -72,6 +100,27 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/usuarios-lista/usuarios-lista.component').then((m) => m.UsuariosListaComponent)
   },
   {
+    path: 'configuracoes',
+    pathMatch: 'full',
+    redirectTo: 'configuracoes/geral'
+  },
+  {
+    path: 'configuracoes/geral',
+    pathMatch: 'full',
+    canActivate: [gestaoGuard],
+    data: { titulo: 'Configurações gerais' },
+    loadComponent: () =>
+      import('./pages/configuracao-geral/configuracao-geral.component').then((m) => m.ConfiguracaoGeralComponent)
+  },
+  {
+    path: 'configuracoes/pix',
+    pathMatch: 'full',
+    canActivate: [gestaoGuard],
+    data: { titulo: 'Configuração Pix' },
+    loadComponent: () =>
+      import('./pages/configuracao-pix/configuracao-pix.component').then((m) => m.ConfiguracaoPixComponent)
+  },
+  {
     path: 'diario',
     pathMatch: 'full',
     canActivate: [equipeGuard],
@@ -81,10 +130,53 @@ export const routes: Routes = [
   {
     path: 'financeiro',
     pathMatch: 'full',
+    redirectTo: 'financeiro/mensalidades'
+  },
+  {
+    path: 'financeiro/mensalidades',
+    pathMatch: 'full',
     canActivate: [financeiroGuard],
-    data: { titulo: 'Financeiro' },
+    data: { titulo: 'Mensalidades' },
     loadComponent: () =>
       import('./pages/financeiro-lista/financeiro-lista.component').then((m) => m.FinanceiroListaComponent)
+  },
+  {
+    path: 'financeiro/contas-pagar',
+    pathMatch: 'full',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Contas a Pagar' },
+    loadComponent: () =>
+      import('./pages/contas-pagar-lista/contas-pagar-lista.component').then((m) => m.ContasPagarListaComponent)
+  },
+  {
+    path: 'financeiro/contas-receber',
+    pathMatch: 'full',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Contas a Receber' },
+    loadComponent: () =>
+      import('./pages/contas-receber-lista/contas-receber-lista.component').then((m) => m.ContasReceberListaComponent)
+  },
+  {
+    path: 'fornecedores',
+    pathMatch: 'full',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Fornecedores' },
+    loadComponent: () =>
+      import('./pages/fornecedores-lista/fornecedores-lista.component').then((m) => m.FornecedoresListaComponent)
+  },
+  {
+    path: 'fornecedores/novo',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Novo fornecedor' },
+    loadComponent: () =>
+      import('./pages/fornecedor-formulario/fornecedor-formulario.component').then((m) => m.FornecedorFormularioComponent)
+  },
+  {
+    path: 'fornecedores/:id/editar',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Editar fornecedor' },
+    loadComponent: () =>
+      import('./pages/fornecedor-formulario/fornecedor-formulario.component').then((m) => m.FornecedorFormularioComponent)
   },
   {
     path: 'portal/filhos',
@@ -97,5 +189,12 @@ export const routes: Routes = [
     canActivate: [portalGuard],
     data: { titulo: 'Rotina do dia' },
     loadComponent: () => import('./pages/portal-aluno/portal-aluno.component').then((m) => m.PortalAlunoComponent)
+  },
+  {
+    path: 'portal/financeiro',
+    canActivate: [portalGuard],
+    data: { titulo: 'Financeiro' },
+    loadComponent: () =>
+      import('./pages/portal-financeiro/portal-financeiro.component').then((m) => m.PortalFinanceiroComponent)
   }
 ];

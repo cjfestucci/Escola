@@ -3,7 +3,9 @@ using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +15,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/turmas/{turmaId:guid}/diario")]
 [Authorize]
-public class DiarioClasseController(EscolaDbContext db) : ControllerBase
+public class DiarioClasseController(EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio) : ControllerBase
 {
     private const int MaxFotos = 4;
 
@@ -33,9 +35,8 @@ public class DiarioClasseController(EscolaDbContext db) : ControllerBase
             if (!temFilhoNaTurma) return Forbid();
         }
 
-        var dia = data ?? DateOnly.FromDateTime(DateTime.UtcNow);
-        var inicio = dia.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var fim = inicio.AddDays(1);
+        var dia = data ?? await relogio.HojeAsync();
+        var (inicio, fim) = await relogio.IntervaloUtcDoDiaAsync(dia);
 
         var registros = await db.RegistrosDiarioClasse
             .Include(r => r.CriadoPor)
@@ -67,7 +68,8 @@ public class DiarioClasseController(EscolaDbContext db) : ControllerBase
             registro.Fotos.Add(foto);
 
         db.RegistrosDiarioClasse.Add(registro);
-        RegistrarLog(registro.Id, AcaoAuditoria.Criado, request.UsuarioId);
+        var diaCriacao = await relogio.DataLocalAsync(registro.RegistradoEm);
+        auditoria.Registrar(nameof(RegistroDiarioClasse), registro.Id, AcaoAuditoria.Criado, request.UsuarioId, registro.Titulo, turmaId, diaCriacao);
         await db.SaveChangesAsync();
 
         await db.Entry(registro).Reference(r => r.CriadoPor).LoadAsync();
@@ -87,6 +89,10 @@ public class DiarioClasseController(EscolaDbContext db) : ControllerBase
             .FirstOrDefaultAsync(r => r.Id == registroId && r.TurmaId == turmaId);
         if (registro is null) return NotFound("Registro não encontrado.");
 
+        var tituloAntes = registro.Titulo;
+        var descricaoAntes = registro.Descricao;
+        var quantidadeFotosAntes = registro.Fotos.Count;
+
         registro.Titulo = request.Titulo.Trim();
         registro.Descricao = string.IsNullOrWhiteSpace(request.Descricao) ? null : request.Descricao.Trim();
 
@@ -97,7 +103,13 @@ public class DiarioClasseController(EscolaDbContext db) : ControllerBase
             db.FotosDiarioClasse.Add(foto);
         }
 
-        RegistrarLog(registro.Id, AcaoAuditoria.Editado, request.UsuarioId);
+        var detalhe = AuditoriaDetalhe.MontarAlteracoes(
+            ("Título", tituloAntes, registro.Titulo),
+            ("Descrição", descricaoAntes, registro.Descricao),
+            ("Quantidade de fotos", quantidadeFotosAntes, request.FotoUrls?.Count ?? 0));
+
+        var diaEdicao = await relogio.DataLocalAsync(registro.RegistradoEm);
+        auditoria.Registrar(nameof(RegistroDiarioClasse), registro.Id, AcaoAuditoria.Editado, request.UsuarioId, detalhe, turmaId, diaEdicao);
         await db.SaveChangesAsync();
 
         await db.Entry(registro).Reference(r => r.CriadoPor).LoadAsync();
@@ -116,7 +128,8 @@ public class DiarioClasseController(EscolaDbContext db) : ControllerBase
         if (registro is null) return NotFound("Registro não encontrado.");
 
         db.RegistrosDiarioClasse.Remove(registro);
-        RegistrarLog(registro.Id, AcaoAuditoria.Excluido, usuarioId);
+        var diaExclusao = await relogio.DataLocalAsync(registro.RegistradoEm);
+        auditoria.Registrar(nameof(RegistroDiarioClasse), registro.Id, AcaoAuditoria.Excluido, usuarioId, registro.Titulo, turmaId, diaExclusao);
         await db.SaveChangesAsync();
 
         return NoContent();
@@ -138,17 +151,6 @@ public class DiarioClasseController(EscolaDbContext db) : ControllerBase
 
         return null;
     }
-
-    private void RegistrarLog(Guid entidadeId, AcaoAuditoria acao, Guid usuarioId) =>
-        db.LogsAuditoria.Add(new LogAuditoria
-        {
-            Id = Guid.NewGuid(),
-            EntidadeTipo = nameof(RegistroDiarioClasse),
-            EntidadeId = entidadeId,
-            Acao = acao,
-            UsuarioId = usuarioId,
-            RegistradoEm = DateTime.UtcNow
-        });
 
     private static List<FotoDiarioClasse> MontarFotos(List<string>? urls) =>
         (urls ?? []).Select((url, indice) => new FotoDiarioClasse { Id = Guid.NewGuid(), Url = url, Ordem = indice }).ToList();

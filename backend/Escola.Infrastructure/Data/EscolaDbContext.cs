@@ -6,6 +6,7 @@ namespace Escola.Infrastructure.Data;
 public class EscolaDbContext(DbContextOptions<EscolaDbContext> options) : DbContext(options)
 {
     public DbSet<Turma> Turmas => Set<Turma>();
+    public DbSet<Unidade> Unidades => Set<Unidade>();
     public DbSet<Aluno> Alunos => Set<Aluno>();
     public DbSet<FichaSaude> FichasSaude => Set<FichaSaude>();
     public DbSet<Responsavel> Responsaveis => Set<Responsavel>();
@@ -17,7 +18,11 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options) : DbCont
     public DbSet<RegistroDiarioClasse> RegistrosDiarioClasse => Set<RegistroDiarioClasse>();
     public DbSet<FotoDiarioClasse> FotosDiarioClasse => Set<FotoDiarioClasse>();
     public DbSet<Cobranca> Cobrancas => Set<Cobranca>();
+    public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
+    public DbSet<ContaPagar> ContasPagar => Set<ContaPagar>();
+    public DbSet<ContaReceber> ContasReceber => Set<ContaReceber>();
     public DbSet<ConfiguracaoFinanceira> ConfiguracoesFinanceiras => Set<ConfiguracaoFinanceira>();
+    public DbSet<ConfiguracaoEscola> ConfiguracoesEscola => Set<ConfiguracaoEscola>();
     public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

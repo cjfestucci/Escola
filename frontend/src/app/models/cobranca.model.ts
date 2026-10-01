@@ -8,6 +8,8 @@ export interface Cobranca {
   vencimento: string;
   paga: boolean;
   pagoEm: string | null;
+  cancelada: boolean;
+  canceladaEm: string | null;
 }
 
 export interface CriarCobranca {

@@ -4,10 +4,6 @@
     <button type="button" class="botao-primario" (click)="abrirNovo()">+ Nova Conta</button>
   </div>
 
-  @if (erro(); as mensagem) {
-    <p class="mensagem-erro">{{ mensagem }}</p>
-  }
-
   @if (senhaGerada(); as sg) {
     <div class="aviso-senha">
       <strong>Conta pronta — anote a senha, ela só aparece esta vez:</strong>
@@ -52,42 +48,43 @@
         <li class="cartao-conta">
           <div class="info-conta">
             <strong>{{ conta.nome }}</strong>
-            <span class="detalhe">{{ conta.email }} · {{ rotuloPapel(conta.papel) }}</span>
+            <span class="detalhe">
+              {{ conta.email }} · {{ rotuloPapel(conta.papel) }}
+              @if (!conta.ativo) {
+                <span class="status status--inativa">Inativa</span>
+              }
+            </span>
           </div>
 
-          @if (confirmandoExclusaoId() === conta.id) {
-            <div class="confirmar-exclusao">
-              <span>Excluir conta?</span>
-              <div class="acoes">
-                <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
-                <button
-                  type="button"
-                  class="botao-texto botao-texto--perigo"
-                  [disabled]="excluindoId() === conta.id"
-                  (click)="confirmarExclusao(conta)"
-                >
-                  {{ excluindoId() === conta.id ? 'Excluindo...' : 'Excluir' }}
-                </button>
-              </div>
-            </div>
-          } @else {
-            <div class="acoes">
+          <div class="acoes">
+            <button
+              type="button"
+              class="botao-texto"
+              [disabled]="redefinindoId() === conta.id"
+              (click)="redefinirSenha(conta)"
+            >
+              {{ redefinindoId() === conta.id ? 'Gerando...' : 'Redefinir senha' }}
+            </button>
+            <button type="button" class="botao-icone" (click)="abrirHistorico(conta.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+            <button type="button" class="botao-icone" (click)="editar(conta)" aria-label="Editar conta">✏️</button>
+            @if (conta.id !== meuId) {
               <button
                 type="button"
                 class="botao-texto"
-                [disabled]="redefinindoId() === conta.id"
-                (click)="redefinirSenha(conta)"
+                [class.botao-texto--perigo]="conta.ativo"
+                [disabled]="processandoId() === conta.id"
+                (click)="alternarStatus(conta)"
               >
-                {{ redefinindoId() === conta.id ? 'Gerando...' : 'Redefinir senha' }}
+                {{ conta.ativo ? 'Desativar' : 'Ativar' }}
               </button>
-              <button type="button" class="botao-icone" (click)="editar(conta)" aria-label="Editar conta">✏️</button>
-              @if (conta.id !== meuId) {
-                <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(conta.id)" aria-label="Excluir conta">🗑️</button>
-              }
-            </div>
-          }
+            }
+          </div>
         </li>
       }
     </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Usuario" [entidadeId]="id" titulo="Histórico da conta" (fechar)="fecharHistorico()" />
   }
 </div>

@@ -1,0 +1,126 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 20, 28, 0.45);
+  z-index: 100;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(620px, calc(100vw - 32px));
+  max-height: min(680px, calc(100vh - 64px));
+  background: var(--cor-superficie);
+  border-radius: var(--raio);
+  box-shadow: 0 12px 32px rgba(17, 20, 28, 0.24);
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--cor-borda);
+
+  h2 {
+    font-size: 1.05rem;
+    margin: 0;
+  }
+}
+
+.botao-fechar {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: var(--cor-texto-suave);
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:active {
+    background: var(--cor-fundo);
+  }
+}
+
+.conteudo {
+  padding: 12px 18px 18px;
+  overflow-y: auto;
+}
+
+.mensagem {
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.lista-logs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item-log {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.info-log {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.linha-principal {
+  font-size: 0.85rem;
+  color: var(--cor-texto);
+}
+
+.lista-detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.detalhe {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.acao {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+
+  &--criado {
+    background: #eafbea;
+    color: #1e7e34;
+  }
+
+  &--editado {
+    background: #eef0ff;
+    color: var(--cor-primaria-escura);
+  }
+
+  &--excluido {
+    background: #fdecea;
+    color: #b3261e;
+  }
+}

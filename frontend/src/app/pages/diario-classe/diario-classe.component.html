@@ -46,6 +46,10 @@
       <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
     }
 
+    <div class="linha-historico-dia">
+      <button type="button" class="botao-texto" (click)="abrirHistoricoDia()">🕘 Histórico do dia</button>
+    </div>
+
     @if (!formularioAberto()) {
       <button type="button" class="botao-novo" (click)="abrirNovo()">+ Novo registro</button>
     }
@@ -134,6 +138,7 @@
                 <div class="rodape-item">
                   <span class="autor">por {{ registro.criadoPorNome }}</span>
                   <div class="acoes-item">
+                    <button type="button" class="botao-icone" (click)="abrirHistorico(registro.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
                     <button type="button" class="botao-icone" (click)="editarRegistro(registro)" aria-label="Editar registro">✏️</button>
                     <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(registro.id)" aria-label="Excluir registro">🗑️</button>
                   </div>
@@ -144,5 +149,18 @@
         }
       </ul>
     }
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="RegistroDiarioClasse" [entidadeId]="id" titulo="Histórico do registro" (fechar)="fecharHistorico()" />
+  }
+
+  @if (historicoDiaAberto() && sessao.turmaAtivaId(); as turmaId) {
+    <app-logs-modal
+      [turmaId]="turmaId"
+      [data]="dataVisualizada()"
+      [titulo]="'Histórico do dia — ' + rotuloData(dataVisualizada())"
+      (fechar)="fecharHistoricoDia()"
+    />
   }
 </div>

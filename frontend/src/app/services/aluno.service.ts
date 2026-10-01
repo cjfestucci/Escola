@@ -32,7 +32,11 @@ export class AlunoService {
     return this.http.put<AlunoDetalhe>(`${this.baseUrl}/alunos/${id}`, payload);
   }
 
-  excluir(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/alunos/${id}`);
+  desativar(id: string): Observable<AlunoDetalhe> {
+    return this.http.post<AlunoDetalhe>(`${this.baseUrl}/alunos/${id}/desativar`, {});
+  }
+
+  ativar(id: string): Observable<AlunoDetalhe> {
+    return this.http.post<AlunoDetalhe>(`${this.baseUrl}/alunos/${id}/ativar`, {});
   }
 }

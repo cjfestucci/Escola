@@ -14,6 +14,15 @@ public class LogAuditoria
     public Guid EntidadeId { get; set; }
     public AcaoAuditoria Acao { get; set; }
 
+    /// <summary>Turma dona do registro auditado, só preenchida pra entidades vinculadas a uma turma
+    /// (hoje, só RegistroDiarioClasse) — permite consultar "tudo que aconteceu nessa turma nesse dia"
+    /// mesmo depois que um registro individual foi excluído e não existe mais pra ancorar um "Ver histórico".</summary>
+    public Guid? TurmaId { get; set; }
+
+    /// <summary>Dia (no fuso da escola) a que o registro auditado se refere — não é a data do log em si
+    /// (isso já é RegistradoEm), é o dia do RegistroDiarioClasse/RegistroRotina sendo auditado.</summary>
+    public DateOnly? Data { get; set; }
+
     public Guid UsuarioId { get; set; }
     public Usuario Usuario { get; set; } = null!;
 

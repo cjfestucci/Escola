@@ -1,0 +1,75 @@
+<div class="container">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Unidades cadastradas.</p>
+    @if (auth.ehGestao()) {
+      <button type="button" class="botao-primario" (click)="nova()">+ Nova Unidade</button>
+    }
+  </div>
+
+  @if (!carregando() && unidades().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por nome..."
+        [ngModel]="filtroNome()"
+        (ngModelChange)="filtroNome.set($event)"
+      />
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todas">Todos os status</option>
+        <option value="ativas">Ativas</option>
+        <option value="inativas">Inativas</option>
+      </select>
+      @if (filtroNome() || filtroStatus() !== 'todas') {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (unidades().length === 0) {
+    <p class="vazio">Nenhuma unidade cadastrada ainda.</p>
+  } @else if (unidadesFiltradas().length === 0) {
+    <p class="vazio">Nenhuma unidade encontrada com esses filtros.</p>
+  } @else {
+    <ul class="lista-unidades">
+      @for (unidade of unidadesFiltradas(); track unidade.id) {
+        <li class="cartao-unidade">
+          <div class="info-unidade">
+            <strong>{{ unidade.nome }}</strong>
+            @if (unidade.endereco) {
+              <span class="detalhe">{{ unidade.endereco }}</span>
+            }
+            <span class="detalhe">
+              {{ unidade.telefone ?? 'Sem telefone cadastrado' }}
+              @if (!unidade.ativa) {
+                <span class="status status--inativa">Inativa</span>
+              }
+            </span>
+          </div>
+
+          <div class="acoes">
+            <button type="button" class="botao-icone" (click)="abrirHistorico(unidade.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+            @if (auth.ehGestao()) {
+              <button
+                type="button"
+                class="botao-texto"
+                [class.botao-texto--perigo]="unidade.ativa"
+                [disabled]="processandoId() === unidade.id"
+                (click)="alternarStatus(unidade)"
+              >
+                {{ unidade.ativa ? 'Desativar' : 'Ativar' }}
+              </button>
+              <button type="button" class="botao-icone" (click)="editar(unidade)" aria-label="Editar unidade" title="Editar unidade">✏️</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Unidade" [entidadeId]="id" titulo="Histórico da unidade" (fechar)="fecharHistorico()" />
+  }
+</div>

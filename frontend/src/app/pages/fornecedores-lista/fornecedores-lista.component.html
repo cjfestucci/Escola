@@ -1,0 +1,73 @@
+<div class="container">
+  <button type="button" class="voltar" routerLink="/financeiro/contas-pagar">&larr; Contas a Pagar</button>
+
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Fornecedores cadastrados.</p>
+    <button type="button" class="botao-primario" (click)="novo()">+ Novo fornecedor</button>
+  </div>
+
+  @if (!carregando() && fornecedores().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por nome..."
+        [ngModel]="filtroNome()"
+        (ngModelChange)="filtroNome.set($event)"
+      />
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todos">Todos os status</option>
+        <option value="ativos">Ativos</option>
+        <option value="inativos">Inativos</option>
+      </select>
+      @if (filtroNome() || filtroStatus() !== 'todos') {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (fornecedores().length === 0) {
+    <p class="vazio">Nenhum fornecedor cadastrado ainda.</p>
+  } @else if (fornecedoresFiltrados().length === 0) {
+    <p class="vazio">Nenhum fornecedor encontrado com esses filtros.</p>
+  } @else {
+    <ul class="lista-fornecedores">
+      @for (fornecedor of fornecedoresFiltrados(); track fornecedor.id) {
+        <li class="cartao-fornecedor">
+          <div class="info-fornecedor">
+            <strong>{{ fornecedor.nome }}</strong>
+            <span class="detalhe">
+              {{ fornecedor.documento ?? 'Sem documento' }} · {{ fornecedor.telefone ?? 'Sem telefone' }}
+              @if (fornecedor.email) {
+                · {{ fornecedor.email }}
+              }
+              @if (!fornecedor.ativo) {
+                <span class="status status--inativa">Inativo</span>
+              }
+            </span>
+          </div>
+
+          <div class="acoes">
+            <button type="button" class="botao-icone" (click)="abrirHistorico(fornecedor.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+            <button
+              type="button"
+              class="botao-texto"
+              [class.botao-texto--perigo]="fornecedor.ativo"
+              [disabled]="processandoId() === fornecedor.id"
+              (click)="alternarStatus(fornecedor)"
+            >
+              {{ fornecedor.ativo ? 'Desativar' : 'Ativar' }}
+            </button>
+            <button type="button" class="botao-icone" (click)="editar(fornecedor)" aria-label="Editar fornecedor" title="Editar fornecedor">✏️</button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Fornecedor" [entidadeId]="id" titulo="Histórico do fornecedor" (fechar)="fecharHistorico()" />
+  }
+</div>

@@ -17,5 +17,6 @@ public class LogAuditoriaConfiguration : IEntityTypeConfiguration<LogAuditoria>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(l => new { l.EntidadeTipo, l.EntidadeId });
+        builder.HasIndex(l => new { l.TurmaId, l.Data });
     }
 }

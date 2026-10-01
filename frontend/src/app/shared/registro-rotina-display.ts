@@ -1,5 +1,6 @@
 import { environment } from '../../environments/environment';
 import { CategoriaRegistro, Humor, RegistroRotina, Refeicao, StatusAlimentacao } from '../models/registro-rotina.model';
+import { formatarHora } from './data-utils';
 
 const ICONES: Record<CategoriaRegistro, string> = {
   Alimentacao: '🍽️',
@@ -54,7 +55,7 @@ export function rotuloCategoria(registro: RegistroRotina): string {
 }
 
 export function horaRegistro(registradoEm: string): string {
-  return new Date(registradoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return formatarHora(registradoEm);
 }
 
 /** As fotos vêm do backend como caminho relativo (ex.: "/uploads/xyz.jpg"); aqui vira URL completa. */

@@ -1,0 +1,27 @@
+<div class="container container--estreito">
+  <p class="subtitulo">A chave Pix é usada para gerar o código de pagamento de cada mensalidade.</p>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="painel-formulario">
+      <label>Chave Pix
+        <input type="text" [(ngModel)]="pixChave" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória" />
+      </label>
+
+      <label>Nome do recebedor
+        <input type="text" [(ngModel)]="pixNomeRecebedor" placeholder="Nome da escola" maxlength="25" />
+      </label>
+
+      <label>Cidade
+        <input type="text" [(ngModel)]="pixCidade" placeholder="Cidade da escola" maxlength="15" />
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

@@ -9,6 +9,9 @@ export interface Turma {
   quantidadeAlunos: number;
   professorId: string | null;
   professorNome: string | null;
+  unidadeId: string;
+  unidadeNome: string;
+  ativa: boolean;
 }
 
 export interface CriarOuEditarTurma {
@@ -17,6 +20,7 @@ export interface CriarOuEditarTurma {
   horarioEntrada: string;
   horarioSaida: string;
   professorId: string | null;
+  unidadeId: string;
 }
 
 export interface Aluno {
@@ -26,6 +30,7 @@ export interface Aluno {
   fotoUrl: string | null;
   turmaId: string;
   turmaNome: string;
+  ativo: boolean;
 }
 
 export interface ResponsavelResumo {

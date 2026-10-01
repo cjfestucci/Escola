@@ -6,10 +6,6 @@
     }
   </div>
 
-  @if (erro(); as mensagem) {
-    <p class="mensagem-erro">{{ mensagem }}</p>
-  }
-
   @if (!carregando() && turmas().length > 0) {
     <div class="filtros">
       <input
@@ -32,7 +28,12 @@
           <option [value]="professor.id">{{ professor.nome }}</option>
         }
       </select>
-      @if (filtroNome() || filtroPeriodo() || filtroProfessorId()) {
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todas">Todos os status</option>
+        <option value="ativas">Ativas</option>
+        <option value="inativas">Inativas</option>
+      </select>
+      @if (filtroNome() || filtroPeriodo() || filtroProfessorId() || filtroStatus() !== 'todas') {
         <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
       }
     </div>
@@ -50,33 +51,36 @@
         <li class="cartao-turma">
           <div class="info-turma">
             <strong>{{ turma.nome }}</strong>
-            <span class="detalhe">{{ rotuloPeriodo(turma.periodo) }} · {{ turma.horarioEntrada.slice(0, 5) }}–{{ turma.horarioSaida.slice(0, 5) }}</span>
-            <span class="detalhe">{{ turma.professorNome ?? 'Sem professor vinculado' }} · {{ turma.quantidadeAlunos }} aluno(s)</span>
+            <span class="detalhe">{{ turma.unidadeNome }} · {{ rotuloPeriodo(turma.periodo) }} · {{ turma.horarioEntrada.slice(0, 5) }}–{{ turma.horarioSaida.slice(0, 5) }}</span>
+            <span class="detalhe">
+              {{ turma.professorNome ?? 'Sem professor vinculado' }} · {{ turma.quantidadeAlunos }} aluno(s)
+              @if (!turma.ativa) {
+                <span class="status status--inativa">Inativa</span>
+              }
+            </span>
           </div>
 
-          @if (confirmandoExclusaoId() === turma.id) {
-            <div class="confirmar-exclusao">
-              <span>Excluir turma?</span>
-              <div class="acoes">
-                <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
-                <button
-                  type="button"
-                  class="botao-texto botao-texto--perigo"
-                  [disabled]="excluindoId() === turma.id"
-                  (click)="confirmarExclusao(turma)"
-                >
-                  {{ excluindoId() === turma.id ? 'Excluindo...' : 'Excluir' }}
-                </button>
-              </div>
-            </div>
-          } @else if (auth.ehGestao()) {
-            <div class="acoes">
+          <div class="acoes">
+            <button type="button" class="botao-icone" (click)="abrirHistorico(turma.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+            @if (auth.ehGestao()) {
+              <button
+                type="button"
+                class="botao-texto"
+                [class.botao-texto--perigo]="turma.ativa"
+                [disabled]="processandoId() === turma.id"
+                (click)="alternarStatus(turma)"
+              >
+                {{ turma.ativa ? 'Desativar' : 'Ativar' }}
+              </button>
               <button type="button" class="botao-icone" (click)="editar(turma)" aria-label="Editar turma">✏️</button>
-              <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(turma.id)" aria-label="Excluir turma">🗑️</button>
-            </div>
-          }
+            }
+          </div>
         </li>
       }
     </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Turma" [entidadeId]="id" titulo="Histórico da turma" (fechar)="fecharHistorico()" />
   }
 </div>

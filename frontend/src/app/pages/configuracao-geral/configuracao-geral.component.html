@@ -1,0 +1,37 @@
+<div class="container container--estreito">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Configurações gerais da escola.</p>
+    @if (configuracaoId()) {
+      <button type="button" class="botao-icone" (click)="abrirHistorico()" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+    }
+  </div>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="painel-formulario">
+      <label>Fuso horário
+        <select [(ngModel)]="fusoHorario">
+          @for (fuso of fusos; track fuso.valor) {
+            <option [value]="fuso.valor">{{ fuso.rotulo }}</option>
+          }
+        </select>
+      </label>
+      <p class="ajuda">
+        Define quando o dia vira no app: o que aparece como "Hoje" na rotina e no diário, a data de pagamento e
+        quando uma cobrança passa a ser atrasada. Os horários dos registros também são mostrados neste fuso, para
+        todos os usuários, onde quer que estejam.
+      </p>
+
+      <div class="botoes">
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (historicoAberto() && configuracaoId(); as id) {
+    <app-logs-modal entidadeTipo="ConfiguracaoEscola" [entidadeId]="id" titulo="Histórico da configuração" (fechar)="fecharHistorico()" />
+  }
+</div>

@@ -1,7 +1,46 @@
-/** Utilidades de data em UTC puro (YYYY-MM-DD), pra bater com o corte de dia que a API usa. */
+/**
+ * Utilidades de data. Datas "de calendário" (YYYY-MM-DD: vencimento, nascimento, dia visualizado) são
+ * manipuladas como texto/UTC puro, sem fuso. Já "que dia é hoje" e a exibição de horários de registros
+ * usam sempre o **fuso da escola** (não o do navegador) — um pai viajando vê o mesmo dia letivo que a
+ * escola, e o dia não vira às 21h como aconteceria usando UTC no Brasil.
+ */
 
+/** Fuso IANA da escola. Carregado da API na inicialização do app (`ConfiguracaoEscolaService`),
+ * antes de qualquer tela renderizar; este valor é só o padrão até lá. */
+let fusoEscola = 'America/Sao_Paulo';
+
+export function definirFusoEscola(fuso: string): void {
+  fusoEscola = fuso;
+}
+
+export function obterFusoEscola(): string {
+  return fusoEscola;
+}
+
+function partesNoFusoEscola(data: Date): { ano: string; mes: string; dia: string; hora: string; minuto: string } {
+  const partes = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: fusoEscola,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(data);
+  const valor = (tipo: Intl.DateTimeFormatPartTypes) => partes.find((p) => p.type === tipo)?.value ?? '';
+  return { ano: valor('year'), mes: valor('month'), dia: valor('day'), hora: valor('hour'), minuto: valor('minute') };
+}
+
+/** Data de hoje (YYYY-MM-DD) no fuso da escola. */
 export function hojeIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  const p = partesNoFusoEscola(new Date());
+  return `${p.ano}-${p.mes}-${p.dia}`;
+}
+
+/** Hora atual (HH:MM) no fuso da escola. */
+export function horaAtualEscola(): string {
+  const p = partesNoFusoEscola(new Date());
+  return `${p.hora}:${p.minuto}`;
 }
 
 export function somarDias(dataIso: string, dias: number): string {
@@ -30,11 +69,46 @@ export function formatarDataAbsoluta(dataIso: string): string {
   return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
 }
 
+export const MESES_PT_BR = [
+  { valor: '01', rotulo: 'Janeiro' },
+  { valor: '02', rotulo: 'Fevereiro' },
+  { valor: '03', rotulo: 'Março' },
+  { valor: '04', rotulo: 'Abril' },
+  { valor: '05', rotulo: 'Maio' },
+  { valor: '06', rotulo: 'Junho' },
+  { valor: '07', rotulo: 'Julho' },
+  { valor: '08', rotulo: 'Agosto' },
+  { valor: '09', rotulo: 'Setembro' },
+  { valor: '10', rotulo: 'Outubro' },
+  { valor: '11', rotulo: 'Novembro' },
+  { valor: '12', rotulo: 'Dezembro' }
+];
+
+/** Timestamp (ISO com fuso, vindo da API em UTC) → "dd/mm/aaaa hh:mm" no fuso da escola. */
+export function formatarDataHoraAbsoluta(dataHoraIso: string): string {
+  const data = new Date(dataHoraIso);
+  return data.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: fusoEscola
+  });
+}
+
+/** Timestamp (ISO com fuso, vindo da API em UTC) → "hh:mm" no fuso da escola. */
+export function formatarHora(dataHoraIso: string): string {
+  return new Date(dataHoraIso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: fusoEscola });
+}
+
+/** Compara como datas de calendário (texto), sem `new Date('YYYY-MM-DD')` — que vira meia-noite UTC e,
+ * no fuso do navegador, cai no dia anterior. */
 export function idadeFormatada(dataNascimento: string): string {
-  const nascimento = new Date(dataNascimento);
-  const hoje = new Date();
-  let meses = (hoje.getFullYear() - nascimento.getFullYear()) * 12 + (hoje.getMonth() - nascimento.getMonth());
-  if (hoje.getDate() < nascimento.getDate()) meses--;
+  const [anoNasc, mesNasc, diaNasc] = dataNascimento.slice(0, 10).split('-').map(Number);
+  const [anoHoje, mesHoje, diaHoje] = hojeIso().split('-').map(Number);
+  let meses = (anoHoje - anoNasc) * 12 + (mesHoje - mesNasc);
+  if (diaHoje < diaNasc) meses--;
 
   if (meses < 24) return `${meses} meses`;
   return `${Math.floor(meses / 12)} anos`;

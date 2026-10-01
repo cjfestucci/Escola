@@ -3,8 +3,10 @@ using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +16,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/alunos")]
 [Authorize]
-public class AlunosController(EscolaDbContext db) : ControllerBase
+public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio) : ControllerBase
 {
     [HttpGet]
     [Authorize(Roles = GruposDePapeis.Equipe)]
@@ -63,6 +65,7 @@ public class AlunosController(EscolaDbContext db) : ControllerBase
         db.Alunos.Add(aluno);
 
         var senhasGeradas = await SincronizarResponsaveisAsync(aluno, request.Responsaveis);
+        auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(), aluno.Nome);
         await db.SaveChangesAsync();
 
         var criado = await ComIncludes().FirstAsync(a => a.Id == aluno.Id);
@@ -79,29 +82,62 @@ public class AlunosController(EscolaDbContext db) : ControllerBase
         var aluno = await ComIncludes().FirstOrDefaultAsync(a => a.Id == id);
         if (aluno is null) return NotFound("Aluno não encontrado.");
 
+        var nomeAntes = aluno.Nome;
+        var dataNascimentoAntes = aluno.DataNascimento;
+        var turmaIdAntes = aluno.TurmaId;
+        var turmaNomeAntes = aluno.Turma.Nome;
+
         aluno.Nome = request.Nome.Trim();
         aluno.DataNascimento = request.DataNascimento;
         aluno.FotoUrl = request.FotoUrl;
         aluno.TurmaId = request.TurmaId;
 
         var senhasGeradas = await SincronizarResponsaveisAsync(aluno, request.Responsaveis);
+
+        var turmaNomeDepois = request.TurmaId == turmaIdAntes
+            ? turmaNomeAntes
+            : (await db.Turmas.FindAsync(request.TurmaId))?.Nome ?? "desconhecida";
+
+        var detalhe = AuditoriaDetalhe.MontarAlteracoes(
+            ("Nome", nomeAntes, aluno.Nome),
+            ("Data de nascimento", dataNascimentoAntes, aluno.DataNascimento),
+            ("Turma", turmaNomeAntes, turmaNomeDepois));
+
+        auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
 
         var editado = await ComIncludes().FirstAsync(a => a.Id == aluno.Id);
         return Ok(editado.ToDetalheDto() with { SenhasGeradas = senhasGeradas });
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpPost("{id:guid}/desativar")]
     [Authorize(Roles = GruposDePapeis.Gestao)]
-    public async Task<IActionResult> Excluir(Guid id)
+    public async Task<ActionResult<AlunoDetalheDto>> Desativar(Guid id)
     {
         var aluno = await db.Alunos.FirstOrDefaultAsync(a => a.Id == id);
         if (aluno is null) return NotFound("Aluno não encontrado.");
 
-        db.Alunos.Remove(aluno);
+        aluno.Ativo = false;
+        auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Desativado: {aluno.Nome}");
         await db.SaveChangesAsync();
 
-        return NoContent();
+        var atualizado = await ComIncludes().FirstAsync(a => a.Id == id);
+        return Ok(atualizado.ToDetalheDto());
+    }
+
+    [HttpPost("{id:guid}/ativar")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<AlunoDetalheDto>> Ativar(Guid id)
+    {
+        var aluno = await db.Alunos.FirstOrDefaultAsync(a => a.Id == id);
+        if (aluno is null) return NotFound("Aluno não encontrado.");
+
+        aluno.Ativo = true;
+        auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Reativado: {aluno.Nome}");
+        await db.SaveChangesAsync();
+
+        var atualizado = await ComIncludes().FirstAsync(a => a.Id == id);
+        return Ok(atualizado.ToDetalheDto());
     }
 
     private async Task<string?> ValidarAsync(CriarOuEditarAlunoRequest request)
@@ -109,7 +145,7 @@ public class AlunosController(EscolaDbContext db) : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Nome))
             return "Nome é obrigatório.";
 
-        if (request.DataNascimento == default || request.DataNascimento > DateOnly.FromDateTime(DateTime.UtcNow))
+        if (request.DataNascimento == default || request.DataNascimento > await relogio.HojeAsync())
             return "Data de nascimento inválida.";
 
         if (!await db.Turmas.AnyAsync(t => t.Id == request.TurmaId))

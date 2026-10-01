@@ -1,8 +1,10 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Email;
 using Escola.Infrastructure.Storage;
+using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -56,6 +58,8 @@ builder.Services.AddSingleton<IFotoStorage>(new LocalFotoStorage(pastaUploads));
 
 builder.Services.Configure<ConfiguracaoSmtp>(builder.Configuration.GetSection("Smtp"));
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
+builder.Services.AddScoped<IRelogioEscola, RelogioEscola>();
 
 var app = builder.Build();
 

@@ -1,14 +1,10 @@
 <div class="container">
   <div class="cabecalho-pagina">
-    <p class="subtitulo">Alunos matriculados na escola.</p>
+    <p class="subtitulo">{{ segmentoService.rotuloPessoaPlural() }} cadastrados{{ segmentoService.ehClube() ? '' : ' na escola' }}.</p>
     @if (auth.ehGestao()) {
-      <button type="button" class="botao-primario" (click)="novo()">+ Novo Aluno</button>
+      <button type="button" class="botao-primario" (click)="novo()">+ Novo(a) {{ segmentoService.rotuloPessoa() }}</button>
     }
   </div>
-
-  @if (erro(); as mensagem) {
-    <p class="mensagem-erro">{{ mensagem }}</p>
-  }
 
   @if (!carregando() && alunos().length > 0) {
     <div class="filtros">
@@ -25,7 +21,12 @@
           <option [value]="turma.id">{{ turma.nome }}</option>
         }
       </select>
-      @if (filtroNome() || filtroTurmaId()) {
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todos">Todos os status</option>
+        <option value="ativos">Ativos</option>
+        <option value="inativos">Inativos</option>
+      </select>
+      @if (filtroNome() || filtroTurmaId() || filtroStatus() !== 'todos') {
         <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
       }
     </div>
@@ -34,9 +35,9 @@
   @if (carregando()) {
     <p>Carregando...</p>
   } @else if (alunos().length === 0) {
-    <p class="vazio">Nenhum aluno matriculado ainda.</p>
+    <p class="vazio">Nenhum(a) {{ segmentoService.rotuloPessoa().toLowerCase() }} cadastrado(a) ainda.</p>
   } @else if (alunosFiltrados().length === 0) {
-    <p class="vazio">Nenhum aluno encontrado com esses filtros.</p>
+    <p class="vazio">Nenhum(a) {{ segmentoService.rotuloPessoa().toLowerCase() }} encontrado(a) com esses filtros.</p>
   } @else {
     <ul class="lista-alunos">
       @for (aluno of alunosFiltrados(); track aluno.id) {
@@ -45,32 +46,35 @@
 
           <div class="info-aluno">
             <strong>{{ aluno.nome }}</strong>
-            <span class="detalhe">{{ idade(aluno.dataNascimento) }} · {{ aluno.turmaNome }}</span>
+            <span class="detalhe">
+              {{ idade(aluno.dataNascimento) }} · {{ aluno.turmaNome }}
+              @if (!aluno.ativo) {
+                <span class="status status--inativa">Inativo</span>
+              }
+            </span>
           </div>
 
-          @if (confirmandoExclusaoId() === aluno.id) {
-            <div class="confirmar-exclusao">
-              <span>Excluir aluno?</span>
-              <div class="acoes">
-                <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
-                <button
-                  type="button"
-                  class="botao-texto botao-texto--perigo"
-                  [disabled]="excluindoId() === aluno.id"
-                  (click)="confirmarExclusao(aluno)"
-                >
-                  {{ excluindoId() === aluno.id ? 'Excluindo...' : 'Excluir' }}
-                </button>
-              </div>
-            </div>
-          } @else if (auth.ehGestao()) {
-            <div class="acoes">
+          <div class="acoes">
+            <button type="button" class="botao-icone" (click)="abrirHistorico(aluno.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+            @if (auth.ehGestao()) {
+              <button
+                type="button"
+                class="botao-texto"
+                [class.botao-texto--perigo]="aluno.ativo"
+                [disabled]="processandoId() === aluno.id"
+                (click)="alternarStatus(aluno)"
+              >
+                {{ aluno.ativo ? 'Desativar' : 'Ativar' }}
+              </button>
               <button type="button" class="botao-icone" (click)="editar(aluno)" aria-label="Editar aluno">✏️</button>
-              <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(aluno.id)" aria-label="Excluir aluno">🗑️</button>
-            </div>
-          }
+            }
+          </div>
         </li>
       }
     </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Aluno" [entidadeId]="id" [titulo]="'Histórico do(a) ' + segmentoService.rotuloPessoa().toLowerCase()" (fechar)="fecharHistorico()" />
   }
 </div>

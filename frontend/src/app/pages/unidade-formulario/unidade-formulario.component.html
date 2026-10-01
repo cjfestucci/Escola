@@ -1,0 +1,35 @@
+<div class="container container--estreito">
+  <button type="button" class="voltar" (click)="cancelar()">&larr; Unidades</button>
+
+  <h1>{{ titulo }}</h1>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="painel-formulario">
+      <label>Nome
+        <input type="text" [(ngModel)]="nome" placeholder="Ex.: Unidade Centro" />
+      </label>
+
+      <label>Endereço (opcional)
+        <input type="text" [(ngModel)]="endereco" placeholder="Ex.: Rua das Flores, 123" />
+      </label>
+
+      <label>Telefone (opcional)
+        <input type="text" [(ngModel)]="telefone" placeholder="Ex.: (11) 99999-9999" />
+      </label>
+
+      <label class="campo-checkbox">
+        <input type="checkbox" [(ngModel)]="ativa" />
+        Unidade ativa
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

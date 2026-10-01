@@ -3,6 +3,7 @@ using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -14,14 +15,16 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/usuarios")]
 [Authorize]
-public class UsuariosController(EscolaDbContext db) : ControllerBase
+public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria) : ControllerBase
 {
-    /// <summary>Lista por papel — usado pra montar o seletor de professor ao cadastrar turma.</summary>
+    /// <summary>Lista por papel — usado pra montar o seletor de professor ao cadastrar turma. Só contas
+    /// ativas entram aqui (uma conta desativada não pode ser escolhida pra uma turma nova, mas continua
+    /// aparecendo como professor de qualquer turma onde já estava vinculada).</summary>
     [HttpGet]
     [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<ActionResult<List<UsuarioDto>>> Listar([FromQuery] string? papel)
     {
-        var query = db.Usuarios.AsQueryable();
+        var query = db.Usuarios.Where(u => u.Ativo);
 
         if (papel is not null && Enum.TryParse<PapelUsuario>(papel, ignoreCase: true, out var papelEnum))
             query = query.Where(u => u.Papel == papelEnum);
@@ -42,7 +45,7 @@ public class UsuariosController(EscolaDbContext db) : ControllerBase
         var contas = await db.Usuarios
             .Where(u => u.Papel != PapelUsuario.Responsavel)
             .OrderBy(u => u.Nome)
-            .Select(u => new UsuarioContaDto(u.Id, u.Nome, u.Email, u.Papel.ToString()))
+            .Select(u => new UsuarioContaDto(u.Id, u.Nome, u.Email, u.Papel.ToString(), u.Ativo))
             .ToListAsync();
 
         return Ok(contas);
@@ -69,6 +72,7 @@ public class UsuariosController(EscolaDbContext db) : ControllerBase
             SenhaHash = SenhaHasher.Hash(senha), Papel = request.Papel
         };
         db.Usuarios.Add(usuario);
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(), usuario.Nome);
         await db.SaveChangesAsync();
 
         return Ok(new SenhaGeradaDto(usuario.Nome, usuario.Email, senha));
@@ -91,12 +95,23 @@ public class UsuariosController(EscolaDbContext db) : ControllerBase
         if (await db.Usuarios.AnyAsync(u => u.Id != id && u.Email.ToLower() == email.ToLower()))
             return BadRequest("Já existe uma conta com esse e-mail.");
 
+        var nomeAntes = usuario.Nome;
+        var emailAntes = usuario.Email;
+        var papelAntes = usuario.Papel;
+
         usuario.Nome = request.Nome.Trim();
         usuario.Email = email;
         usuario.Papel = request.Papel;
+
+        var detalhe = AuditoriaDetalhe.MontarAlteracoes(
+            ("Nome", nomeAntes, usuario.Nome),
+            ("E-mail", emailAntes, usuario.Email),
+            ("Papel", papelAntes.ToString(), usuario.Papel.ToString()));
+
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
 
-        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString()));
+        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));
     }
 
     [HttpPost("contas/{id:guid}/redefinir-senha")]
@@ -108,26 +123,42 @@ public class UsuariosController(EscolaDbContext db) : ControllerBase
 
         var senha = GeradorSenhaTemporaria.Gerar();
         usuario.SenhaHash = SenhaHasher.Hash(senha);
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Senha redefinida: {usuario.Nome}");
         await db.SaveChangesAsync();
 
         return Ok(new SenhaGeradaDto(usuario.Nome, usuario.Email, senha));
     }
 
-    [HttpDelete("contas/{id:guid}")]
+    [HttpPost("contas/{id:guid}/desativar")]
     [Authorize(Roles = GruposDePapeis.Gestao)]
-    public async Task<IActionResult> ExcluirConta(Guid id)
+    public async Task<ActionResult<UsuarioContaDto>> DesativarConta(Guid id)
     {
         var usuarioLogadoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (id.ToString() == usuarioLogadoId)
-            return BadRequest("Você não pode excluir a própria conta.");
+            return BadRequest("Você não pode desativar a própria conta.");
 
         var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
         if (usuario is null) return NotFound("Conta não encontrada.");
 
-        db.Usuarios.Remove(usuario);
+        usuario.Ativo = false;
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Desativado: {usuario.Nome}");
         await db.SaveChangesAsync();
 
-        return NoContent();
+        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));
+    }
+
+    [HttpPost("contas/{id:guid}/ativar")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<UsuarioContaDto>> AtivarConta(Guid id)
+    {
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
+        if (usuario is null) return NotFound("Conta não encontrada.");
+
+        usuario.Ativo = true;
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Reativado: {usuario.Nome}");
+        await db.SaveChangesAsync();
+
+        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));
     }
 
     /// <summary>Um educador só vê as próprias turmas; Admin/Coordenador podem consultar qualquer um.</summary>

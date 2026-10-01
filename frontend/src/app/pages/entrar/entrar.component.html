@@ -1,13 +1,9 @@
 <div class="entrar">
-  <span class="marca-icone">🏫</span>
-  <h1>Rotina Escola</h1>
+  <span class="marca-icone">{{ segmentoService.iconeApp() }}</span>
+  <h1>{{ segmentoService.nomeApp() }}</h1>
   <p class="subtitulo">Entre com seu e-mail e senha.</p>
 
   <form class="formulario" (ngSubmit)="entrar()">
-    @if (erro(); as mensagem) {
-      <p class="erro">{{ mensagem }}</p>
-    }
-
     <label>E-mail
       <input type="email" [(ngModel)]="email" name="email" placeholder="voce@escola.dev" autocomplete="username" />
     </label>

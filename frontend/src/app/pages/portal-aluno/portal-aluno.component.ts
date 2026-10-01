@@ -10,10 +10,12 @@ import { AlunoService } from '../../services/aluno.service';
 import { DiarioClasseService } from '../../services/diario-classe.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
 import { FinanceiroService } from '../../services/financeiro.service';
+import { NotificacaoService } from '../../services/notificacao.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { formatarDataAbsoluta, hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
+import { gerarQrCodePix } from '../../shared/pix-qrcode';
 import {
   horaRegistro,
   iconeCategoria,
@@ -36,6 +38,7 @@ export class PortalAlunoComponent implements OnInit {
   private readonly rotinaService = inject(RotinaService);
   private readonly diarioClasseService = inject(DiarioClasseService);
   private readonly financeiroService = inject(FinanceiroService);
+  private readonly notificacao = inject(NotificacaoService);
   private readonly sessao = inject(SessaoService);
 
   private alunoId = '';
@@ -80,7 +83,7 @@ export class PortalAlunoComponent implements OnInit {
   readonly pixAbertoId = signal<string | null>(null);
   readonly pixCarregando = signal(false);
   readonly pixCodigo = signal<string | null>(null);
-  readonly pixErro = signal<string | null>(null);
+  readonly pixQrCode = signal<string | null>(null);
   readonly pixCopiado = signal(false);
 
   protected readonly rotuloCategoria = rotuloCategoria;
@@ -158,17 +161,19 @@ export class PortalAlunoComponent implements OnInit {
   abrirPix(cobranca: Cobranca): void {
     this.pixAbertoId.set(cobranca.id);
     this.pixCodigo.set(null);
-    this.pixErro.set(null);
+    this.pixQrCode.set(null);
     this.pixCopiado.set(false);
     this.pixCarregando.set(true);
     this.financeiroService.obterPix(cobranca.id).subscribe({
       next: (resposta) => {
         this.pixCodigo.set(resposta.codigoCopiaECola);
         this.pixCarregando.set(false);
+        gerarQrCodePix(resposta.codigoCopiaECola).then((url) => this.pixQrCode.set(url));
       },
       error: (resposta) => {
-        this.pixErro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível gerar o código Pix.');
+        this.pixAbertoId.set(null);
         this.pixCarregando.set(false);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível gerar o código Pix.');
       }
     });
   }

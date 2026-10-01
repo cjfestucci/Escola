@@ -9,6 +9,10 @@ public class Turma
     public Periodo Periodo { get; set; }
     public TimeOnly HorarioEntrada { get; set; }
     public TimeOnly HorarioSaida { get; set; }
+    public bool Ativa { get; set; } = true;
+
+    public Guid UnidadeId { get; set; }
+    public Unidade Unidade { get; set; } = null!;
 
     public ICollection<Aluno> Alunos { get; set; } = new List<Aluno>();
 

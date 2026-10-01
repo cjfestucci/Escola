@@ -2,7 +2,10 @@ using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
 using Escola.Domain.Entities;
+using Escola.Domain.Enums;
+using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Tempo;
 using Escola.Infrastructure.Email;
 using Escola.Infrastructure.Pagamentos;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +17,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/financeiro")]
 [Authorize]
-public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender) : ControllerBase
+public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, IAuditoriaService auditoria, IRelogioEscola relogio) : ControllerBase
 {
     /// <summary>Visão administrativa: todas as cobranças da escola, com filtros opcionais.</summary>
     [HttpGet("cobrancas")]
@@ -52,6 +55,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender) 
             RegistradoEm = DateTime.UtcNow
         };
         db.Cobrancas.Add(cobranca);
+        auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(), cobranca.Descricao);
         await db.SaveChangesAsync();
 
         var criada = await ComIncludes().FirstAsync(c => c.Id == cobranca.Id);
@@ -68,9 +72,23 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender) 
         var cobranca = await db.Cobrancas.FirstOrDefaultAsync(c => c.Id == id);
         if (cobranca is null) return NotFound("Cobrança não encontrada.");
 
+        if (cobranca.Cancelada)
+            return BadRequest("Não é possível editar uma cobrança cancelada.");
+
+        var descricaoAntes = cobranca.Descricao;
+        var valorAntes = cobranca.Valor;
+        var vencimentoAntes = cobranca.Vencimento;
+
         cobranca.Descricao = request.Descricao.Trim();
         cobranca.Valor = request.Valor;
         cobranca.Vencimento = request.Vencimento;
+
+        var detalhe = AuditoriaDetalhe.MontarAlteracoes(
+            ("Descrição", descricaoAntes, cobranca.Descricao),
+            ("Valor", valorAntes, cobranca.Valor),
+            ("Vencimento", vencimentoAntes, cobranca.Vencimento));
+
+        auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
 
         var editada = await ComIncludes().FirstAsync(c => c.Id == id);
@@ -84,8 +102,12 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender) 
         var cobranca = await db.Cobrancas.FirstOrDefaultAsync(c => c.Id == id);
         if (cobranca is null) return NotFound("Cobrança não encontrada.");
 
+        if (cobranca.Cancelada)
+            return BadRequest("Não é possível marcar como paga uma cobrança cancelada.");
+
         cobranca.Paga = true;
-        cobranca.PagoEm = DateOnly.FromDateTime(DateTime.UtcNow);
+        cobranca.PagoEm = await relogio.HojeAsync();
+        auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Marcada como paga: {cobranca.Descricao}");
         await db.SaveChangesAsync();
 
         var atualizada = await ComIncludes().FirstAsync(c => c.Id == id);
@@ -101,23 +123,49 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender) 
 
         cobranca.Paga = false;
         cobranca.PagoEm = null;
+        auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Marcada como pendente: {cobranca.Descricao}");
         await db.SaveChangesAsync();
 
         var atualizada = await ComIncludes().FirstAsync(c => c.Id == id);
         return Ok(atualizada.ToDto());
     }
 
-    [HttpDelete("cobrancas/{id:guid}")]
+    /// <summary>Em vez de excluir (perderia o rastro de quem cancelou e o próprio registro do valor que
+    /// deixou de ser cobrado), marca como Cancelada — some dos totais em aberto mas continua visível na
+    /// lista e no histórico. Só cabe numa cobrança ainda não paga; se já foi paga, desmarcar antes.</summary>
+    [HttpPost("cobrancas/{id:guid}/cancelar")]
     [Authorize(Roles = GruposDePapeis.Financeiro)]
-    public async Task<IActionResult> Excluir(Guid id)
+    public async Task<ActionResult<CobrancaDto>> Cancelar(Guid id)
     {
         var cobranca = await db.Cobrancas.FirstOrDefaultAsync(c => c.Id == id);
         if (cobranca is null) return NotFound("Cobrança não encontrada.");
 
-        db.Cobrancas.Remove(cobranca);
+        if (cobranca.Paga)
+            return BadRequest("Não é possível cancelar uma cobrança já paga — desmarque o pagamento antes.");
+
+        cobranca.Cancelada = true;
+        cobranca.CanceladaEm = await relogio.HojeAsync();
+        auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Cancelada: {cobranca.Descricao}");
         await db.SaveChangesAsync();
 
-        return NoContent();
+        var atualizada = await ComIncludes().FirstAsync(c => c.Id == id);
+        return Ok(atualizada.ToDto());
+    }
+
+    [HttpPost("cobrancas/{id:guid}/reabrir")]
+    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    public async Task<ActionResult<CobrancaDto>> Reabrir(Guid id)
+    {
+        var cobranca = await db.Cobrancas.FirstOrDefaultAsync(c => c.Id == id);
+        if (cobranca is null) return NotFound("Cobrança não encontrada.");
+
+        cobranca.Cancelada = false;
+        cobranca.CanceladaEm = null;
+        auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Reaberta: {cobranca.Descricao}");
+        await db.SaveChangesAsync();
+
+        var atualizada = await ComIncludes().FirstAsync(c => c.Id == id);
+        return Ok(atualizada.ToDto());
     }
 
     /// <summary>Código Pix "copia e cola" pra pagar uma cobrança específica — gerado localmente

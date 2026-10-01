@@ -1,0 +1,37 @@
+<div class="backdrop" (click)="fecharModal()"></div>
+<div class="modal" role="dialog" aria-modal="true">
+  <div class="cabecalho">
+    <h2>{{ titulo() }}</h2>
+    <button type="button" class="botao-fechar" (click)="fecharModal()" aria-label="Fechar">✕</button>
+  </div>
+
+  <div class="conteudo">
+    @if (carregando()) {
+      <p class="mensagem">Carregando...</p>
+    } @else if (erro()) {
+      <p class="mensagem">Não foi possível carregar o histórico.</p>
+    } @else if (logs().length === 0) {
+      <p class="mensagem">Nenhuma alteração registrada ainda.</p>
+    } @else {
+      <ul class="lista-logs">
+        @for (log of logs(); track log.id) {
+          <li class="item-log">
+            <span class="acao acao--{{ log.acao.toLowerCase() }}">{{ rotuloAcao(log.acao) }}</span>
+            <div class="info-log">
+              <span class="linha-principal">
+                <strong>{{ log.usuarioNome }}</strong> · {{ formatarDataHoraAbsoluta(log.registradoEm) }}
+              </span>
+              @if (log.detalhe) {
+                <div class="lista-detalhe">
+                  @for (linha of linhasDetalhe(log.detalhe); track linha) {
+                    <span class="detalhe">{{ linha }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

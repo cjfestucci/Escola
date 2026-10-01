@@ -9,6 +9,7 @@ public class Usuario
     public string Email { get; set; } = string.Empty;
     public string SenhaHash { get; set; } = string.Empty;
     public PapelUsuario Papel { get; set; }
+    public bool Ativo { get; set; } = true;
 
     /// <summary>Preenchido quando Papel == Responsavel, ligando o login ao cadastro do responsável.</summary>
     public Guid? ResponsavelId { get; set; }

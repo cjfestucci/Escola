@@ -13,7 +13,9 @@ public static class CobrancaMapper
         c.Valor,
         c.Vencimento,
         c.Paga,
-        c.PagoEm);
+        c.PagoEm,
+        c.Cancelada,
+        c.CanceladaEm);
 
     public static ConfiguracaoFinanceiraDto ToDto(this ConfiguracaoFinanceira c) => new(
         c.PixChave,

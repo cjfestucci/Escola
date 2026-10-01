@@ -26,7 +26,11 @@ export class TurmaService {
     return this.http.put<Turma>(`${this.baseUrl}/turmas/${id}`, payload);
   }
 
-  excluir(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/turmas/${id}`);
+  desativar(id: string): Observable<Turma> {
+    return this.http.post<Turma>(`${this.baseUrl}/turmas/${id}/desativar`, {});
+  }
+
+  ativar(id: string): Observable<Turma> {
+    return this.http.post<Turma>(`${this.baseUrl}/turmas/${id}/ativar`, {});
   }
 }

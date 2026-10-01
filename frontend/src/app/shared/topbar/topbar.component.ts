@@ -4,7 +4,15 @@ import { filter } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { ContextoService } from '../../services/contexto.service';
+import { SegmentoService } from '../../services/segmento.service';
 import { SessaoService } from '../../services/sessao.service';
+
+const TITULOS_CLUBE: Record<string, string> = {
+  'Rotina Escola': 'Escola de Futebol',
+  'Matrícula': 'Atletas',
+  'Novo aluno': 'Novo atleta',
+  'Editar aluno': 'Editar atleta'
+};
 
 @Component({
   selector: 'app-topbar',
@@ -17,6 +25,7 @@ export class TopbarComponent {
   protected readonly auth = inject(AuthService);
   protected readonly contextoService = inject(ContextoService);
   protected readonly sessao = inject(SessaoService);
+  private readonly segmentoService = inject(SegmentoService);
 
   readonly abrirMenu = output<void>();
 
@@ -37,6 +46,7 @@ export class TopbarComponent {
   private tituloAtual(): string {
     let rota = this.router.routerState.snapshot.root;
     while (rota.firstChild) rota = rota.firstChild;
-    return (rota.data['titulo'] as string) ?? 'Rotina Escola';
+    const titulo = (rota.data['titulo'] as string) ?? this.segmentoService.nomeApp();
+    return this.segmentoService.ehClube() ? (TITULOS_CLUBE[titulo] ?? titulo) : titulo;
   }
 }

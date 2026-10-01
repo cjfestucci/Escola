@@ -207,6 +207,7 @@
               <div class="rodape-item">
                 <span class="autor">por {{ registro.criadoPorNome }}</span>
                 <div class="acoes-item">
+                  <button type="button" class="botao-icone" (click)="abrirHistorico(registro.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
                   <button type="button" class="botao-icone" (click)="editarRegistro(registro)" aria-label="Editar registro">✏️</button>
                   <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(registro.id)" aria-label="Excluir registro">🗑️</button>
                 </div>
@@ -216,5 +217,9 @@
         </li>
       }
     </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="RegistroRotina" [entidadeId]="id" titulo="Histórico do registro" (fechar)="fecharHistorico()" />
   }
 </div>

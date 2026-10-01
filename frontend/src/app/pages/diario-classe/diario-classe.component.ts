@@ -11,13 +11,14 @@ import { UsuarioService } from '../../services/usuario.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import { horaRegistro, resolverFotoUrls } from '../../shared/registro-rotina-display';
+import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
 
 const MAX_FOTOS = 4;
 
 @Component({
   selector: 'app-diario-classe',
-  imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent],
+  imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent, LogsModalComponent],
   templateUrl: './diario-classe.component.html',
   styleUrl: './diario-classe.component.scss'
 })
@@ -32,6 +33,8 @@ export class DiarioClasseComponent implements OnInit {
   readonly registros = signal<RegistroDiarioClasse[]>([]);
   readonly carregando = signal(true);
   readonly carregandoTurmas = signal(true);
+  readonly historicoAbertoId = signal<string | null>(null);
+  readonly historicoDiaAberto = signal(false);
 
   readonly dataVisualizada = signal(hojeIso());
   readonly ehHoje = computed(() => this.dataVisualizada() === hojeIso());
@@ -204,6 +207,22 @@ export class DiarioClasseComponent implements OnInit {
       },
       error: () => this.enviando.set(false)
     });
+  }
+
+  abrirHistorico(registroId: string): void {
+    this.historicoAbertoId.set(registroId);
+  }
+
+  fecharHistorico(): void {
+    this.historicoAbertoId.set(null);
+  }
+
+  abrirHistoricoDia(): void {
+    this.historicoDiaAberto.set(true);
+  }
+
+  fecharHistoricoDia(): void {
+    this.historicoDiaAberto.set(false);
   }
 
   pedirConfirmacaoExclusao(registroId: string): void {

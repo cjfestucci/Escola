@@ -6,11 +6,14 @@ import { ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/a
 import { FichaSaude } from '../../models/ficha-saude.model';
 import { AlunoService } from '../../services/aluno.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
+import { NotificacaoService } from '../../services/notificacao.service';
 import { ResponsavelService } from '../../services/responsavel.service';
+import { SegmentoService } from '../../services/segmento.service';
 import { TurmaService } from '../../services/turma.service';
 import { UploadService } from '../../services/upload.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
+import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 import { resolverFotoUrl } from '../../shared/registro-rotina-display';
 import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
 
@@ -24,7 +27,7 @@ type Aba = 'dados' | 'responsaveis' | 'saude';
 
 @Component({
   selector: 'app-matricula-formulario',
-  imports: [FormsModule, SeletorArquivoComponent, CalendarioComponent],
+  imports: [FormsModule, SeletorArquivoComponent, CalendarioComponent, LogsModalComponent],
   templateUrl: './matricula-formulario.component.html',
   styleUrl: './matricula-formulario.component.scss'
 })
@@ -36,6 +39,8 @@ export class MatriculaFormularioComponent implements OnInit {
   private readonly uploadService = inject(UploadService);
   private readonly fichaSaudeService = inject(FichaSaudeService);
   private readonly responsavelService = inject(ResponsavelService);
+  private readonly notificacao = inject(NotificacaoService);
+  protected readonly segmentoService = inject(SegmentoService);
 
   private alunoId: string | null = null;
 
@@ -43,7 +48,6 @@ export class MatriculaFormularioComponent implements OnInit {
   readonly carregando = signal(true);
   readonly salvando = signal(false);
   readonly enviandoFoto = signal(false);
-  readonly erro = signal<string | null>(null);
   readonly fotoUrl = signal<string | null>(null);
   readonly responsaveis = signal<ResponsavelResumo[]>([novoResponsavelVazio()]);
   readonly calendarioNascimentoAberto = signal(false);
@@ -54,8 +58,8 @@ export class MatriculaFormularioComponent implements OnInit {
 
   readonly carregandoFicha = signal(false);
   readonly salvandoFicha = signal(false);
-  readonly erroFicha = signal<string | null>(null);
-  readonly fichaSalvaEm = signal<string | null>(null);
+  readonly fichaSaudeId = signal<string | null>(null);
+  readonly historicoFichaAberto = signal(false);
 
   nome = '';
   dataNascimento = '';
@@ -80,7 +84,8 @@ export class MatriculaFormularioComponent implements OnInit {
   protected readonly tiposSanguineos = TIPOS_SANGUINEOS;
 
   get titulo(): string {
-    return this.alunoId ? 'Editar aluno' : 'Novo aluno';
+    const pessoa = this.segmentoService.rotuloPessoa();
+    return this.alunoId ? `Editar ${pessoa.toLowerCase()}` : `Novo(a) ${pessoa.toLowerCase()}`;
   }
 
   get ehEdicao(): boolean {
@@ -103,7 +108,7 @@ export class MatriculaFormularioComponent implements OnInit {
           this.carregando.set(false);
         },
         error: () => {
-          this.erro.set('Não foi possível carregar o aluno.');
+          this.notificacao.erro('Não foi possível carregar o aluno.');
           this.carregando.set(false);
         }
       });
@@ -117,6 +122,7 @@ export class MatriculaFormularioComponent implements OnInit {
     this.carregandoFicha.set(true);
     this.fichaSaudeService.obter(alunoId).subscribe({
       next: (ficha) => {
+        this.fichaSaudeId.set(ficha.id);
         this.tipoSanguineo = ficha.tipoSanguineo ?? '';
         this.alergias = ficha.alergias ?? '';
         this.restricoesAlimentares = ficha.restricoesAlimentares ?? '';
@@ -131,17 +137,26 @@ export class MatriculaFormularioComponent implements OnInit {
         this.autorizaUsoImagem = ficha.autorizaUsoImagem;
         this.carregandoFicha.set(false);
       },
-      error: () => this.carregandoFicha.set(false)
+      error: () => {
+        this.carregandoFicha.set(false);
+        this.notificacao.erro('Não foi possível carregar a ficha de saúde.');
+      }
     });
+  }
+
+  abrirHistoricoFicha(): void {
+    this.historicoFichaAberto.set(true);
+  }
+
+  fecharHistoricoFicha(): void {
+    this.historicoFichaAberto.set(false);
   }
 
   salvarFicha(): void {
     if (!this.alunoId) return;
 
-    this.erroFicha.set(null);
-    this.fichaSalvaEm.set(null);
-
     const payload: FichaSaude = {
+      id: null,
       tipoSanguineo: this.tipoSanguineo || null,
       alergias: this.alergias || null,
       restricoesAlimentares: this.restricoesAlimentares || null,
@@ -159,13 +174,14 @@ export class MatriculaFormularioComponent implements OnInit {
 
     this.salvandoFicha.set(true);
     this.fichaSaudeService.salvar(this.alunoId, payload).subscribe({
-      next: () => {
+      next: (ficha) => {
+        this.fichaSaudeId.set(ficha.id);
         this.salvandoFicha.set(false);
-        this.fichaSalvaEm.set('Ficha de saúde salva.');
+        this.notificacao.sucesso('Ficha de saúde salva com sucesso.');
       },
       error: () => {
         this.salvandoFicha.set(false);
-        this.erroFicha.set('Não foi possível salvar a ficha de saúde.');
+        this.notificacao.erro('Não foi possível salvar a ficha de saúde.');
       }
     });
   }
@@ -182,7 +198,10 @@ export class MatriculaFormularioComponent implements OnInit {
         this.fotoUrl.set(resultado.url);
         this.enviandoFoto.set(false);
       },
-      error: () => this.enviandoFoto.set(false)
+      error: () => {
+        this.enviandoFoto.set(false);
+        this.notificacao.erro('Não foi possível enviar a foto.');
+      }
     });
   }
 
@@ -207,7 +226,6 @@ export class MatriculaFormularioComponent implements OnInit {
   redefinirSenhaResponsavel(responsavel: ResponsavelResumo): void {
     if (!responsavel.id) return;
 
-    this.erro.set(null);
     this.senhaResponsavelGerada.set(null);
     this.redefinindoSenhaId.set(responsavel.id);
     this.responsavelService.redefinirSenha(responsavel.id).subscribe({
@@ -217,29 +235,27 @@ export class MatriculaFormularioComponent implements OnInit {
       },
       error: () => {
         this.redefinindoSenhaId.set(null);
-        this.erro.set('Não foi possível redefinir a senha desse responsável.');
+        this.notificacao.erro('Não foi possível redefinir a senha desse responsável.');
       }
     });
   }
 
   salvar(): void {
-    this.erro.set(null);
-
     if (!this.nome.trim()) {
-      this.erro.set('Informe o nome do aluno.');
+      this.notificacao.erro('Informe o nome do aluno.');
       return;
     }
     if (!this.dataNascimento) {
-      this.erro.set('Informe a data de nascimento.');
+      this.notificacao.erro('Informe a data de nascimento.');
       return;
     }
     if (!this.turmaId) {
-      this.erro.set('Selecione a turma.');
+      this.notificacao.erro('Selecione a turma.');
       return;
     }
     const responsaveisValidos = this.responsaveis().filter((r) => r.nome.trim() && r.email.trim());
     if (responsaveisValidos.length === 0) {
-      this.erro.set('Informe ao menos um responsável, com nome e e-mail.');
+      this.notificacao.erro('Informe ao menos um responsável, com nome e e-mail.');
       return;
     }
 
@@ -262,12 +278,13 @@ export class MatriculaFormularioComponent implements OnInit {
           this.senhasGeradas.set(resultado.senhasGeradas);
           this.salvando.set(false);
         } else {
+          this.notificacao.sucesso(`${this.segmentoService.rotuloPessoa()} salvo(a) com sucesso.`);
           this.router.navigateByUrl('/matricula');
         }
       },
       error: (resposta) => {
         this.salvando.set(false);
-        this.erro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar o aluno.');
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar o aluno.');
       }
     });
   }

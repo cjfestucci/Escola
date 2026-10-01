@@ -26,15 +26,6 @@
   }
 }
 
-.mensagem-erro {
-  color: #b3261e;
-  background: #fdecea;
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 16px;
-  font-size: 0.85rem;
-}
-
 .aviso-senha {
   background: #eafbea;
   border: 1px solid #b7e4b7;
@@ -157,6 +148,24 @@
 .detalhe {
   font-size: 0.82rem;
   color: var(--cor-texto-suave);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &--inativa {
+    background: #fdecea;
+    color: #b3261e;
+  }
 }
 
 .acoes {

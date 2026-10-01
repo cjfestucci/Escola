@@ -1,0 +1,162 @@
+<div class="container">
+  <p class="subtitulo">
+    @if (unidadeSelecionadaId()) {
+      Visão da unidade <strong>{{ nomeUnidadeSelecionada() }}</strong>.
+    } @else {
+      Visão geral {{ segmentoService.ehClube() ? 'do clube' : 'da escola' }}.
+    }
+  </p>
+
+  @if (unidades().length > 1) {
+    <div class="seletor-unidades">
+      <button type="button" class="pilula-unidade" [class.ativa]="!unidadeSelecionadaId()" (click)="selecionarUnidade(null)">
+        Visão geral
+      </button>
+      @for (unidade of unidades(); track unidade.id) {
+        <button
+          type="button"
+          class="pilula-unidade"
+          [class.ativa]="unidadeSelecionadaId() === unidade.id"
+          (click)="selecionarUnidade(unidade.id)"
+        >
+          {{ unidade.nome }}
+        </button>
+      }
+    </div>
+  }
+
+  <div class="grade-stats">
+    <div class="stat">
+      <div class="stat-topo">
+        <span class="stat-icone stat-icone--recebido">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7.5v9M9.5 9.5c0-1.1 1-2 2.5-2s2.5.7 2.5 1.8c0 2.4-5 1.4-5 3.7 0 1.1 1.1 1.8 2.5 1.8s2.5-.9 2.5-2" />
+          </svg>
+        </span>
+        @if (variacaoRecebido(); as variacao) {
+          <span class="stat-badge" [class.stat-badge--negativo]="variacao < 0">{{ variacao > 0 ? '+' : '' }}{{ variacao }}%</span>
+        }
+      </div>
+      <span class="stat-valor">R$ {{ recebidoEsteMes() | number: '1.2-2' }}</span>
+      <span class="stat-rotulo">Recebido este mês</span>
+      @if (auth.ehFinanceiro()) {
+        <a routerLink="/financeiro" class="stat-link">Ver financeiro →</a>
+      }
+    </div>
+
+    <div class="stat">
+      <div class="stat-topo">
+        <span class="stat-icone stat-icone--pendente">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3.2 2" />
+          </svg>
+        </span>
+      </div>
+      <span class="stat-valor">{{ resumoFinanceiro().pendentes }}</span>
+      <span class="stat-rotulo">Cobranças a vencer</span>
+    </div>
+
+    <div class="stat">
+      <div class="stat-topo">
+        <span class="stat-icone stat-icone--atrasado">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4 3 20h18L12 4Z" />
+            <path d="M12 10v4M12 17h.01" />
+          </svg>
+        </span>
+      </div>
+      <span class="stat-valor">{{ resumoFinanceiro().atrasadas }}</span>
+      <span class="stat-rotulo">Cobranças atrasadas</span>
+    </div>
+  </div>
+
+  @if (auth.ehFinanceiro()) {
+    <a routerLink="/financeiro" class="faixa-saldo">
+      <span class="faixa-icone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="6" width="18" height="13" rx="2" />
+          <path d="M3 10h18" />
+          <circle cx="17" cy="14.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      </span>
+      <span class="faixa-texto">
+        <strong>R$ {{ resumoFinanceiro().totalAberto | number: '1.2-2' }}</strong> ainda em aberto entre cobranças a vencer e atrasadas
+      </span>
+      <span class="faixa-seta">→</span>
+    </a>
+  }
+
+  <div class="grade-principal">
+    <div class="painel painel--grafico">
+      <p class="painel-titulo">Recebimentos por mês</p>
+      <p class="painel-subtitulo">Últimos 6 meses</p>
+
+      <div class="grafico-barras">
+        @for (barra of barrasControle(); track barra.chave) {
+          <div class="coluna-barra">
+            <span class="valor-barra">{{ barra.valor > 0 ? (barra.valor | number: '1.0-0') : '' }}</span>
+            <div class="barra" [class.barra--atual]="barra.atual" [style.height.%]="(barra.valor / maiorBarra()) * 100"></div>
+            <span class="rotulo-barra">{{ barra.rotulo }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="coluna-lateral">
+      <div class="painel">
+        <p class="painel-titulo">Resumo geral</p>
+
+        <div class="linha-totais">
+          <div class="item-total">
+            <span class="avatar-total avatar-total--roxo">{{ totalPessoas() }}</span>
+            <span class="rotulo-total">{{ segmentoService.rotuloPessoaPlural() }}</span>
+          </div>
+          <div class="item-total">
+            <span class="avatar-total avatar-total--verde">{{ totalTurmas() }}</span>
+            <span class="rotulo-total">Turmas</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="painel">
+        <p class="painel-titulo">Ações rápidas</p>
+
+        <div class="lista-atalhos">
+          @if (auth.ehFinanceiro()) {
+            <a routerLink="/financeiro" class="atalho">
+              <span class="atalho-texto">Lançar cobrança</span>
+              <span class="atalho-botao atalho-botao--roxo">Financeiro</span>
+            </a>
+          }
+          @if (auth.ehGestao()) {
+            <a routerLink="/matricula/novo" class="atalho">
+              <span class="atalho-texto">Novo(a) {{ segmentoService.rotuloPessoa().toLowerCase() }}</span>
+              <span class="atalho-botao atalho-botao--verde">{{ segmentoService.rotuloCadastro() }}</span>
+            </a>
+            <a routerLink="/turmas/nova" class="atalho">
+              <span class="atalho-texto">Nova turma</span>
+              <span class="atalho-botao atalho-botao--azul">Turmas</span>
+            </a>
+          }
+        </div>
+      </div>
+
+      @if (aniversariantes().length > 0) {
+        <div class="painel">
+          <p class="painel-titulo">🎂 Aniversariantes do mês</p>
+          <ul class="lista-aniversariantes">
+            @for (pessoa of aniversariantes(); track pessoa.nome) {
+              <li>
+                <span class="dia-aniversario">{{ pessoa.dia }}</span>
+                <span class="nome-aniversario">{{ pessoa.nome }}</span>
+                <span class="idade-aniversario">{{ pessoa.idadeCompleta }} anos</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </div>
+</div>

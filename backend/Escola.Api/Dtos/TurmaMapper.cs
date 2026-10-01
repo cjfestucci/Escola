@@ -16,6 +16,9 @@ public static class TurmaMapper
             turma.HorarioSaida,
             turma.Alunos.Count,
             vinculo?.UsuarioId,
-            vinculo?.Usuario.Nome);
+            vinculo?.Usuario.Nome,
+            turma.UnidadeId,
+            turma.Unidade.Nome,
+            turma.Ativa);
     }
 }

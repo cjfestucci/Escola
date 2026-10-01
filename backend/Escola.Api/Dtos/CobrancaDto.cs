@@ -9,4 +9,6 @@ public record CobrancaDto(
     decimal Valor,
     DateOnly Vencimento,
     bool Paga,
-    DateOnly? PagoEm);
+    DateOnly? PagoEm,
+    bool Cancelada,
+    DateOnly? CanceladaEm);

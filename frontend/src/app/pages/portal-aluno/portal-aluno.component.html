@@ -88,14 +88,19 @@
             <div class="popover-pix">
               @if (pixCarregando()) {
                 <p>Gerando código Pix...</p>
-              } @else if (pixErro()) {
-                <p class="mensagem-pix-erro">{{ pixErro() }}</p>
               } @else if (pixCodigo()) {
-                <p class="detalhe-cobranca">Código Pix copia e cola:</p>
-                <p class="codigo-pix">{{ pixCodigo() }}</p>
-                <button type="button" class="botao-copiar-pix" (click)="copiarPix()">
-                  {{ pixCopiado() ? 'Copiado!' : 'Copiar código' }}
-                </button>
+                <div class="conteudo-pix">
+                  @if (pixQrCode(); as qr) {
+                    <img class="qrcode-pix" [src]="qr" alt="QR Code Pix" />
+                  }
+                  <div class="codigo-pix-coluna">
+                    <p class="detalhe-cobranca">Código Pix copia e cola:</p>
+                    <p class="codigo-pix">{{ pixCodigo() }}</p>
+                    <button type="button" class="botao-copiar-pix" (click)="copiarPix()">
+                      {{ pixCopiado() ? 'Copiado!' : 'Copiar código' }}
+                    </button>
+                  </div>
+                </div>
               }
               <button type="button" class="botao-fechar-pix" (click)="fecharPix()">Fechar</button>
             </div>

@@ -1,0 +1,193 @@
+<div class="container">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Despesas a pagar a fornecedores.</p>
+    <div class="acoes-cabecalho">
+      <button type="button" class="botao-secundario" routerLink="/fornecedores">🏷️ Fornecedores</button>
+      <button type="button" class="botao-primario" (click)="abrirNova()">+ Nova conta</button>
+    </div>
+  </div>
+
+  @if (!carregando()) {
+    <div class="grade-stats">
+      <div class="cartao-stat cartao-stat--pendente">
+        <span class="stat-valor">{{ resumo().pendentes }}</span>
+        <span class="stat-rotulo">Pendentes</span>
+        <span class="stat-valor-secundario">R$ {{ resumo().valorPendente | number: '1.2-2' }}</span>
+      </div>
+      <div class="cartao-stat" [class.cartao-stat--atrasado]="resumo().atrasadas > 0">
+        <span class="stat-valor">{{ resumo().atrasadas }}</span>
+        <span class="stat-rotulo">Atrasadas</span>
+        <span class="stat-valor-secundario">R$ {{ resumo().valorAtrasado | number: '1.2-2' }}</span>
+      </div>
+      <div class="cartao-stat cartao-stat--total">
+        <span class="stat-valor">{{ resumo().totalPendente | number: '1.2-2' }}</span>
+        <span class="stat-rotulo">Total em aberto (R$)</span>
+        <span class="stat-valor-secundario">{{ resumo().totalAberto }} {{ resumo().totalAberto === 1 ? 'conta' : 'contas' }}</span>
+      </div>
+    </div>
+  }
+
+  @if (formularioAberto()) {
+    <div class="painel-formulario">
+      <label>Fornecedor
+        <select [(ngModel)]="fornecedorId">
+          @for (fornecedor of fornecedores(); track fornecedor.id) {
+            <option [value]="fornecedor.id">{{ fornecedor.nome }}</option>
+          }
+        </select>
+      </label>
+
+      <label>Descrição
+        <input type="text" [(ngModel)]="descricao" placeholder="Ex.: Compra de material esportivo" />
+      </label>
+
+      <label>Valor (R$)
+        <input type="number" [(ngModel)]="valor" min="0" step="0.01" placeholder="0,00" />
+      </label>
+
+      <label>Vencimento</label>
+      <div class="ancora-calendario">
+        <button type="button" class="campo-data" (click)="calendarioAberto.set(!calendarioAberto())">
+          <span>{{ vencimento ? formatarDataAbsoluta(vencimento) : 'Selecionar data' }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
+        </button>
+
+        @if (calendarioAberto()) {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="vencimento || hojeIso()" (escolher)="selecionarVencimento($event)" />
+          </div>
+        }
+      </div>
+
+      @if (calendarioAberto()) {
+        <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+      }
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!carregando() && contas().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por descrição ou fornecedor..."
+        [ngModel]="filtroDescricao()"
+        (ngModelChange)="filtroDescricao.set($event)"
+      />
+      <select class="campo-filtro" [ngModel]="filtroFornecedorId()" (ngModelChange)="filtroFornecedorId.set($event)">
+        <option value="">Todos os fornecedores</option>
+        @for (fornecedor of fornecedores(); track fornecedor.id) {
+          <option [value]="fornecedor.id">{{ fornecedor.nome }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todos">Todos os status</option>
+        <option value="pendente">Pendente</option>
+        <option value="atrasado">Atrasado</option>
+        <option value="pago">Pago</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroMes()" (ngModelChange)="filtroMes.set($event)">
+        <option value="">Todos os meses</option>
+        @for (mes of meses; track mes.valor) {
+          <option [value]="mes.valor">{{ mes.rotulo }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroAno()" (ngModelChange)="filtroAno.set($event)">
+        <option value="">Todos os anos</option>
+        @for (ano of anosDisponiveis(); track ano) {
+          <option [value]="ano">{{ ano }}</option>
+        }
+      </select>
+      @if (filtroDescricao() || filtroFornecedorId() || filtroStatus() !== 'todos' || filtroMes() || filtroAno()) {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (contas().length === 0) {
+    <p class="vazio">Nenhuma conta a pagar cadastrada ainda.</p>
+  } @else if (contasFiltradas().length === 0) {
+    <p class="vazio">Nenhuma conta encontrada com esses filtros.</p>
+  } @else {
+    <ul class="lista-contas">
+      @for (conta of contasFiltradas(); track conta.id) {
+        <li class="cartao-conta">
+          <div class="info-conta">
+            <strong>{{ conta.descricao }}</strong>
+            <span class="detalhe">{{ conta.fornecedorNome }}</span>
+            <span class="detalhe">
+              R$ {{ conta.valor | number: '1.2-2' }} · Vencimento {{ formatarDataAbsoluta(conta.vencimento) }}
+              @if (conta.cancelada) {
+                <span class="status status--cancelada">Cancelada</span>
+              } @else if (conta.paga) {
+                <span class="status status--pago">Pago</span>
+              } @else if (conta.vencimento < hojeIso()) {
+                <span class="status status--atrasado">Atrasado</span>
+              } @else {
+                <span class="status status--pendente">Pendente</span>
+              }
+            </span>
+          </div>
+
+          @if (confirmandoCancelamentoId() === conta.id) {
+            <div class="confirmar-exclusao">
+              <span>Cancelar conta?</span>
+              <div class="acoes">
+                <button type="button" class="botao-texto" (click)="cancelarCancelamento()">Voltar</button>
+                <button
+                  type="button"
+                  class="botao-texto botao-texto--perigo"
+                  [disabled]="processandoId() === conta.id"
+                  (click)="confirmarCancelamento(conta)"
+                >
+                  {{ processandoId() === conta.id ? 'Cancelando...' : 'Cancelar conta' }}
+                </button>
+              </div>
+            </div>
+          } @else if (conta.cancelada) {
+            <div class="acoes">
+              <button type="button" class="botao-icone" (click)="abrirHistorico(conta.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+              <button type="button" class="botao-texto" [disabled]="processandoId() === conta.id" (click)="reabrir(conta)">
+                {{ processandoId() === conta.id ? 'Reabrindo...' : 'Reabrir' }}
+              </button>
+            </div>
+          } @else {
+            <div class="acoes">
+              <button type="button" class="botao-icone" (click)="abrirHistorico(conta.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+              <button
+                type="button"
+                class="botao-texto"
+                [disabled]="processandoId() === conta.id"
+                (click)="alternarPaga(conta)"
+              >
+                {{ conta.paga ? 'Marcar pendente' : 'Marcar paga' }}
+              </button>
+              @if (!conta.paga) {
+                <button type="button" class="botao-icone" (click)="editar(conta)" aria-label="Editar conta" title="Editar conta">✏️</button>
+                <button type="button" class="botao-icone" (click)="pedirConfirmacaoCancelamento(conta.id)" aria-label="Cancelar conta" title="Cancelar conta">🚫</button>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="ContaPagar" [entidadeId]="id" titulo="Histórico da conta a pagar" (fechar)="fecharHistorico()" />
+  }
+</div>

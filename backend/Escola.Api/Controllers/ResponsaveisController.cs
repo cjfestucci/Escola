@@ -1,6 +1,8 @@
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
+using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +14,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/responsaveis")]
 [Authorize]
-public class ResponsaveisController(EscolaDbContext db) : ControllerBase
+public class ResponsaveisController(EscolaDbContext db, IAuditoriaService auditoria) : ControllerBase
 {
     [HttpGet("{id:guid}/alunos")]
     public async Task<ActionResult<List<AlunoDto>>> ListarAlunos(Guid id)
@@ -29,7 +31,7 @@ public class ResponsaveisController(EscolaDbContext db) : ControllerBase
             .Where(ar => ar.ResponsavelId == id)
             .Select(ar => new AlunoDto(
                 ar.Aluno.Id, ar.Aluno.Nome, ar.Aluno.DataNascimento, ar.Aluno.FotoUrl,
-                ar.Aluno.TurmaId, ar.Aluno.Turma.Nome))
+                ar.Aluno.TurmaId, ar.Aluno.Turma.Nome, ar.Aluno.Ativo))
             .ToListAsync();
 
         return Ok(alunos);
@@ -48,6 +50,7 @@ public class ResponsaveisController(EscolaDbContext db) : ControllerBase
 
         var senha = GeradorSenhaTemporaria.Gerar();
         usuario.SenhaHash = SenhaHasher.Hash(senha);
+        auditoria.Registrar(nameof(Responsavel), responsavel.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Senha redefinida: {responsavel.Nome}");
         await db.SaveChangesAsync();
 
         return Ok(new SenhaGeradaDto(responsavel.Nome, responsavel.Email, senha));

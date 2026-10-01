@@ -5,32 +5,39 @@ import { Router } from '@angular/router';
 import { Aluno } from '../../models/aluno.model';
 import { AlunoService } from '../../services/aluno.service';
 import { AuthService } from '../../services/auth.service';
+import { NotificacaoService } from '../../services/notificacao.service';
+import { SegmentoService } from '../../services/segmento.service';
 import { idadeFormatada } from '../../shared/data-utils';
+import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 
 interface OpcaoTurma {
   id: string;
   nome: string;
 }
 
+type StatusFiltro = 'todos' | 'ativos' | 'inativos';
+
 @Component({
   selector: 'app-matricula-lista',
-  imports: [FormsModule],
+  imports: [FormsModule, LogsModalComponent],
   templateUrl: './matricula-lista.component.html',
   styleUrl: './matricula-lista.component.scss'
 })
 export class MatriculaListaComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly router = inject(Router);
+  private readonly notificacao = inject(NotificacaoService);
   protected readonly auth = inject(AuthService);
+  protected readonly segmentoService = inject(SegmentoService);
 
   readonly alunos = signal<Aluno[]>([]);
   readonly carregando = signal(true);
-  readonly erro = signal<string | null>(null);
-  readonly confirmandoExclusaoId = signal<string | null>(null);
-  readonly excluindoId = signal<string | null>(null);
+  readonly processandoId = signal<string | null>(null);
+  readonly historicoAbertoId = signal<string | null>(null);
 
   readonly filtroNome = signal('');
   readonly filtroTurmaId = signal('');
+  readonly filtroStatus = signal<StatusFiltro>('todos');
 
   readonly turmasDisponiveis = computed<OpcaoTurma[]>(() => {
     const porId = new Map<string, string>();
@@ -43,11 +50,13 @@ export class MatriculaListaComponent implements OnInit {
   readonly alunosFiltrados = computed(() => {
     const nome = this.filtroNome().trim().toLowerCase();
     const turmaId = this.filtroTurmaId();
+    const status = this.filtroStatus();
 
     return this.alunos().filter((aluno) => {
       const bateNome = !nome || aluno.nome.toLowerCase().includes(nome);
       const bateTurma = !turmaId || aluno.turmaId === turmaId;
-      return bateNome && bateTurma;
+      const bateStatus = status === 'todos' || (status === 'ativos' ? aluno.ativo : !aluno.ativo);
+      return bateNome && bateTurma && bateStatus;
     });
   });
 
@@ -64,13 +73,17 @@ export class MatriculaListaComponent implements OnInit {
         this.alunos.set(alunos);
         this.carregando.set(false);
       },
-      error: () => this.carregando.set(false)
+      error: () => {
+        this.carregando.set(false);
+        this.notificacao.erro('Não foi possível carregar os alunos.');
+      }
     });
   }
 
   limparFiltros(): void {
     this.filtroNome.set('');
     this.filtroTurmaId.set('');
+    this.filtroStatus.set('todos');
   }
 
   novo(): void {
@@ -81,27 +94,27 @@ export class MatriculaListaComponent implements OnInit {
     this.router.navigate(['/matricula', aluno.id, 'editar']);
   }
 
-  pedirConfirmacaoExclusao(alunoId: string): void {
-    this.erro.set(null);
-    this.confirmandoExclusaoId.set(alunoId);
+  abrirHistorico(alunoId: string): void {
+    this.historicoAbertoId.set(alunoId);
   }
 
-  cancelarExclusao(): void {
-    this.confirmandoExclusaoId.set(null);
+  fecharHistorico(): void {
+    this.historicoAbertoId.set(null);
   }
 
-  confirmarExclusao(aluno: Aluno): void {
-    this.excluindoId.set(aluno.id);
-    this.alunoService.excluir(aluno.id).subscribe({
-      next: () => {
-        this.alunos.update((atual) => atual.filter((a) => a.id !== aluno.id));
-        this.excluindoId.set(null);
-        this.confirmandoExclusaoId.set(null);
+  alternarStatus(aluno: Aluno): void {
+    this.processandoId.set(aluno.id);
+    const requisicao$ = aluno.ativo ? this.alunoService.desativar(aluno.id) : this.alunoService.ativar(aluno.id);
+
+    requisicao$.subscribe({
+      next: (atualizado) => {
+        this.alunos.update((atual) => atual.map((a) => (a.id === atualizado.id ? atualizado : a)));
+        this.processandoId.set(null);
+        this.notificacao.sucesso(atualizado.ativo ? 'Reativado(a) com sucesso.' : 'Desativado(a) com sucesso.');
       },
       error: (resposta) => {
-        this.excluindoId.set(null);
-        this.confirmandoExclusaoId.set(null);
-        this.erro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível excluir o aluno.');
+        this.processandoId.set(null);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível atualizar o status.');
       }
     });
   }

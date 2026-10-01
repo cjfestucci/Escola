@@ -2,6 +2,19 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthService } from './auth.service';
+import { SegmentoService } from './segmento.service';
+
+/** Landing page depois do login — no clube o "Turma" (rotina diária de bebês/crianças) não existe,
+ * então manda pro Dashboard em vez do /alunos padrão da escola. */
+export const redirecionamentoInicialGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const segmentoService = inject(SegmentoService);
+  const router = inject(Router);
+
+  if (!auth.estaLogado()) return router.parseUrl('/entrar');
+  if (auth.ehResponsavel()) return router.parseUrl('/portal/filhos');
+  return router.parseUrl(segmentoService.ehClube() ? '/dashboard' : '/alunos');
+};
 
 export const equipeGuard: CanActivateFn = () => {
   const auth = inject(AuthService);

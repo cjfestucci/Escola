@@ -3,7 +3,9 @@ using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +15,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/alunos/{alunoId:guid}/rotina")]
 [Authorize]
-public class RotinaController(EscolaDbContext db) : ControllerBase
+public class RotinaController(EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio) : ControllerBase
 {
     private const int MaxFotos = 4;
 
@@ -32,9 +34,8 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
             if (!ehFilho) return Forbid();
         }
 
-        var dia = data ?? DateOnly.FromDateTime(DateTime.UtcNow);
-        var inicio = dia.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var fim = inicio.AddDays(1);
+        var dia = data ?? await relogio.HojeAsync();
+        var (inicio, fim) = await relogio.IntervaloUtcDoDiaAsync(dia);
 
         var registros = await db.RegistrosRotina
             .Include(r => r.CriadoPor)
@@ -90,8 +91,11 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
     public Task<ActionResult<RegistroRotinaDto>> EditarAlimentacao(Guid alunoId, Guid registroId, CriarRegistroAlimentacaoRequest request) =>
         Editar<RegistroAlimentacao>(alunoId, registroId, request.UsuarioId, request.Observacao, request.FotoUrls, r =>
         {
+            var refeicaoAntes = r.Refeicao;
+            var statusAntes = r.Status;
             r.Refeicao = request.Refeicao;
             r.Status = request.Status;
+            return [("Refeição", (object?)refeicaoAntes, (object?)r.Refeicao), ("Status", statusAntes, r.Status)];
         });
 
     [HttpPut("sono/{registroId:guid}")]
@@ -99,8 +103,11 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
     public Task<ActionResult<RegistroRotinaDto>> EditarSono(Guid alunoId, Guid registroId, CriarRegistroSonoRequest request) =>
         Editar<RegistroSono>(alunoId, registroId, request.UsuarioId, request.Observacao, request.FotoUrls, r =>
         {
+            var horaInicioAntes = r.HoraInicio;
+            var horaFimAntes = r.HoraFim;
             r.HoraInicio = request.HoraInicio;
             r.HoraFim = request.HoraFim;
+            return [("Hora de início", (object?)horaInicioAntes, (object?)r.HoraInicio), ("Hora de fim", horaFimAntes, r.HoraFim)];
         });
 
     [HttpPut("higiene/{registroId:guid}")]
@@ -108,7 +115,9 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
     public Task<ActionResult<RegistroRotinaDto>> EditarHigiene(Guid alunoId, Guid registroId, CriarRegistroHigieneRequest request) =>
         Editar<RegistroHigiene>(alunoId, registroId, request.UsuarioId, request.Observacao, request.FotoUrls, r =>
         {
+            var tipoAntes = r.Tipo;
             r.Tipo = request.Tipo;
+            return [("Tipo", (object?)tipoAntes, (object?)r.Tipo)];
         });
 
     [HttpPut("humor/{registroId:guid}")]
@@ -116,13 +125,15 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
     public Task<ActionResult<RegistroRotinaDto>> EditarHumor(Guid alunoId, Guid registroId, CriarRegistroHumorRequest request) =>
         Editar<RegistroHumor>(alunoId, registroId, request.UsuarioId, request.Observacao, request.FotoUrls, r =>
         {
+            var humorAntes = r.Humor;
             r.Humor = request.Humor;
+            return [("Humor", (object?)humorAntes, (object?)r.Humor)];
         });
 
     [HttpPut("momento/{registroId:guid}")]
     [Authorize(Roles = GruposDePapeis.Equipe)]
     public Task<ActionResult<RegistroRotinaDto>> EditarMomento(Guid alunoId, Guid registroId, CriarRegistroMomentoRequest request) =>
-        Editar<RegistroMomento>(alunoId, registroId, request.UsuarioId, request.Observacao, request.FotoUrls, _ => { });
+        Editar<RegistroMomento>(alunoId, registroId, request.UsuarioId, request.Observacao, request.FotoUrls, _ => []);
 
     [HttpDelete("{registroId:guid}")]
     [Authorize(Roles = GruposDePapeis.Equipe)]
@@ -136,7 +147,7 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
             return NotFound("Registro não encontrado.");
 
         db.RegistrosRotina.Remove(registro);
-        RegistrarLog(nameof(RegistroRotina), registro.Id, AcaoAuditoria.Excluido, usuarioId, registro.GetType().Name);
+        auditoria.Registrar(nameof(RegistroRotina), registro.Id, AcaoAuditoria.Excluido, usuarioId, registro.GetType().Name);
         await db.SaveChangesAsync();
 
         return NoContent();
@@ -163,7 +174,7 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
             registro.Fotos.Add(foto);
 
         db.RegistrosRotina.Add(registro);
-        RegistrarLog(nameof(RegistroRotina), registro.Id, AcaoAuditoria.Criado, usuarioId, registro.GetType().Name);
+        auditoria.Registrar(nameof(RegistroRotina), registro.Id, AcaoAuditoria.Criado, usuarioId, registro.GetType().Name);
         await db.SaveChangesAsync();
 
         await db.Entry(registro).Reference(r => r.CriadoPor).LoadAsync();
@@ -172,7 +183,8 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
     }
 
     private async Task<ActionResult<RegistroRotinaDto>> Editar<T>(
-        Guid alunoId, Guid registroId, Guid usuarioId, string? observacao, List<string>? fotoUrls, Action<T> aplicarCampos)
+        Guid alunoId, Guid registroId, Guid usuarioId, string? observacao, List<string>? fotoUrls,
+        Func<T, (string Campo, object? Antes, object? Depois)[]> aplicarCampos)
         where T : RegistroRotina
     {
         if (fotoUrls is { Count: > MaxFotos })
@@ -187,7 +199,10 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
         if (registro is null)
             return NotFound("Registro não encontrado.");
 
-        aplicarCampos(registro);
+        var observacaoAntes = registro.Observacao;
+        var quantidadeFotosAntes = registro.Fotos.Count;
+
+        var camposEspecificos = aplicarCampos(registro);
         registro.Observacao = observacao;
 
         db.Fotos.RemoveRange(registro.Fotos.ToList());
@@ -197,25 +212,18 @@ public class RotinaController(EscolaDbContext db) : ControllerBase
             db.Fotos.Add(foto);
         }
 
-        RegistrarLog(nameof(RegistroRotina), registro.Id, AcaoAuditoria.Editado, usuarioId, registro.GetType().Name);
+        var detalhe = AuditoriaDetalhe.MontarAlteracoes(
+            [.. camposEspecificos,
+             ("Observação", observacaoAntes, registro.Observacao),
+             ("Quantidade de fotos", quantidadeFotosAntes, fotoUrls?.Count ?? 0)]);
+
+        auditoria.Registrar(nameof(RegistroRotina), registro.Id, AcaoAuditoria.Editado, usuarioId, detalhe);
         await db.SaveChangesAsync();
 
         await db.Entry(registro).Reference(r => r.CriadoPor).LoadAsync();
 
         return Ok(registro.ToDto());
     }
-
-    private void RegistrarLog(string entidadeTipo, Guid entidadeId, AcaoAuditoria acao, Guid usuarioId, string? detalhe) =>
-        db.LogsAuditoria.Add(new LogAuditoria
-        {
-            Id = Guid.NewGuid(),
-            EntidadeTipo = entidadeTipo,
-            EntidadeId = entidadeId,
-            Acao = acao,
-            UsuarioId = usuarioId,
-            Detalhe = detalhe,
-            RegistradoEm = DateTime.UtcNow
-        });
 
     private static List<FotoRegistro> MontarFotos(List<string>? urls) =>
         (urls ?? []).Select((url, indice) => new FotoRegistro { Id = Guid.NewGuid(), Url = url, Ordem = indice }).ToList();

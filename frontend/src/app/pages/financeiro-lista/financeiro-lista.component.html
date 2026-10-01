@@ -2,59 +2,26 @@
   <div class="cabecalho-pagina">
     <p class="subtitulo">Mensalidades e cobranças por aluno.</p>
     <div class="acoes-cabecalho">
-      @if (auth.ehGestao()) {
-        <button type="button" class="botao-secundario" (click)="abrirConfig()">⚙️ Configurar Pix</button>
-      }
       <button type="button" class="botao-primario" (click)="abrirNova()">+ Nova cobrança</button>
     </div>
   </div>
 
-  @if (painelConfigAberto()) {
-    <div class="painel-formulario">
-      <p class="detalhe">A chave Pix é usada para gerar o código de pagamento de cada cobrança.</p>
-
-      @if (erroConfig(); as mensagem) {
-        <p class="mensagem-erro">{{ mensagem }}</p>
-      }
-
-      <label>Chave Pix
-        <input type="text" [(ngModel)]="pixChaveConfig" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória" />
-      </label>
-
-      <label>Nome do recebedor
-        <input type="text" [(ngModel)]="pixNomeConfig" placeholder="Nome da escola" maxlength="25" />
-      </label>
-
-      <label>Cidade
-        <input type="text" [(ngModel)]="pixCidadeConfig" placeholder="Cidade da escola" maxlength="15" />
-      </label>
-
-      <div class="botoes">
-        <button type="button" class="secundario" (click)="fecharConfig()">Cancelar</button>
-        <button type="button" class="primario" [disabled]="salvandoConfig()" (click)="salvarConfig()">
-          {{ salvandoConfig() ? 'Salvando...' : 'Salvar' }}
-        </button>
-      </div>
-    </div>
-  }
-
-  @if (erro(); as mensagem) {
-    <p class="mensagem-erro">{{ mensagem }}</p>
-  }
-
   @if (!carregando()) {
     <div class="grade-stats">
-      <div class="cartao-stat">
+      <div class="cartao-stat cartao-stat--pendente">
         <span class="stat-valor">{{ resumo().pendentes }}</span>
         <span class="stat-rotulo">Pendentes</span>
+        <span class="stat-valor-secundario">R$ {{ resumo().valorPendente | number: '1.2-2' }}</span>
       </div>
-      <div class="cartao-stat cartao-stat--atrasado">
+      <div class="cartao-stat" [class.cartao-stat--atrasado]="resumo().atrasadas > 0">
         <span class="stat-valor">{{ resumo().atrasadas }}</span>
         <span class="stat-rotulo">Atrasadas</span>
+        <span class="stat-valor-secundario">R$ {{ resumo().valorAtrasado | number: '1.2-2' }}</span>
       </div>
-      <div class="cartao-stat">
+      <div class="cartao-stat cartao-stat--total">
         <span class="stat-valor">{{ resumo().totalPendente | number: '1.2-2' }}</span>
         <span class="stat-rotulo">Total em aberto (R$)</span>
+        <span class="stat-valor-secundario">{{ resumo().totalAberto }} {{ resumo().totalAberto === 1 ? 'mensalidade' : 'mensalidades' }}</span>
       </div>
     </div>
   }
@@ -63,12 +30,7 @@
     <div class="painel-formulario">
       @if (!cobrancaEmEdicaoId()) {
         <label>Aluno
-          <select [(ngModel)]="alunoId">
-            <option value="" disabled>Selecione...</option>
-            @for (aluno of alunos(); track aluno.id) {
-              <option [value]="aluno.id">{{ aluno.nome }} — {{ aluno.turmaNome }}</option>
-            }
-          </select>
+          <app-seletor-aluno [alunos]="alunos()" [alunoSelecionadoId]="alunoId" (selecionar)="alunoId = $event" />
         </label>
       }
 
@@ -131,8 +93,21 @@
         <option value="pendente">Pendente</option>
         <option value="atrasado">Atrasado</option>
         <option value="pago">Pago</option>
+        <option value="cancelada">Cancelada</option>
       </select>
-      @if (filtroNome() || filtroTurmaId() || filtroStatus() !== 'todos') {
+      <select class="campo-filtro" [ngModel]="filtroMes()" (ngModelChange)="filtroMes.set($event)">
+        <option value="">Todos os meses</option>
+        @for (mes of meses; track mes.valor) {
+          <option [value]="mes.valor">{{ mes.rotulo }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroAno()" (ngModelChange)="filtroAno.set($event)">
+        <option value="">Todos os anos</option>
+        @for (ano of anosDisponiveis(); track ano) {
+          <option [value]="ano">{{ ano }}</option>
+        }
+      </select>
+      @if (filtroNome() || filtroTurmaId() || filtroStatus() !== 'todos' || filtroMes() || filtroAno()) {
         <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
       }
     </div>
@@ -153,7 +128,9 @@
             <span class="detalhe">{{ cobranca.turmaNome }} · {{ cobranca.descricao }}</span>
             <span class="detalhe">
               R$ {{ cobranca.valor | number: '1.2-2' }} · Vencimento {{ formatarDataAbsoluta(cobranca.vencimento) }}
-              @if (cobranca.paga) {
+              @if (cobranca.cancelada) {
+                <span class="status status--cancelada">Cancelada</span>
+              } @else if (cobranca.paga) {
                 <span class="status status--pago">Pago</span>
               } @else if (cobranca.vencimento < hojeIso()) {
                 <span class="status status--atrasado">Atrasado</span>
@@ -163,28 +140,31 @@
             </span>
           </div>
 
-          @if (confirmandoExclusaoId() === cobranca.id) {
+          @if (confirmandoCancelamentoId() === cobranca.id) {
             <div class="confirmar-exclusao">
-              <span>Excluir cobrança?</span>
+              <span>Cancelar cobrança?</span>
               <div class="acoes">
-                <button type="button" class="botao-texto" (click)="cancelarExclusao()">Cancelar</button>
+                <button type="button" class="botao-texto" (click)="cancelarCancelamento()">Voltar</button>
                 <button
                   type="button"
                   class="botao-texto botao-texto--perigo"
                   [disabled]="processandoId() === cobranca.id"
-                  (click)="confirmarExclusao(cobranca)"
+                  (click)="confirmarCancelamento(cobranca)"
                 >
-                  {{ processandoId() === cobranca.id ? 'Excluindo...' : 'Excluir' }}
+                  {{ processandoId() === cobranca.id ? 'Cancelando...' : 'Cancelar cobrança' }}
                 </button>
               </div>
             </div>
+          } @else if (cobranca.cancelada) {
+            <div class="acoes">
+              <button type="button" class="botao-icone" (click)="abrirHistorico(cobranca.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+              <button type="button" class="botao-texto" [disabled]="processandoId() === cobranca.id" (click)="reabrir(cobranca)">
+                {{ processandoId() === cobranca.id ? 'Reabrindo...' : 'Reabrir' }}
+              </button>
+            </div>
           } @else {
             <div class="acoes">
-              @if (emailFeedback()?.id === cobranca.id) {
-                <span class="feedback-email" [class.feedback-email--erro]="!emailFeedback()!.sucesso">
-                  {{ emailFeedback()!.mensagem }}
-                </span>
-              }
+              <button type="button" class="botao-icone" (click)="abrirHistorico(cobranca.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
               <button
                 type="button"
                 class="botao-texto"
@@ -193,18 +173,23 @@
               >
                 {{ cobranca.paga ? 'Marcar pendente' : 'Marcar paga' }}
               </button>
-              <button type="button" class="botao-icone" (click)="abrirPix(cobranca)" aria-label="Ver código Pix">💠</button>
+              @if (!cobranca.paga) {
+                <button type="button" class="botao-icone" (click)="abrirPix(cobranca)" aria-label="Ver código Pix" title="Ver código Pix">💠</button>
+              }
               <button
                 type="button"
                 class="botao-icone"
                 [disabled]="enviandoEmailId() === cobranca.id"
                 (click)="enviarEmail(cobranca)"
                 aria-label="Enviar por e-mail"
+                title="Enviar por e-mail"
               >
                 {{ enviandoEmailId() === cobranca.id ? '⏳' : '✉️' }}
               </button>
-              <button type="button" class="botao-icone" (click)="editar(cobranca)" aria-label="Editar cobrança">✏️</button>
-              <button type="button" class="botao-icone" (click)="pedirConfirmacaoExclusao(cobranca.id)" aria-label="Excluir cobrança">🗑️</button>
+              @if (!cobranca.paga) {
+                <button type="button" class="botao-icone" (click)="editar(cobranca)" aria-label="Editar cobrança" title="Editar cobrança">✏️</button>
+                <button type="button" class="botao-icone" (click)="pedirConfirmacaoCancelamento(cobranca.id)" aria-label="Cancelar cobrança" title="Cancelar cobrança">🚫</button>
+              }
             </div>
           }
 
@@ -212,8 +197,6 @@
             <div class="popover-pix">
               @if (pixCarregando()) {
                 <p>Gerando código Pix...</p>
-              } @else if (pixErro()) {
-                <p class="mensagem-erro">{{ pixErro() }}</p>
               } @else if (pixCodigo()) {
                 <p class="detalhe">Código Pix copia e cola:</p>
                 <p class="codigo-pix">{{ pixCodigo() }}</p>
@@ -231,5 +214,9 @@
 
   @if (pixAbertoId()) {
     <div class="backdrop-calendario" (click)="fecharPix()"></div>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Cobranca" [entidadeId]="id" titulo="Histórico da cobrança" (fechar)="fecharHistorico()" />
   }
 </div>

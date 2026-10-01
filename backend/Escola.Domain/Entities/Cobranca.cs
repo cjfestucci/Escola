@@ -16,5 +16,8 @@ public class Cobranca
     public bool Paga { get; set; }
     public DateOnly? PagoEm { get; set; }
 
+    public bool Cancelada { get; set; }
+    public DateOnly? CanceladaEm { get; set; }
+
     public DateTime RegistradoEm { get; set; }
 }

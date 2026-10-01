@@ -1,0 +1,13 @@
+namespace Escola.Domain.Entities;
+
+/// <summary>Configuração geral da escola — linha única. Hoje só guarda o fuso horário, que define
+/// o que é "hoje" pra todo o app (corte de dia da rotina/diário, data de pagamento, cobrança atrasada).</summary>
+public class ConfiguracaoEscola
+{
+    public Guid Id { get; set; }
+
+    /// <summary>Identificador IANA (ex.: "America/Sao_Paulo").</summary>
+    public string FusoHorario { get; set; } = "America/Sao_Paulo";
+
+    public DateTime AtualizadoEm { get; set; }
+}

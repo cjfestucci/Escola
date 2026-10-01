@@ -3,59 +3,56 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Aluno, Turma } from '../../models/aluno.model';
-import { Cobranca, ConfiguracaoFinanceira } from '../../models/cobranca.model';
+import { Cobranca } from '../../models/cobranca.model';
 import { AlunoService } from '../../services/aluno.service';
-import { AuthService } from '../../services/auth.service';
 import { FinanceiroService } from '../../services/financeiro.service';
+import { NotificacaoService } from '../../services/notificacao.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
-import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
+import { MESES_PT_BR, formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
+import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
+import { SeletorAlunoComponent } from '../../shared/seletor-aluno/seletor-aluno.component';
 
-type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado';
+type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado' | 'cancelada';
 
 @Component({
   selector: 'app-financeiro-lista',
-  imports: [FormsModule, CalendarioComponent, DecimalPipe],
+  imports: [FormsModule, CalendarioComponent, DecimalPipe, SeletorAlunoComponent, LogsModalComponent],
   templateUrl: './financeiro-lista.component.html',
   styleUrl: './financeiro-lista.component.scss'
 })
 export class FinanceiroListaComponent implements OnInit {
   private readonly financeiroService = inject(FinanceiroService);
   private readonly alunoService = inject(AlunoService);
-  protected readonly auth = inject(AuthService);
+  private readonly notificacao = inject(NotificacaoService);
 
   readonly cobrancas = signal<Cobranca[]>([]);
   readonly turmas = signal<Turma[]>([]);
   readonly alunos = signal<Aluno[]>([]);
   readonly carregando = signal(true);
-  readonly erro = signal<string | null>(null);
 
   readonly filtroNome = signal('');
   readonly filtroTurmaId = signal('');
   readonly filtroStatus = signal<StatusFiltro>('todos');
+  readonly filtroAno = signal('');
+  readonly filtroMes = signal('');
+
+  protected readonly meses = MESES_PT_BR;
 
   readonly formularioAberto = signal(false);
   readonly cobrancaEmEdicaoId = signal<string | null>(null);
   readonly salvando = signal(false);
   readonly calendarioAberto = signal(false);
   readonly processandoId = signal<string | null>(null);
-  readonly confirmandoExclusaoId = signal<string | null>(null);
+  readonly confirmandoCancelamentoId = signal<string | null>(null);
+  readonly historicoAbertoId = signal<string | null>(null);
 
-  readonly configuracao = signal<ConfiguracaoFinanceira | null>(null);
-  readonly painelConfigAberto = signal(false);
-  readonly salvandoConfig = signal(false);
-  readonly erroConfig = signal<string | null>(null);
-  pixChaveConfig = '';
-  pixNomeConfig = '';
-  pixCidadeConfig = '';
 
   readonly pixAbertoId = signal<string | null>(null);
   readonly pixCarregando = signal(false);
   readonly pixCodigo = signal<string | null>(null);
-  readonly pixErro = signal<string | null>(null);
   readonly pixCopiado = signal(false);
 
   readonly enviandoEmailId = signal<string | null>(null);
-  readonly emailFeedback = signal<{ id: string; mensagem: string; sucesso: boolean } | null>(null);
 
   alunoId = '';
   descricao = '';
@@ -65,26 +62,43 @@ export class FinanceiroListaComponent implements OnInit {
   protected readonly hojeIso = hojeIso;
   protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
 
+  readonly anosDisponiveis = computed(() => {
+    const anos = new Set(this.cobrancas().map((c) => c.vencimento.slice(0, 4)));
+    anos.add(hojeIso().slice(0, 4));
+    return [...anos].sort((a, b) => b.localeCompare(a));
+  });
+
   readonly cobrancasFiltradas = computed(() => {
     const nome = this.filtroNome().trim().toLowerCase();
     const status = this.filtroStatus();
+    const ano = this.filtroAno();
+    const mes = this.filtroMes();
     const hoje = hojeIso();
 
     return this.cobrancas().filter((c) => {
       const bateNome = !nome || c.alunoNome.toLowerCase().includes(nome);
       const statusAtual = this.statusDe(c, hoje);
       const bateStatus = status === 'todos' || statusAtual === status;
-      return bateNome && bateStatus;
+      const bateAno = !ano || c.vencimento.slice(0, 4) === ano;
+      const bateMes = !mes || c.vencimento.slice(5, 7) === mes;
+      return bateNome && bateStatus && bateAno && bateMes;
     });
   });
 
   readonly resumo = computed(() => {
     const hoje = hojeIso();
     const lista = this.cobrancas();
+    const pendentesLista = lista.filter((c) => this.statusDe(c, hoje) === 'pendente');
+    const atrasadasLista = lista.filter((c) => this.statusDe(c, hoje) === 'atrasado');
+    const valorPendente = pendentesLista.reduce((soma, c) => soma + c.valor, 0);
+    const valorAtrasado = atrasadasLista.reduce((soma, c) => soma + c.valor, 0);
     return {
-      pendentes: lista.filter((c) => this.statusDe(c, hoje) === 'pendente').length,
-      atrasadas: lista.filter((c) => this.statusDe(c, hoje) === 'atrasado').length,
-      totalPendente: lista.filter((c) => !c.paga).reduce((soma, c) => soma + c.valor, 0)
+      pendentes: pendentesLista.length,
+      valorPendente,
+      atrasadas: atrasadasLista.length,
+      valorAtrasado,
+      totalAberto: pendentesLista.length + atrasadasLista.length,
+      totalPendente: valorPendente + valorAtrasado
     };
   });
 
@@ -92,7 +106,6 @@ export class FinanceiroListaComponent implements OnInit {
     this.alunoService.listarTurmas().subscribe((turmas) => this.turmas.set(turmas));
     this.alunoService.listarAlunos().subscribe((alunos) => this.alunos.set(alunos));
     this.carregar();
-    this.financeiroService.obterConfiguracao().subscribe((config) => this.configuracao.set(config));
   }
 
   private carregar(): void {
@@ -103,7 +116,10 @@ export class FinanceiroListaComponent implements OnInit {
         this.cobrancas.set(cobrancas);
         this.carregando.set(false);
       },
-      error: () => this.carregando.set(false)
+      error: () => {
+        this.carregando.set(false);
+        this.notificacao.erro('Não foi possível carregar as cobranças.');
+      }
     });
   }
 
@@ -112,7 +128,8 @@ export class FinanceiroListaComponent implements OnInit {
     this.carregar();
   }
 
-  statusDe(c: Cobranca, hoje: string): 'pago' | 'atrasado' | 'pendente' {
+  statusDe(c: Cobranca, hoje: string): 'pago' | 'atrasado' | 'pendente' | 'cancelada' {
+    if (c.cancelada) return 'cancelada';
     if (c.paga) return 'pago';
     return c.vencimento < hoje ? 'atrasado' : 'pendente';
   }
@@ -120,6 +137,8 @@ export class FinanceiroListaComponent implements OnInit {
   limparFiltros(): void {
     this.filtroNome.set('');
     this.filtroStatus.set('todos');
+    this.filtroAno.set('');
+    this.filtroMes.set('');
     this.aoMudarTurma('');
   }
 
@@ -129,7 +148,6 @@ export class FinanceiroListaComponent implements OnInit {
     this.descricao = '';
     this.valor = null;
     this.vencimento = '';
-    this.erro.set(null);
     this.formularioAberto.set(true);
   }
 
@@ -139,7 +157,6 @@ export class FinanceiroListaComponent implements OnInit {
     this.descricao = cobranca.descricao;
     this.valor = cobranca.valor;
     this.vencimento = cobranca.vencimento;
-    this.erro.set(null);
     this.formularioAberto.set(true);
   }
 
@@ -153,22 +170,20 @@ export class FinanceiroListaComponent implements OnInit {
   }
 
   salvar(): void {
-    this.erro.set(null);
-
     if (!this.cobrancaEmEdicaoId() && !this.alunoId) {
-      this.erro.set('Selecione o aluno.');
+      this.notificacao.erro('Selecione o aluno.');
       return;
     }
     if (!this.descricao.trim()) {
-      this.erro.set('Informe uma descrição.');
+      this.notificacao.erro('Informe uma descrição.');
       return;
     }
     if (!this.valor || this.valor <= 0) {
-      this.erro.set('Informe um valor maior que zero.');
+      this.notificacao.erro('Informe um valor maior que zero.');
       return;
     }
     if (!this.vencimento) {
-      this.erro.set('Informe o vencimento.');
+      this.notificacao.erro('Informe o vencimento.');
       return;
     }
 
@@ -187,11 +202,12 @@ export class FinanceiroListaComponent implements OnInit {
       next: () => {
         this.salvando.set(false);
         this.formularioAberto.set(false);
+        this.notificacao.sucesso('Cobrança salva com sucesso.');
         this.carregar();
       },
       error: (resposta) => {
         this.salvando.set(false);
-        this.erro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a cobrança.');
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a cobrança.');
       }
     });
   }
@@ -207,69 +223,64 @@ export class FinanceiroListaComponent implements OnInit {
         this.cobrancas.update((atual) => atual.map((c) => (c.id === atualizada.id ? atualizada : c)));
         this.processandoId.set(null);
       },
-      error: () => this.processandoId.set(null)
-    });
-  }
-
-  pedirConfirmacaoExclusao(id: string): void {
-    this.confirmandoExclusaoId.set(id);
-  }
-
-  cancelarExclusao(): void {
-    this.confirmandoExclusaoId.set(null);
-  }
-
-  confirmarExclusao(cobranca: Cobranca): void {
-    this.processandoId.set(cobranca.id);
-    this.financeiroService.excluir(cobranca.id).subscribe({
-      next: () => {
-        this.cobrancas.update((atual) => atual.filter((c) => c.id !== cobranca.id));
+      error: () => {
         this.processandoId.set(null);
-        this.confirmandoExclusaoId.set(null);
-      },
-      error: () => this.processandoId.set(null)
+        this.notificacao.erro('Não foi possível atualizar o status da cobrança.');
+      }
     });
   }
 
-  abrirConfig(): void {
-    const config = this.configuracao();
-    this.pixChaveConfig = config?.pixChave ?? '';
-    this.pixNomeConfig = config?.pixNomeRecebedor ?? '';
-    this.pixCidadeConfig = config?.pixCidade ?? '';
-    this.erroConfig.set(null);
-    this.painelConfigAberto.set(true);
+  abrirHistorico(id: string): void {
+    this.historicoAbertoId.set(id);
   }
 
-  fecharConfig(): void {
-    this.painelConfigAberto.set(false);
+  fecharHistorico(): void {
+    this.historicoAbertoId.set(null);
   }
 
-  salvarConfig(): void {
-    this.erroConfig.set(null);
-    this.salvandoConfig.set(true);
-    this.financeiroService
-      .editarConfiguracao({
-        pixChave: this.pixChaveConfig.trim() || null,
-        pixNomeRecebedor: this.pixNomeConfig.trim() || null,
-        pixCidade: this.pixCidadeConfig.trim() || null
-      })
-      .subscribe({
-        next: (config) => {
-          this.configuracao.set(config);
-          this.salvandoConfig.set(false);
-          this.painelConfigAberto.set(false);
-        },
-        error: (resposta) => {
-          this.salvandoConfig.set(false);
-          this.erroConfig.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a configuração.');
-        }
-      });
+  pedirConfirmacaoCancelamento(id: string): void {
+    this.confirmandoCancelamentoId.set(id);
+  }
+
+  cancelarCancelamento(): void {
+    this.confirmandoCancelamentoId.set(null);
+  }
+
+  confirmarCancelamento(cobranca: Cobranca): void {
+    this.processandoId.set(cobranca.id);
+    this.financeiroService.cancelar(cobranca.id).subscribe({
+      next: (atualizada) => {
+        this.cobrancas.update((atual) => atual.map((c) => (c.id === atualizada.id ? atualizada : c)));
+        this.processandoId.set(null);
+        this.confirmandoCancelamentoId.set(null);
+        this.notificacao.sucesso('Cobrança cancelada.');
+      },
+      error: (resposta) => {
+        this.processandoId.set(null);
+        this.confirmandoCancelamentoId.set(null);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível cancelar a cobrança.');
+      }
+    });
+  }
+
+  reabrir(cobranca: Cobranca): void {
+    this.processandoId.set(cobranca.id);
+    this.financeiroService.reabrir(cobranca.id).subscribe({
+      next: (atualizada) => {
+        this.cobrancas.update((atual) => atual.map((c) => (c.id === atualizada.id ? atualizada : c)));
+        this.processandoId.set(null);
+        this.notificacao.sucesso('Cobrança reaberta.');
+      },
+      error: () => {
+        this.processandoId.set(null);
+        this.notificacao.erro('Não foi possível reabrir a cobrança.');
+      }
+    });
   }
 
   abrirPix(cobranca: Cobranca): void {
     this.pixAbertoId.set(cobranca.id);
     this.pixCodigo.set(null);
-    this.pixErro.set(null);
     this.pixCopiado.set(false);
     this.pixCarregando.set(true);
     this.financeiroService.obterPix(cobranca.id).subscribe({
@@ -278,8 +289,9 @@ export class FinanceiroListaComponent implements OnInit {
         this.pixCarregando.set(false);
       },
       error: (resposta) => {
-        this.pixErro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível gerar o código Pix.');
+        this.pixAbertoId.set(null);
         this.pixCarregando.set(false);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível gerar o código Pix.');
       }
     });
   }
@@ -299,17 +311,14 @@ export class FinanceiroListaComponent implements OnInit {
 
   enviarEmail(cobranca: Cobranca): void {
     this.enviandoEmailId.set(cobranca.id);
-    this.emailFeedback.set(null);
     this.financeiroService.enviarEmail(cobranca.id).subscribe({
       next: () => {
         this.enviandoEmailId.set(null);
-        this.emailFeedback.set({ id: cobranca.id, mensagem: 'E-mail enviado!', sucesso: true });
-        setTimeout(() => this.emailFeedback.set(null), 3000);
+        this.notificacao.sucesso('E-mail enviado com sucesso.');
       },
       error: (resposta) => {
         this.enviandoEmailId.set(null);
-        const mensagem = typeof resposta.error === 'string' ? resposta.error : 'Não foi possível enviar o e-mail.';
-        this.emailFeedback.set({ id: cobranca.id, mensagem, sucesso: false });
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível enviar o e-mail.');
       }
     });
   }

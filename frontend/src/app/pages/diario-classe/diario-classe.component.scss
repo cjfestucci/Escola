@@ -105,6 +105,21 @@
   z-index: 30;
 }
 
+.linha-historico-dia {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+
+  button {
+    background: none;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+    padding: 4px 6px;
+  }
+}
+
 .botao-novo {
   display: block;
   width: 100%;

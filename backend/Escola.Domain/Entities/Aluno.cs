@@ -6,6 +6,7 @@ public class Aluno
     public string Nome { get; set; } = string.Empty;
     public DateOnly DataNascimento { get; set; }
     public string? FotoUrl { get; set; }
+    public bool Ativo { get; set; } = true;
 
     public Guid TurmaId { get; set; }
     public Turma Turma { get; set; } = null!;

@@ -1,4 +1,5 @@
 export interface FichaSaude {
+  id: string | null;
   tipoSanguineo: string | null;
   alergias: string | null;
   restricoesAlimentares: string | null;

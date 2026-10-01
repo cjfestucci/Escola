@@ -1,6 +1,7 @@
 namespace Escola.Api.Dtos;
 
 public record FichaSaudeDto(
+    Guid? Id,
     string? TipoSanguineo,
     string? Alergias,
     string? RestricoesAlimentares,

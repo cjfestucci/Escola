@@ -4,7 +4,9 @@ import { Router } from '@angular/router';
 
 import { Periodo, Turma } from '../../models/aluno.model';
 import { AuthService } from '../../services/auth.service';
+import { NotificacaoService } from '../../services/notificacao.service';
 import { TurmaService } from '../../services/turma.service';
+import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 
 const ROTULO_PERIODO: Record<string, string> = {
   Manha: 'Manhã',
@@ -20,26 +22,29 @@ interface OpcaoProfessor {
   nome: string;
 }
 
+type StatusFiltro = 'todas' | 'ativas' | 'inativas';
+
 @Component({
   selector: 'app-turmas-lista',
-  imports: [FormsModule],
+  imports: [FormsModule, LogsModalComponent],
   templateUrl: './turmas-lista.component.html',
   styleUrl: './turmas-lista.component.scss'
 })
 export class TurmasListaComponent implements OnInit {
   private readonly turmaService = inject(TurmaService);
   private readonly router = inject(Router);
+  private readonly notificacao = inject(NotificacaoService);
   protected readonly auth = inject(AuthService);
 
   readonly turmas = signal<Turma[]>([]);
   readonly carregando = signal(true);
-  readonly erro = signal<string | null>(null);
-  readonly confirmandoExclusaoId = signal<string | null>(null);
-  readonly excluindoId = signal<string | null>(null);
+  readonly processandoId = signal<string | null>(null);
+  readonly historicoAbertoId = signal<string | null>(null);
 
   readonly filtroNome = signal('');
   readonly filtroPeriodo = signal<Periodo | ''>('');
   readonly filtroProfessorId = signal('');
+  readonly filtroStatus = signal<StatusFiltro>('todas');
 
   protected readonly periodos: Periodo[] = ['Manha', 'Tarde', 'Integral', 'Noite'];
   protected readonly semProfessor = SEM_PROFESSOR;
@@ -58,6 +63,7 @@ export class TurmasListaComponent implements OnInit {
     const nome = this.filtroNome().trim().toLowerCase();
     const periodo = this.filtroPeriodo();
     const professorId = this.filtroProfessorId();
+    const status = this.filtroStatus();
 
     return this.turmas().filter((turma) => {
       const bateNome = !nome || turma.nome.toLowerCase().includes(nome);
@@ -65,7 +71,8 @@ export class TurmasListaComponent implements OnInit {
       const bateProfessor =
         !professorId ||
         (professorId === SEM_PROFESSOR ? !turma.professorId : turma.professorId === professorId);
-      return bateNome && batePeriodo && bateProfessor;
+      const bateStatus = status === 'todas' || (status === 'ativas' ? turma.ativa : !turma.ativa);
+      return bateNome && batePeriodo && bateProfessor && bateStatus;
     });
   });
 
@@ -77,6 +84,7 @@ export class TurmasListaComponent implements OnInit {
     this.filtroNome.set('');
     this.filtroPeriodo.set('');
     this.filtroProfessorId.set('');
+    this.filtroStatus.set('todas');
   }
 
   private carregar(): void {
@@ -86,7 +94,10 @@ export class TurmasListaComponent implements OnInit {
         this.turmas.set(turmas);
         this.carregando.set(false);
       },
-      error: () => this.carregando.set(false)
+      error: () => {
+        this.carregando.set(false);
+        this.notificacao.erro('Não foi possível carregar as turmas.');
+      }
     });
   }
 
@@ -102,27 +113,27 @@ export class TurmasListaComponent implements OnInit {
     this.router.navigate(['/turmas', turma.id, 'editar']);
   }
 
-  pedirConfirmacaoExclusao(turmaId: string): void {
-    this.erro.set(null);
-    this.confirmandoExclusaoId.set(turmaId);
+  abrirHistorico(turmaId: string): void {
+    this.historicoAbertoId.set(turmaId);
   }
 
-  cancelarExclusao(): void {
-    this.confirmandoExclusaoId.set(null);
+  fecharHistorico(): void {
+    this.historicoAbertoId.set(null);
   }
 
-  confirmarExclusao(turma: Turma): void {
-    this.excluindoId.set(turma.id);
-    this.turmaService.excluir(turma.id).subscribe({
-      next: () => {
-        this.turmas.update((atual) => atual.filter((t) => t.id !== turma.id));
-        this.excluindoId.set(null);
-        this.confirmandoExclusaoId.set(null);
+  alternarStatus(turma: Turma): void {
+    this.processandoId.set(turma.id);
+    const requisicao$ = turma.ativa ? this.turmaService.desativar(turma.id) : this.turmaService.ativar(turma.id);
+
+    requisicao$.subscribe({
+      next: (atualizada) => {
+        this.turmas.update((atual) => atual.map((t) => (t.id === atualizada.id ? atualizada : t)));
+        this.processandoId.set(null);
+        this.notificacao.sucesso(atualizada.ativa ? 'Turma reativada.' : 'Turma desativada.');
       },
       error: (resposta) => {
-        this.excluindoId.set(null);
-        this.confirmandoExclusaoId.set(null);
-        this.erro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível excluir a turma.');
+        this.processandoId.set(null);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível atualizar o status da turma.');
       }
     });
   }

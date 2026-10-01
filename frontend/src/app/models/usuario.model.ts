@@ -11,6 +11,7 @@ export interface UsuarioConta {
   nome: string;
   email: string;
   papel: PapelEquipe;
+  ativo: boolean;
 }
 
 export interface CriarOuEditarUsuario {

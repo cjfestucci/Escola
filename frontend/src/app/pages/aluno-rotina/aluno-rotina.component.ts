@@ -19,7 +19,7 @@ import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import { UploadService } from '../../services/upload.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
-import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
+import { horaAtualEscola, hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import {
   horaRegistro,
   iconeCategoria,
@@ -27,6 +27,7 @@ import {
   rotuloCategoria,
   rotuloCategoriaCurto
 } from '../../shared/registro-rotina-display';
+import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
 import { SeletorHorarioComponent } from '../../shared/seletor-horario/seletor-horario.component';
 
@@ -34,7 +35,7 @@ type AcaoRapida = CategoriaRegistro | null;
 
 @Component({
   selector: 'app-aluno-rotina',
-  imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent, SeletorHorarioComponent],
+  imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent, SeletorHorarioComponent, LogsModalComponent],
   templateUrl: './aluno-rotina.component.html',
   styleUrl: './aluno-rotina.component.scss'
 })
@@ -77,6 +78,7 @@ export class AlunoRotinaComponent implements OnInit {
   readonly enviando = signal(false);
   readonly excluindoId = signal<string | null>(null);
   readonly confirmandoExclusaoId = signal<string | null>(null);
+  readonly historicoAbertoId = signal<string | null>(null);
 
   readonly acaoAtiva = signal<AcaoRapida>(null);
   readonly registroEmEdicaoId = signal<string | null>(null);
@@ -89,7 +91,7 @@ export class AlunoRotinaComponent implements OnInit {
   observacao = '';
   refeicao: Refeicao = 'Almoco';
   statusAlimentacao: StatusAlimentacao = 'ComeuTudo';
-  horaInicioSono = this.horaAtual();
+  horaInicioSono = horaAtualEscola();
   tipoHigiene: TipoHigiene = 'TrocaFralda';
   humor: Humor = 'Feliz';
 
@@ -157,6 +159,14 @@ export class AlunoRotinaComponent implements OnInit {
     if (registro.humor) this.humor = registro.humor;
   }
 
+  abrirHistorico(registroId: string): void {
+    this.historicoAbertoId.set(registroId);
+  }
+
+  fecharHistorico(): void {
+    this.historicoAbertoId.set(null);
+  }
+
   pedirConfirmacaoExclusao(registroId: string): void {
     this.confirmandoExclusaoId.set(registroId);
   }
@@ -188,7 +198,7 @@ export class AlunoRotinaComponent implements OnInit {
   private limparFormulario(): void {
     this.registroEmEdicaoId.set(null);
     this.observacao = '';
-    this.horaInicioSono = this.horaAtual();
+    this.horaInicioSono = horaAtualEscola();
     this.fotoUrls.set([]);
   }
 
@@ -275,9 +285,4 @@ export class AlunoRotinaComponent implements OnInit {
   protected readonly rotuloData = rotuloData;
   protected readonly hojeIso = hojeIso;
   protected readonly categoriasFiltro: CategoriaRegistro[] = ['Alimentacao', 'Sono', 'Higiene', 'Humor', 'Momento'];
-
-  private horaAtual(): string {
-    const agora = new Date();
-    return `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
-  }
 }

@@ -7,12 +7,17 @@
     <p>Carregando...</p>
   } @else {
     <div class="painel-formulario">
-      @if (erro(); as mensagem) {
-        <p class="mensagem-erro">{{ mensagem }}</p>
-      }
-
       <label>Nome
         <input type="text" [(ngModel)]="nome" placeholder="Ex.: Berçário 1" />
+      </label>
+
+      <label>Unidade
+        <select [(ngModel)]="unidadeId">
+          <option value="" disabled>Selecione...</option>
+          @for (unidade of unidades(); track unidade.id) {
+            <option [value]="unidade.id">{{ unidade.nome }}</option>
+          }
+        </select>
       </label>
 
       <label>Período

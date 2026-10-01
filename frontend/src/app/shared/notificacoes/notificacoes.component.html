@@ -1,0 +1,15 @@
+<div class="lista-notificacoes">
+  @for (n of servico.notificacoes(); track n.id) {
+    <div class="notificacao" [class]="'notificacao--' + n.tipo">
+      <span class="notificacao-icone">
+        @switch (n.tipo) {
+          @case ('sucesso') { ✅ }
+          @case ('erro') { ⚠️ }
+          @default { ℹ️ }
+        }
+      </span>
+      <span class="notificacao-mensagem">{{ n.mensagem }}</span>
+      <button type="button" class="notificacao-fechar" (click)="fechar(n.id)" aria-label="Fechar notificação" title="Fechar">✕</button>
+    </div>
+  }
+</div>

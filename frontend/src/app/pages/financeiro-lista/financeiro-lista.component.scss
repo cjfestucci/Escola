@@ -46,15 +46,6 @@
   }
 }
 
-.mensagem-erro {
-  color: #b3261e;
-  background: #fdecea;
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 16px;
-  font-size: 0.85rem;
-}
-
 .grade-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -65,13 +56,37 @@
 .cartao-stat {
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
+  border-left: 4px solid var(--cor-borda);
   border-radius: var(--raio);
   padding: 14px;
   box-shadow: var(--sombra);
+  text-align: center;
+
+  &--pendente {
+    border-left-color: var(--cor-primaria);
+    background: #f1effc;
+
+    .stat-valor {
+      color: var(--cor-primaria-escura);
+    }
+  }
 
   &--atrasado {
-    border-color: #f3c988;
-    background: #fff8ee;
+    border-left-color: #b3261e;
+    background: #fdecea;
+
+    .stat-valor {
+      color: #b3261e;
+    }
+  }
+
+  &--total {
+    border-left-color: #1e7e34;
+    background: #eafbea;
+
+    .stat-valor {
+      color: #1e7e34;
+    }
   }
 }
 
@@ -84,6 +99,14 @@
 .stat-rotulo {
   display: block;
   font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.stat-valor-secundario {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 4px;
   color: var(--cor-texto-suave);
 }
 
@@ -288,6 +311,11 @@
     background: #fdecea;
     color: #b3261e;
   }
+
+  &--cancelada {
+    background: #f1f1f1;
+    color: var(--cor-texto-suave);
+  }
 }
 
 .acoes {
@@ -335,16 +363,6 @@
 
   &:disabled {
     opacity: 0.5;
-  }
-}
-
-.feedback-email {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #1e7e34;
-
-  &--erro {
-    color: #b3261e;
   }
 }
 

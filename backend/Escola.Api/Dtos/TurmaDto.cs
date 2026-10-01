@@ -8,4 +8,7 @@ public record TurmaDto(
     TimeOnly HorarioSaida,
     int QuantidadeAlunos,
     Guid? ProfessorId,
-    string? ProfessorNome);
+    string? ProfessorNome,
+    Guid UnidadeId,
+    string UnidadeNome,
+    bool Ativa);

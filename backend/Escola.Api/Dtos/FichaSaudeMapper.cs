@@ -5,6 +5,7 @@ namespace Escola.Api.Dtos;
 public static class FichaSaudeMapper
 {
     public static FichaSaudeDto ToDto(this FichaSaude ficha) => new(
+        ficha.Id,
         ficha.TipoSanguineo,
         ficha.Alergias,
         ficha.RestricoesAlimentares,
@@ -20,5 +21,5 @@ public static class FichaSaudeMapper
         ficha.AtualizadoEm);
 
     public static readonly FichaSaudeDto Vazia = new(
-        null, null, null, null, null, null, null, null, null, null, false, false, null);
+        null, null, null, null, null, null, null, null, null, null, null, false, false, null);
 }

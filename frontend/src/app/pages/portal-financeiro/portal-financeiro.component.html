@@ -1,0 +1,115 @@
+<div class="container">
+  <p class="subtitulo">Acompanhe as cobranças dos seus filhos — pagas, a vencer e vencidas.</p>
+
+  @if (!carregando()) {
+    <div class="grade-stats">
+      <div class="cartao-stat cartao-stat--pendente">
+        <span class="stat-valor">{{ resumo().aVencer }}</span>
+        <span class="stat-rotulo">A vencer</span>
+        <span class="stat-valor-secundario">R$ {{ resumo().valorAVencer | number: '1.2-2' }}</span>
+      </div>
+      <div class="cartao-stat" [class.cartao-stat--atrasado]="resumo().atrasadas > 0">
+        <span class="stat-valor">{{ resumo().atrasadas }}</span>
+        <span class="stat-rotulo">Vencidas</span>
+        <span class="stat-valor-secundario">R$ {{ resumo().valorAtrasado | number: '1.2-2' }}</span>
+      </div>
+      <div class="cartao-stat cartao-stat--total">
+        <span class="stat-valor">{{ resumo().totalEmAberto | number: '1.2-2' }}</span>
+        <span class="stat-rotulo">Total em aberto (R$)</span>
+        <span class="stat-valor-secundario">{{ resumo().totalAberto }} {{ resumo().totalAberto === 1 ? 'mensalidade' : 'mensalidades' }}</span>
+      </div>
+    </div>
+
+    <div class="filtros">
+      @if (filhos().length > 1) {
+        <select class="campo-filtro" [ngModel]="filtroFilhoId()" (ngModelChange)="filtroFilhoId.set($event)">
+          <option value="">Todos os filhos</option>
+          @for (filho of filhos(); track filho.id) {
+            <option [value]="filho.id">{{ filho.nome }}</option>
+          }
+        </select>
+      }
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todos">Todos os status</option>
+        <option value="pendente">A vencer</option>
+        <option value="atrasado">Vencido</option>
+        <option value="pago">Pago</option>
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroMes()" (ngModelChange)="filtroMes.set($event)">
+        <option value="">Todos os meses</option>
+        @for (mes of meses; track mes.valor) {
+          <option [value]="mes.valor">{{ mes.rotulo }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroAno()" (ngModelChange)="filtroAno.set($event)">
+        <option value="">Todos os anos</option>
+        @for (ano of anosDisponiveis(); track ano) {
+          <option [value]="ano">{{ ano }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (cobrancas().length === 0) {
+    <p class="vazio">Nenhuma cobrança registrada ainda.</p>
+  } @else if (cobrancasFiltradas().length === 0) {
+    <p class="vazio">Nenhuma cobrança encontrada com esses filtros.</p>
+  } @else {
+    <ul class="lista-cobrancas">
+      @for (cobranca of cobrancasFiltradas(); track cobranca.id) {
+        <li class="cartao-cobranca">
+          <div class="info-cobranca">
+            @if (filhos().length > 1) {
+              <strong>{{ cobranca.alunoNome }}</strong>
+            }
+            <span class="detalhe">{{ cobranca.descricao }}</span>
+            <span class="detalhe">
+              R$ {{ cobranca.valor | number: '1.2-2' }} · Vencimento {{ formatarDataAbsoluta(cobranca.vencimento) }}
+            </span>
+          </div>
+
+          <div class="acoes">
+            @if (cobranca.paga) {
+              <span class="status status--pago">Pago</span>
+            } @else if (cobranca.vencimento < hojeIso()) {
+              <span class="status status--atrasado">Vencido</span>
+            } @else {
+              <span class="status status--pendente">A vencer</span>
+            }
+
+            @if (!cobranca.paga) {
+              <button type="button" class="botao-pix" (click)="abrirPix(cobranca)">Pix</button>
+              <button type="button" class="botao-boleto" disabled title="Geração de boleto ainda não disponível — em breve">
+                Boleto (em breve)
+              </button>
+            }
+          </div>
+
+          @if (pixAbertoId() === cobranca.id) {
+            <div class="popover-pix">
+              @if (pixCarregando()) {
+                <p>Gerando código Pix...</p>
+              } @else if (pixCodigo()) {
+                <div class="conteudo-pix">
+                  @if (pixQrCode(); as qr) {
+                    <img class="qrcode-pix" [src]="qr" alt="QR Code Pix" />
+                  }
+                  <div class="codigo-pix-coluna">
+                    <p class="detalhe">Código Pix copia e cola:</p>
+                    <p class="codigo-pix">{{ pixCodigo() }}</p>
+                    <button type="button" class="primario" (click)="copiarPix()">
+                      {{ pixCopiado() ? 'Copiado!' : 'Copiar código' }}
+                    </button>
+                  </div>
+                </div>
+              }
+              <button type="button" class="botao-texto" (click)="fecharPix()">Fechar</button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>

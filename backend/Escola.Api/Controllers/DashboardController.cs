@@ -1,6 +1,7 @@
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,14 +11,12 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/dashboard")]
 [Authorize(Roles = GruposDePapeis.Equipe)]
-public class DashboardController(EscolaDbContext db) : ControllerBase
+public class DashboardController(EscolaDbContext db, IRelogioEscola relogio) : ControllerBase
 {
     [HttpGet("resumo")]
     public async Task<ActionResult<ResumoDashboardDto>> Resumo([FromQuery] Guid? turmaId)
     {
-        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
-        var inicio = hoje.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var fim = inicio.AddDays(1);
+        var (inicio, fim) = await relogio.IntervaloUtcDoDiaAsync(await relogio.HojeAsync());
 
         var alunosQuery = db.Alunos.AsQueryable();
         var turmasQuery = db.Turmas.AsQueryable();

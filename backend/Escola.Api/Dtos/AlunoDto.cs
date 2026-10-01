@@ -6,4 +6,5 @@ public record AlunoDto(
     DateOnly DataNascimento,
     string? FotoUrl,
     Guid TurmaId,
-    string TurmaNome);
+    string TurmaNome,
+    bool Ativo);

@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
   apiUrl: '/api',
-  fileOrigin: ''
+  fileOrigin: '',
+  segmento: 'escola' as 'escola' | 'clube'
 };

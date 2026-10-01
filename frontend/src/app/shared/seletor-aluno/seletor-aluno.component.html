@@ -1,0 +1,36 @@
+<div class="ancora">
+  <button type="button" class="campo-selecao" (click)="alternar()">
+    <span [class.placeholder]="!alunoSelecionado()">
+      {{ alunoSelecionado() ? alunoSelecionado()!.nome + ' — ' + alunoSelecionado()!.turmaNome : 'Selecione...' }}
+    </span>
+    <svg class="icone-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  </button>
+
+  @if (aberto()) {
+    <div class="popover">
+      <input
+        type="text"
+        class="campo-busca"
+        placeholder="Buscar aluno por nome..."
+        [ngModel]="busca()"
+        (ngModelChange)="busca.set($event)"
+        autofocus
+      />
+      <ul class="lista-opcoes">
+        @if (alunosFiltrados().length === 0) {
+          <li class="vazio">Nenhum aluno encontrado.</li>
+        }
+        @for (aluno of alunosFiltrados(); track aluno.id) {
+          <li>
+            <button type="button" class="opcao" [class.opcao--ativa]="aluno.id === alunoSelecionadoId()" (click)="escolher(aluno)">
+              <span class="nome">{{ aluno.nome }}</span>
+              <span class="turma">{{ aluno.turmaNome }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</div>

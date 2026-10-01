@@ -28,6 +28,9 @@ namespace Escola.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
                     b.Property<DateOnly>("DataNascimento")
                         .HasColumnType("date");
 
@@ -79,6 +82,12 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("AlunoId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("Cancelada")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly?>("CanceladaEm")
+                        .HasColumnType("date");
+
                     b.Property<string>("Descricao")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -107,6 +116,25 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.ToTable("Cobrancas");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.ConfiguracaoEscola", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FusoHorario")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConfiguracoesEscola");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.ConfiguracaoFinanceira", b =>
                 {
                     b.Property<Guid>("Id")
@@ -131,6 +159,95 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ConfiguracoesFinanceiras");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.ContaPagar", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Cancelada")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly?>("CanceladaEm")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("FornecedorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Paga")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly?>("PagoEm")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("RegistradoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<DateOnly>("Vencimento")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FornecedorId");
+
+                    b.HasIndex("Vencimento");
+
+                    b.ToTable("ContasPagar");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.ContaReceber", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Cancelada")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly?>("CanceladaEm")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Origem")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<bool>("Recebida")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly?>("RecebidoEm")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("RegistradoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<DateOnly>("Vencimento")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Vencimento");
+
+                    b.ToTable("ContasReceber");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.FichaSaude", b =>
@@ -187,6 +304,37 @@ namespace Escola.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("FichasSaude");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.Fornecedor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Documento")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Telefone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Fornecedores");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.FotoDiarioClasse", b =>
@@ -246,6 +394,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<int>("Acao")
                         .HasColumnType("integer");
 
+                    b.Property<DateOnly?>("Data")
+                        .HasColumnType("date");
+
                     b.Property<string>("Detalhe")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
@@ -261,6 +412,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<DateTime>("RegistradoEm")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("TurmaId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UsuarioId")
                         .HasColumnType("uuid");
 
@@ -269,6 +423,8 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.HasIndex("EntidadeTipo", "EntidadeId");
+
+                    b.HasIndex("TurmaId", "Data");
 
                     b.ToTable("LogsAuditoria");
                 });
@@ -376,6 +532,9 @@ namespace Escola.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("Ativa")
+                        .HasColumnType("boolean");
+
                     b.Property<TimeOnly>("HorarioEntrada")
                         .HasColumnType("time without time zone");
 
@@ -390,7 +549,12 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<int>("Periodo")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("UnidadeId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UnidadeId");
 
                     b.ToTable("Turmas");
                 });
@@ -410,11 +574,41 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.ToTable("TurmaEducadores");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Unidade", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Ativa")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Endereco")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Telefone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Unidades");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.Usuario", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -540,6 +734,17 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Aluno");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.ContaPagar", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Fornecedor", "Fornecedor")
+                        .WithMany("ContasPagar")
+                        .HasForeignKey("FornecedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Fornecedor");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.FichaSaude", b =>
                 {
                     b.HasOne("Escola.Domain.Entities.Aluno", "Aluno")
@@ -622,6 +827,17 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("CriadoPor");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Turma", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Unidade", "Unidade")
+                        .WithMany("Turmas")
+                        .HasForeignKey("UnidadeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Unidade");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.TurmaEducador", b =>
                 {
                     b.HasOne("Escola.Domain.Entities.Turma", "Turma")
@@ -660,6 +876,11 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Responsaveis");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Fornecedor", b =>
+                {
+                    b.Navigation("ContasPagar");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.RegistroDiarioClasse", b =>
                 {
                     b.Navigation("Fotos");
@@ -682,6 +903,11 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Educadores");
 
                     b.Navigation("RegistrosDiario");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.Unidade", b =>
+                {
+                    b.Navigation("Turmas");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.Usuario", b =>

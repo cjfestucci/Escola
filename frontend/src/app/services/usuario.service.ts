@@ -35,7 +35,11 @@ export class UsuarioService {
     return this.http.post<SenhaGerada>(`${this.baseUrl}/usuarios/contas/${id}/redefinir-senha`, {});
   }
 
-  excluirConta(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/usuarios/contas/${id}`);
+  desativarConta(id: string): Observable<UsuarioConta> {
+    return this.http.post<UsuarioConta>(`${this.baseUrl}/usuarios/contas/${id}/desativar`, {});
+  }
+
+  ativarConta(id: string): Observable<UsuarioConta> {
+    return this.http.post<UsuarioConta>(`${this.baseUrl}/usuarios/contas/${id}/ativar`, {});
   }
 }

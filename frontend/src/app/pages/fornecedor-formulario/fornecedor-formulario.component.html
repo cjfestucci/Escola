@@ -1,0 +1,34 @@
+<div class="container container--estreito">
+  <button type="button" class="voltar" (click)="cancelar()">&larr; Fornecedores</button>
+
+  <h1>{{ titulo }}</h1>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="painel-formulario">
+      <label>Nome
+        <input type="text" [(ngModel)]="nome" placeholder="Ex.: Material Esportivo Ltda" />
+      </label>
+
+      <label>Documento (opcional)
+        <input type="text" [(ngModel)]="documento" placeholder="CNPJ ou CPF" />
+      </label>
+
+      <label>Telefone (opcional)
+        <input type="text" [(ngModel)]="telefone" placeholder="Ex.: (11) 99999-9999" />
+      </label>
+
+      <label>E-mail (opcional)
+        <input type="text" [(ngModel)]="email" placeholder="contato@fornecedor.com" />
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

@@ -2,8 +2,10 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../services/auth.service';
+import { NotificacaoService } from '../../services/notificacao.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { CriarOuEditarUsuario, PapelEquipe, SenhaGerada, UsuarioConta } from '../../models/usuario.model';
+import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 
 const ROTULO_PAPEL: Record<PapelEquipe, string> = {
   Admin: 'Admin',
@@ -14,26 +16,26 @@ const ROTULO_PAPEL: Record<PapelEquipe, string> = {
 
 @Component({
   selector: 'app-usuarios-lista',
-  imports: [FormsModule],
+  imports: [FormsModule, LogsModalComponent],
   templateUrl: './usuarios-lista.component.html',
   styleUrl: './usuarios-lista.component.scss'
 })
 export class UsuariosListaComponent implements OnInit {
   private readonly usuarioService = inject(UsuarioService);
+  private readonly notificacao = inject(NotificacaoService);
   private readonly auth = inject(AuthService);
 
   readonly contas = signal<UsuarioConta[]>([]);
   readonly carregando = signal(true);
-  readonly erro = signal<string | null>(null);
   readonly salvando = signal(false);
 
   readonly formularioAberto = signal(false);
   readonly contaEmEdicaoId = signal<string | null>(null);
   readonly senhaGerada = signal<SenhaGerada | null>(null);
 
-  readonly confirmandoExclusaoId = signal<string | null>(null);
-  readonly excluindoId = signal<string | null>(null);
+  readonly processandoId = signal<string | null>(null);
   readonly redefinindoId = signal<string | null>(null);
+  readonly historicoAbertoId = signal<string | null>(null);
 
   nome = '';
   email = '';
@@ -57,7 +59,10 @@ export class UsuariosListaComponent implements OnInit {
         this.contas.set(contas);
         this.carregando.set(false);
       },
-      error: () => this.carregando.set(false)
+      error: () => {
+        this.carregando.set(false);
+        this.notificacao.erro('Não foi possível carregar as contas.');
+      }
     });
   }
 
@@ -84,10 +89,8 @@ export class UsuariosListaComponent implements OnInit {
   }
 
   salvar(): void {
-    this.erro.set(null);
-
     if (!this.nome.trim() || !this.email.trim()) {
-      this.erro.set('Nome e e-mail são obrigatórios.');
+      this.notificacao.erro('Nome e e-mail são obrigatórios.');
       return;
     }
 
@@ -97,7 +100,7 @@ export class UsuariosListaComponent implements OnInit {
     this.salvando.set(true);
     const aoErro = (resposta: { error?: unknown }) => {
       this.salvando.set(false);
-      this.erro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a conta.');
+      this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a conta.');
     };
 
     if (id) {
@@ -105,6 +108,7 @@ export class UsuariosListaComponent implements OnInit {
         next: () => {
           this.salvando.set(false);
           this.formularioAberto.set(false);
+          this.notificacao.sucesso('Conta salva com sucesso.');
           this.carregar();
         },
         error: aoErro
@@ -123,7 +127,6 @@ export class UsuariosListaComponent implements OnInit {
   }
 
   redefinirSenha(conta: UsuarioConta): void {
-    this.erro.set(null);
     this.redefinindoId.set(conta.id);
     this.usuarioService.redefinirSenha(conta.id).subscribe({
       next: (resultado) => {
@@ -132,32 +135,34 @@ export class UsuariosListaComponent implements OnInit {
       },
       error: () => {
         this.redefinindoId.set(null);
-        this.erro.set('Não foi possível redefinir a senha.');
+        this.notificacao.erro('Não foi possível redefinir a senha.');
       }
     });
   }
 
-  pedirConfirmacaoExclusao(contaId: string): void {
-    this.erro.set(null);
-    this.confirmandoExclusaoId.set(contaId);
+  abrirHistorico(contaId: string): void {
+    this.historicoAbertoId.set(contaId);
   }
 
-  cancelarExclusao(): void {
-    this.confirmandoExclusaoId.set(null);
+  fecharHistorico(): void {
+    this.historicoAbertoId.set(null);
   }
 
-  confirmarExclusao(conta: UsuarioConta): void {
-    this.excluindoId.set(conta.id);
-    this.usuarioService.excluirConta(conta.id).subscribe({
-      next: () => {
-        this.contas.update((atual) => atual.filter((c) => c.id !== conta.id));
-        this.excluindoId.set(null);
-        this.confirmandoExclusaoId.set(null);
+  alternarStatus(conta: UsuarioConta): void {
+    this.processandoId.set(conta.id);
+    const requisicao$ = conta.ativo
+      ? this.usuarioService.desativarConta(conta.id)
+      : this.usuarioService.ativarConta(conta.id);
+
+    requisicao$.subscribe({
+      next: (atualizada) => {
+        this.contas.update((atual) => atual.map((c) => (c.id === atualizada.id ? atualizada : c)));
+        this.processandoId.set(null);
+        this.notificacao.sucesso(atualizada.ativo ? 'Conta reativada.' : 'Conta desativada.');
       },
       error: (resposta) => {
-        this.excluindoId.set(null);
-        this.confirmandoExclusaoId.set(null);
-        this.erro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível excluir a conta.');
+        this.processandoId.set(null);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível atualizar o status da conta.');
       }
     });
   }

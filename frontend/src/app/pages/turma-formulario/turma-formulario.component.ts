@@ -3,8 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Periodo } from '../../models/aluno.model';
+import { Unidade } from '../../models/unidade.model';
 import { Usuario } from '../../models/usuario.model';
+import { NotificacaoService } from '../../services/notificacao.service';
 import { TurmaService } from '../../services/turma.service';
+import { UnidadeService } from '../../services/unidade.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { SeletorHorarioComponent } from '../../shared/seletor-horario/seletor-horario.component';
 
@@ -19,19 +22,22 @@ export class TurmaFormularioComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly turmaService = inject(TurmaService);
   private readonly usuarioService = inject(UsuarioService);
+  private readonly unidadeService = inject(UnidadeService);
+  private readonly notificacao = inject(NotificacaoService);
 
   private turmaId: string | null = null;
 
   readonly educadores = signal<Usuario[]>([]);
+  readonly unidades = signal<Unidade[]>([]);
   readonly carregando = signal(true);
   readonly salvando = signal(false);
-  readonly erro = signal<string | null>(null);
 
   nome = '';
   periodo: Periodo = 'Manha';
   horarioEntrada = '07:00';
   horarioSaida = '12:00';
   professorId = '';
+  unidadeId = '';
 
   get titulo(): string {
     return this.turmaId ? 'Editar turma' : 'Nova turma';
@@ -41,6 +47,10 @@ export class TurmaFormularioComponent implements OnInit {
     this.turmaId = this.route.snapshot.paramMap.get('id');
 
     this.usuarioService.listarEducadores().subscribe((educadores) => this.educadores.set(educadores));
+    this.unidadeService.listar().subscribe((unidades) => {
+      this.unidades.set(unidades);
+      if (!this.turmaId && !this.unidadeId && unidades.length > 0) this.unidadeId = unidades[0].id;
+    });
 
     if (this.turmaId) {
       this.turmaService.obterPorId(this.turmaId).subscribe({
@@ -50,10 +60,11 @@ export class TurmaFormularioComponent implements OnInit {
           this.horarioEntrada = turma.horarioEntrada.slice(0, 5);
           this.horarioSaida = turma.horarioSaida.slice(0, 5);
           this.professorId = turma.professorId ?? '';
+          this.unidadeId = turma.unidadeId;
           this.carregando.set(false);
         },
         error: () => {
-          this.erro.set('Não foi possível carregar a turma.');
+          this.notificacao.erro('Não foi possível carregar a turma.');
           this.carregando.set(false);
         }
       });
@@ -63,14 +74,16 @@ export class TurmaFormularioComponent implements OnInit {
   }
 
   salvar(): void {
-    this.erro.set(null);
-
     if (!this.nome.trim()) {
-      this.erro.set('Informe o nome da turma.');
+      this.notificacao.erro('Informe o nome da turma.');
       return;
     }
     if (this.horarioSaida <= this.horarioEntrada) {
-      this.erro.set('Horário de saída deve ser depois do horário de entrada.');
+      this.notificacao.erro('Horário de saída deve ser depois do horário de entrada.');
+      return;
+    }
+    if (!this.unidadeId) {
+      this.notificacao.erro('Selecione a unidade.');
       return;
     }
 
@@ -79,7 +92,8 @@ export class TurmaFormularioComponent implements OnInit {
       periodo: this.periodo,
       horarioEntrada: this.horarioEntrada,
       horarioSaida: this.horarioSaida,
-      professorId: this.professorId || null
+      professorId: this.professorId || null,
+      unidadeId: this.unidadeId
     };
 
     this.salvando.set(true);
@@ -88,10 +102,13 @@ export class TurmaFormularioComponent implements OnInit {
       : this.turmaService.criar(payload);
 
     requisicao$.subscribe({
-      next: () => this.router.navigateByUrl('/turmas'),
+      next: () => {
+        this.notificacao.sucesso('Turma salva com sucesso.');
+        this.router.navigateByUrl('/turmas');
+      },
       error: (resposta) => {
         this.salvando.set(false);
-        this.erro.set(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a turma.');
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a turma.');
       }
     });
   }

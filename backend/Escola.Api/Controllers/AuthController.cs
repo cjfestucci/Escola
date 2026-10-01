@@ -26,6 +26,9 @@ public class AuthController(EscolaDbContext db, IConfiguration config) : Control
         if (usuario is null || !SenhaHasher.Verificar(request.Senha, usuario.SenhaHash))
             return Unauthorized("E-mail ou senha inválidos.");
 
+        if (!usuario.Ativo)
+            return Unauthorized("Esta conta foi desativada. Fale com a coordenação.");
+
         var token = GerarToken(usuario.Id, usuario.Nome, usuario.Papel.ToString(), usuario.ResponsavelId);
         return Ok(new LoginRespostaDto(token, usuario.Id, usuario.Nome, usuario.Papel.ToString(), usuario.ResponsavelId));
     }

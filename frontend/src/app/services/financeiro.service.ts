@@ -44,8 +44,12 @@ export class FinanceiroService {
     return this.http.post<Cobranca>(`${this.baseUrl}/financeiro/cobrancas/${id}/desmarcar-paga`, {});
   }
 
-  excluir(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/financeiro/cobrancas/${id}`);
+  cancelar(id: string): Observable<Cobranca> {
+    return this.http.post<Cobranca>(`${this.baseUrl}/financeiro/cobrancas/${id}/cancelar`, {});
+  }
+
+  reabrir(id: string): Observable<Cobranca> {
+    return this.http.post<Cobranca>(`${this.baseUrl}/financeiro/cobrancas/${id}/reabrir`, {});
   }
 
   obterPix(id: string): Observable<PixCobranca> {
