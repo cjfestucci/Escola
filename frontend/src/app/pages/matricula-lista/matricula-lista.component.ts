@@ -2,13 +2,14 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { Aluno } from '../../models/aluno.model';
+import { Aluno, rotuloPosicao } from '../../models/aluno.model';
 import { AlunoService } from '../../services/aluno.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { SegmentoService } from '../../services/segmento.service';
 import { idadeFormatada } from '../../shared/data-utils';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
+import { resolverFotoUrl } from '../../shared/registro-rotina-display';
 
 interface OpcaoTurma {
   id: string;
@@ -61,6 +62,15 @@ export class MatriculaListaComponent implements OnInit {
   });
 
   protected readonly idade = idadeFormatada;
+  protected readonly rotuloPosicao = rotuloPosicao;
+  protected readonly resolverFotoUrl = resolverFotoUrl;
+
+  // Foto cadastrada mas arquivo ausente/quebrado: volta pra inicial do nome em vez de mostrar imagem quebrada.
+  readonly fotosComErro = signal<Set<string>>(new Set());
+
+  registrarErroFoto(alunoId: string): void {
+    this.fotosComErro.update((atual) => new Set(atual).add(alunoId));
+  }
 
   ngOnInit(): void {
     this.carregar();

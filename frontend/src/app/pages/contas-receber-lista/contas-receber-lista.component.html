@@ -28,7 +28,9 @@
 
   @if (formularioAberto()) {
     <div class="painel-formulario">
-      <label>Descrição
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+      <label><span class="obrigatorio">Descrição</span>
         <input type="text" [(ngModel)]="descricao" placeholder="Ex.: Patrocínio evento" />
       </label>
 
@@ -36,11 +38,11 @@
         <input type="text" [(ngModel)]="origem" placeholder="Ex.: Empresa XPTO" />
       </label>
 
-      <label>Valor (R$)
+      <label><span class="obrigatorio">Valor (R$)</span>
         <input type="number" [(ngModel)]="valor" min="0" step="0.01" placeholder="0,00" />
       </label>
 
-      <label>Vencimento</label>
+      <label><span class="obrigatorio">Vencimento</span></label>
       <div class="ancora-calendario">
         <button type="button" class="campo-data" (click)="calendarioAberto.set(!calendarioAberto())">
           <span>{{ vencimento ? formatarDataAbsoluta(vencimento) : 'Selecionar data' }}</span>

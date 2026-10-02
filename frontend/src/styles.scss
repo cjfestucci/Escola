@@ -55,6 +55,24 @@ button {
   cursor: pointer;
 }
 
+.obrigatorio::after {
+  content: ' *';
+  color: #b3261e;
+  font-weight: 700;
+}
+
+.legenda-obrigatorio {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+
+  &::before {
+    content: '* ';
+    color: #b3261e;
+    font-weight: 700;
+  }
+}
+
 .container {
   max-width: 1040px;
   margin: 0 auto;

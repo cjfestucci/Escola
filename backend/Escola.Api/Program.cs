@@ -56,6 +56,11 @@ var pastaUploads = Path.Combine(
 Directory.CreateDirectory(pastaUploads);
 builder.Services.AddSingleton<IFotoStorage>(new LocalFotoStorage(pastaUploads));
 
+// Fora de wwwroot de propósito: documentos de saúde nunca podem ser servidos como arquivo estático.
+var pastaDocumentos = Path.Combine(builder.Environment.ContentRootPath, "dados-privados", "documentos-saude");
+Directory.CreateDirectory(pastaDocumentos);
+builder.Services.AddSingleton<IDocumentoStorage>(new LocalDocumentoStorage(pastaDocumentos));
+
 builder.Services.Configure<ConfiguracaoSmtp>(builder.Configuration.GetSection("Smtp"));
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();

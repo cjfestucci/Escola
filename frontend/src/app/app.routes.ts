@@ -179,6 +179,40 @@ export const routes: Routes = [
       import('./pages/fornecedor-formulario/fornecedor-formulario.component').then((m) => m.FornecedorFormularioComponent)
   },
   {
+    path: 'estoque',
+    pathMatch: 'full',
+    redirectTo: 'estoque/produtos'
+  },
+  {
+    path: 'estoque/produtos',
+    pathMatch: 'full',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Produtos' },
+    loadComponent: () => import('./pages/produtos-lista/produtos-lista.component').then((m) => m.ProdutosListaComponent)
+  },
+  {
+    path: 'estoque/produtos/novo',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Novo produto' },
+    loadComponent: () =>
+      import('./pages/produto-formulario/produto-formulario.component').then((m) => m.ProdutoFormularioComponent)
+  },
+  {
+    path: 'estoque/produtos/:id/editar',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Editar produto' },
+    loadComponent: () =>
+      import('./pages/produto-formulario/produto-formulario.component').then((m) => m.ProdutoFormularioComponent)
+  },
+  {
+    path: 'estoque/movimentacoes',
+    pathMatch: 'full',
+    canActivate: [financeiroGuard],
+    data: { titulo: 'Movimentações de estoque' },
+    loadComponent: () =>
+      import('./pages/movimentacoes-estoque/movimentacoes-estoque.component').then((m) => m.MovimentacoesEstoqueComponent)
+  },
+  {
     path: 'portal/filhos',
     canActivate: [portalGuard],
     data: { titulo: 'Meus filhos' },

@@ -1,3 +1,5 @@
+using Escola.Domain.Enums;
+
 namespace Escola.Api.Dtos;
 
 public record AlunoDto(
@@ -7,4 +9,5 @@ public record AlunoDto(
     string? FotoUrl,
     Guid TurmaId,
     string TurmaNome,
-    bool Ativo);
+    bool Ativo,
+    PosicaoAtleta? Posicao = null);

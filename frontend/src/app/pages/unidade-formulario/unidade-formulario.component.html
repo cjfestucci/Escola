@@ -7,7 +7,9 @@
     <p>Carregando...</p>
   } @else {
     <div class="painel-formulario">
-      <label>Nome
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+      <label><span class="obrigatorio">Nome</span>
         <input type="text" [(ngModel)]="nome" placeholder="Ex.: Unidade Centro" />
       </label>
 

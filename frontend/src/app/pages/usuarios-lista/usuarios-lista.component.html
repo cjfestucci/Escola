@@ -15,13 +15,15 @@
 
   @if (formularioAberto()) {
     <div class="painel-formulario">
-      <label>Nome
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+      <label><span class="obrigatorio">Nome</span>
         <input type="text" [(ngModel)]="nome" placeholder="Nome completo" />
       </label>
-      <label>E-mail
+      <label><span class="obrigatorio">E-mail</span>
         <input type="email" [(ngModel)]="email" placeholder="email@escola.dev" />
       </label>
-      <label>Papel
+      <label><span class="obrigatorio">Papel</span>
         <select [(ngModel)]="papel">
           @for (p of papeis; track p) {
             <option [value]="p">{{ rotuloPapel(p) }}</option>

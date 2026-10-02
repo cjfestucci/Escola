@@ -1,0 +1,273 @@
+.cabecalho-pagina {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0;
+}
+
+.acoes-cabecalho {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.botao-primario {
+  background: var(--cor-primaria);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  &:active {
+    background: var(--cor-primaria-escura);
+  }
+}
+
+.botao-secundario {
+  background: transparent;
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--cor-texto);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
+}
+
+.grade-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cartao-stat {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-left: 4px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 14px;
+  box-shadow: var(--sombra);
+  text-align: center;
+
+  &--total {
+    border-left-color: var(--cor-primaria);
+    background: #f1effc;
+
+    .stat-valor {
+      color: var(--cor-primaria-escura);
+    }
+  }
+
+  &--alerta {
+    border-left-color: #d97706;
+    background: #fef3c7;
+
+    .stat-valor {
+      color: #b45309;
+    }
+  }
+
+  &--atrasado {
+    border-left-color: #b3261e;
+    background: #fdecea;
+
+    .stat-valor {
+      color: #b3261e;
+    }
+  }
+}
+
+.stat-valor {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.stat-rotulo {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.campo-busca {
+  flex: 1;
+  min-width: 180px;
+}
+
+.campo-busca,
+.campo-filtro {
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+}
+
+.botao-limpar {
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
+}
+
+.vazio {
+  color: var(--cor-texto-suave);
+}
+
+.lista-produtos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cartao-produto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 14px 16px;
+  box-shadow: var(--sombra);
+  flex-wrap: wrap;
+}
+
+.info-produto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.detalhe {
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.saldo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 110px;
+
+  &--baixo .saldo-valor {
+    color: #b45309;
+  }
+
+  &--zerado .saldo-valor {
+    color: #b3261e;
+  }
+}
+
+.saldo-valor {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.saldo-unidade {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+}
+
+.status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &--inativa {
+    background: #fdecea;
+    color: #b3261e;
+  }
+
+  &--baixo {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  &--zerado {
+    background: #fdecea;
+    color: #b3261e;
+  }
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.botao-icone {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 6px;
+
+  &:disabled {
+    opacity: 0.4;
+  }
+
+  &:active:not(:disabled) {
+    background: var(--cor-fundo);
+  }
+}
+
+.botao-texto {
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 4px 6px;
+  color: var(--cor-primaria-escura);
+
+  &--perigo {
+    color: #b3261e;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}

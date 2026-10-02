@@ -42,12 +42,19 @@
     <ul class="lista-alunos">
       @for (aluno of alunosFiltrados(); track aluno.id) {
         <li class="cartao-aluno">
-          <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
+          @if (aluno.fotoUrl && !fotosComErro().has(aluno.id)) {
+            <img class="avatar avatar--foto" [src]="resolverFotoUrl(aluno.fotoUrl)" [alt]="'Foto de ' + aluno.nome" (error)="registrarErroFoto(aluno.id)" />
+          } @else {
+            <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
+          }
 
           <div class="info-aluno">
             <strong>{{ aluno.nome }}</strong>
             <span class="detalhe">
               {{ idade(aluno.dataNascimento) }} · {{ aluno.turmaNome }}
+              @if (segmentoService.ehClube() && aluno.posicao) {
+                · {{ rotuloPosicao(aluno.posicao) }}
+              }
               @if (!aluno.ativo) {
                 <span class="status status--inativa">Inativo</span>
               }

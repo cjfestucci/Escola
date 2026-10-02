@@ -99,6 +99,11 @@
   justify-content: center;
   font-weight: 700;
   flex-shrink: 0;
+
+  &--foto {
+    object-fit: cover;
+    background: var(--cor-borda);
+  }
 }
 
 .info-aluno {

@@ -8,6 +8,9 @@ backend/**/obj/
 backend/Escola.Api/wwwroot/uploads/*
 !backend/Escola.Api/wwwroot/uploads/.gitkeep
 
+# Documentos de saúde enviados em dev (dado sensível — nunca versionar)
+backend/Escola.Api/dados-privados/
+
 # Angular / Node (frontend has its own .gitignore too)
 frontend/node_modules/
 frontend/dist/

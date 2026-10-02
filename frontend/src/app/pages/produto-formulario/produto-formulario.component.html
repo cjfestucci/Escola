@@ -1,0 +1,41 @@
+<div class="container container--estreito">
+  <button type="button" class="voltar" (click)="cancelar()">&larr; Produtos</button>
+
+  <h1>{{ titulo }}</h1>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="painel-formulario">
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+      <label><span class="obrigatorio">Nome</span>
+        <input type="text" [(ngModel)]="nome" placeholder="Ex.: Bola de futebol nº 5" />
+      </label>
+
+      <label>Código (opcional)
+        <input type="text" [(ngModel)]="codigo" placeholder="Ex.: BOLA-05" />
+      </label>
+
+      <label><span class="obrigatorio">Unidade de medida</span>
+        <select [(ngModel)]="unidadeMedida">
+          @for (unidade of unidadesMedida; track unidade.valor) {
+            <option [value]="unidade.valor">{{ unidade.rotulo }}</option>
+          }
+        </select>
+      </label>
+
+      <label>Estoque mínimo (opcional)
+        <input type="number" [(ngModel)]="estoqueMinimo" min="0" step="any" placeholder="0" />
+      </label>
+      <p class="ajuda">Quando o saldo chegar a esse valor, o produto aparece com o aviso "Estoque baixo". Deixe 0 para não avisar.</p>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,60 @@
+<div class="documentos">
+  <div class="cabecalho-secao">
+    <span>📎 Documentos</span>
+  </div>
+
+  @if (podeEditar()) {
+    <p class="ajuda">Exames, cartão de vacina, laudos... PDF ou imagem (JPEG, PNG, WEBP), até 10MB cada. O arquivo é anexado na hora, sem precisar salvar a ficha.</p>
+  }
+
+  @if (carregando()) {
+    <p class="vazio">Carregando...</p>
+  } @else if (documentos().length === 0) {
+    <p class="vazio">Nenhum documento anexado.</p>
+  } @else {
+    <ul class="lista-documentos">
+      @for (documento of documentos(); track documento.id) {
+        <li class="item-documento">
+          <div class="info-documento">
+            <strong>{{ documento.nomeArquivo }}</strong>
+            <span class="detalhe">
+              {{ formatarTamanho(documento.tamanhoBytes) }} · {{ documento.enviadoPorNome }} · {{ formatarDataHoraAbsoluta(documento.enviadoEm) }}
+            </span>
+          </div>
+
+          @if (confirmandoRemocaoId() === documento.id) {
+            <div class="confirmar-remocao">
+              <span>Remover este documento?</span>
+              <button type="button" class="botao-texto" (click)="cancelarRemocao()">Voltar</button>
+              <button
+                type="button"
+                class="botao-texto botao-texto--perigo"
+                [disabled]="removendoId() === documento.id"
+                (click)="confirmarRemocao(documento)"
+              >
+                {{ removendoId() === documento.id ? 'Removendo...' : 'Remover' }}
+              </button>
+            </div>
+          } @else {
+            <div class="acoes">
+              <button type="button" class="botao-texto" [disabled]="baixandoId() === documento.id" (click)="baixar(documento)">
+                {{ baixandoId() === documento.id ? 'Baixando...' : 'Baixar' }}
+              </button>
+              @if (podeEditar()) {
+                <button type="button" class="botao-icone" (click)="pedirConfirmacaoRemocao(documento.id)" aria-label="Remover documento" title="Remover documento">🗑️</button>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (podeEditar()) {
+    @if (enviando()) {
+      <p class="vazio">Enviando documento...</p>
+    } @else {
+      <app-seletor-arquivo rotulo="📎 Anexar documento" [aceitar]="aceitar" (arquivoSelecionado)="aoSelecionarArquivo($event)" />
+    }
+  }
+</div>

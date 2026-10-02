@@ -31,7 +31,7 @@ public class ResponsaveisController(EscolaDbContext db, IAuditoriaService audito
             .Where(ar => ar.ResponsavelId == id)
             .Select(ar => new AlunoDto(
                 ar.Aluno.Id, ar.Aluno.Nome, ar.Aluno.DataNascimento, ar.Aluno.FotoUrl,
-                ar.Aluno.TurmaId, ar.Aluno.Turma.Nome, ar.Aluno.Ativo))
+                ar.Aluno.TurmaId, ar.Aluno.Turma.Nome, ar.Aluno.Ativo, ar.Aluno.Posicao))
             .ToListAsync();
 
         return Ok(alunos);

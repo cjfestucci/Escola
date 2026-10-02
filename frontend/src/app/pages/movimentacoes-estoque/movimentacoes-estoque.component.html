@@ -1,0 +1,144 @@
+<div class="container">
+  <button type="button" class="voltar" routerLink="/estoque/produtos">&larr; Produtos</button>
+
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Entradas e saídas de estoque. Lançamentos não podem ser editados — corrija um erro com uma movimentação contrária.</p>
+    <button type="button" class="botao-primario" (click)="abrirNova()">+ Nova movimentação</button>
+  </div>
+
+  @if (formularioAberto()) {
+    <div class="painel-formulario">
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+      <label><span class="obrigatorio">Produto</span>
+        <select [ngModel]="produtoId" (ngModelChange)="selecionarProduto($event)">
+          @for (produto of produtosAtivos(); track produto.id) {
+            <option [value]="produto.id">{{ produto.nome }}</option>
+          }
+        </select>
+      </label>
+      @if (produtoSelecionado(); as produto) {
+        <p class="ajuda">Saldo atual: {{ formatarQuantidade(produto.saldoAtual) }} {{ produto.unidadeMedida }}</p>
+      }
+
+      <label><span class="obrigatorio">Tipo</span>
+        <select [(ngModel)]="tipo" (ngModelChange)="aoTrocarTipo()">
+          <option value="Entrada">Entrada</option>
+          <option value="Saida">Saída</option>
+        </select>
+      </label>
+
+      <label><span class="obrigatorio">Quantidade{{ produtoSelecionado() ? ' (' + produtoSelecionado()!.unidadeMedida + ')' : '' }}</span>
+        <input type="number" [(ngModel)]="quantidade" min="0" step="any" placeholder="0" />
+      </label>
+
+      <label><span class="obrigatorio">Data</span></label>
+      <div class="ancora-calendario">
+        <button type="button" class="campo-data" (click)="calendarioAberto.set(!calendarioAberto())">
+          <span>{{ data ? formatarDataAbsoluta(data) : 'Selecionar data' }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
+        </button>
+
+        @if (calendarioAberto()) {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="data || hojeIso()" [dataMaxima]="hojeIso()" (escolher)="selecionarData($event)" />
+          </div>
+        }
+      </div>
+
+      @if (calendarioAberto()) {
+        <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+      }
+
+      @if (tipo === 'Entrada') {
+        <label>Fornecedor (opcional)
+          <select [(ngModel)]="fornecedorId">
+            <option value="">— Nenhum —</option>
+            @for (fornecedor of fornecedoresAtivos(); track fornecedor.id) {
+              <option [value]="fornecedor.id">{{ fornecedor.nome }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      <label>Observação (opcional)
+        <input type="text" [(ngModel)]="observacao" maxlength="300" placeholder="Ex.: Compra de reposição, uso no treino..." />
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!carregando() && movimentacoes().length > 0) {
+    <div class="filtros">
+      <select class="campo-filtro" [ngModel]="filtroProdutoId()" (ngModelChange)="filtroProdutoId.set($event)">
+        <option value="">Todos os produtos</option>
+        @for (produto of produtos(); track produto.id) {
+          <option [value]="produto.id">{{ produto.nome }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroTipo()" (ngModelChange)="filtroTipo.set($event)">
+        <option value="todos">Entradas e saídas</option>
+        <option value="Entrada">Entradas</option>
+        <option value="Saida">Saídas</option>
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroMes()" (ngModelChange)="filtroMes.set($event)">
+        <option value="">Todos os meses</option>
+        @for (mes of meses; track mes.valor) {
+          <option [value]="mes.valor">{{ mes.rotulo }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroAno()" (ngModelChange)="filtroAno.set($event)">
+        <option value="">Todos os anos</option>
+        @for (ano of anosDisponiveis(); track ano) {
+          <option [value]="ano">{{ ano }}</option>
+        }
+      </select>
+      @if (filtroProdutoId() || filtroTipo() !== 'todos' || filtroMes() || filtroAno()) {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (movimentacoes().length === 0) {
+    <p class="vazio">Nenhuma movimentação registrada ainda.</p>
+  } @else if (movimentacoesFiltradas().length === 0) {
+    <p class="vazio">Nenhuma movimentação encontrada com esses filtros.</p>
+  } @else {
+    <ul class="lista-movimentacoes">
+      @for (mov of movimentacoesFiltradas(); track mov.id) {
+        <li class="cartao-movimentacao">
+          <div class="info-movimentacao">
+            <strong>{{ mov.produtoNome }}</strong>
+            <span class="detalhe">
+              {{ formatarDataAbsoluta(mov.data) }}
+              @if (mov.fornecedorNome) {
+                · {{ mov.fornecedorNome }}
+              }
+              · por {{ mov.registradoPorNome }}
+            </span>
+            @if (mov.observacao) {
+              <span class="detalhe">{{ mov.observacao }}</span>
+            }
+          </div>
+
+          <div class="quantidade" [class.quantidade--entrada]="mov.tipo === 'Entrada'" [class.quantidade--saida]="mov.tipo === 'Saida'">
+            <span class="quantidade-valor">{{ mov.tipo === 'Entrada' ? '+' : '−' }}{{ formatarQuantidade(mov.quantidade) }}</span>
+            <span class="quantidade-unidade">{{ mov.unidadeMedida }} · {{ mov.tipo === 'Entrada' ? 'Entrada' : 'Saída' }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

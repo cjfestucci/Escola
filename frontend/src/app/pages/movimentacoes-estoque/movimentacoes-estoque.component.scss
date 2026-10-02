@@ -1,0 +1,237 @@
+.voltar {
+  background: none;
+  border: none;
+  color: var(--cor-primaria-escura);
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.cabecalho-pagina {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0;
+  max-width: 560px;
+}
+
+.botao-primario {
+  background: var(--cor-primaria);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  &:active {
+    background: var(--cor-primaria-escura);
+  }
+}
+
+.painel-formulario {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  select,
+  input {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+  }
+}
+
+.ajuda {
+  margin: -8px 0 0;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.ancora-calendario {
+  position: relative;
+}
+
+.campo-data {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
+}
+
+.icone-calendario {
+  width: 16px;
+  height: 16px;
+  color: var(--cor-texto-suave);
+  flex-shrink: 0;
+}
+
+.popover-calendario {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+}
+
+.backdrop-calendario {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.botoes {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+
+  button {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+
+  .secundario {
+    background: transparent;
+    border-color: var(--cor-borda);
+    color: var(--cor-texto-suave);
+  }
+
+  .primario {
+    background: var(--cor-primaria);
+    color: #fff;
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.campo-filtro {
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+}
+
+.botao-limpar {
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+
+  &:active {
+    border-color: var(--cor-primaria);
+  }
+}
+
+.vazio {
+  color: var(--cor-texto-suave);
+}
+
+.lista-movimentacoes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cartao-movimentacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 14px 16px;
+  box-shadow: var(--sombra);
+}
+
+.info-movimentacao {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detalhe {
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+}
+
+.quantidade {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+
+  &--entrada .quantidade-valor {
+    color: #1e7e34;
+  }
+
+  &--saida .quantidade-valor {
+    color: #b3261e;
+  }
+}
+
+.quantidade-valor {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.quantidade-unidade {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+}

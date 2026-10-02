@@ -60,7 +60,8 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
             Nome = request.Nome.Trim(),
             DataNascimento = request.DataNascimento,
             FotoUrl = request.FotoUrl,
-            TurmaId = request.TurmaId
+            TurmaId = request.TurmaId,
+            Posicao = request.Posicao
         };
         db.Alunos.Add(aluno);
 
@@ -86,11 +87,13 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         var dataNascimentoAntes = aluno.DataNascimento;
         var turmaIdAntes = aluno.TurmaId;
         var turmaNomeAntes = aluno.Turma.Nome;
+        var posicaoAntes = aluno.Posicao?.Rotulo();
 
         aluno.Nome = request.Nome.Trim();
         aluno.DataNascimento = request.DataNascimento;
         aluno.FotoUrl = request.FotoUrl;
         aluno.TurmaId = request.TurmaId;
+        aluno.Posicao = request.Posicao;
 
         var senhasGeradas = await SincronizarResponsaveisAsync(aluno, request.Responsaveis);
 
@@ -101,7 +104,8 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         var detalhe = AuditoriaDetalhe.MontarAlteracoes(
             ("Nome", nomeAntes, aluno.Nome),
             ("Data de nascimento", dataNascimentoAntes, aluno.DataNascimento),
-            ("Turma", turmaNomeAntes, turmaNomeDepois));
+            ("Turma", turmaNomeAntes, turmaNomeDepois),
+            ("Posição", posicaoAntes, aluno.Posicao?.Rotulo()));
 
         auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
@@ -150,6 +154,9 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
 
         if (!await db.Turmas.AnyAsync(t => t.Id == request.TurmaId))
             return "Turma inválida.";
+
+        if (request.Posicao is { } posicao && !Enum.IsDefined(posicao))
+            return "Posição inválida.";
 
         if (request.Responsaveis.Count == 0)
             return "Informe ao menos um responsável.";

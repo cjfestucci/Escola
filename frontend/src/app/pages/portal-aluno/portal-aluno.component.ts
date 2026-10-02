@@ -14,6 +14,7 @@ import { NotificacaoService } from '../../services/notificacao.service';
 import { RotinaService } from '../../services/rotina.service';
 import { SessaoService } from '../../services/sessao.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
+import { DocumentosSaudeComponent } from '../../shared/documentos-saude/documentos-saude.component';
 import { formatarDataAbsoluta, hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import { gerarQrCodePix } from '../../shared/pix-qrcode';
 import {
@@ -26,7 +27,7 @@ import {
 
 @Component({
   selector: 'app-portal-aluno',
-  imports: [CalendarioComponent],
+  imports: [CalendarioComponent, DocumentosSaudeComponent],
   templateUrl: './portal-aluno.component.html',
   styleUrl: './portal-aluno.component.scss'
 })
@@ -41,7 +42,7 @@ export class PortalAlunoComponent implements OnInit {
   private readonly notificacao = inject(NotificacaoService);
   private readonly sessao = inject(SessaoService);
 
-  private alunoId = '';
+  protected alunoId = '';
 
   readonly aluno = signal<Aluno | null>(null);
   readonly registros = signal<RegistroRotina[]>([]);

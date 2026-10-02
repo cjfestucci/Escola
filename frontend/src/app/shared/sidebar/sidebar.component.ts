@@ -15,7 +15,7 @@ interface SubItemNav {
 interface ItemNav {
   rotulo: string;
   rota?: string;
-  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes';
+  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes' | 'estoque';
   subitens?: SubItemNav[];
 }
 
@@ -34,6 +34,14 @@ const ITEM_FINANCEIRO: ItemNav = {
   ]
 };
 const ITEM_FORNECEDORES: ItemNav = { rotulo: 'Fornecedores', rota: '/fornecedores', icone: 'fornecedores' };
+const ITEM_ESTOQUE: ItemNav = {
+  rotulo: 'Estoque',
+  icone: 'estoque',
+  subitens: [
+    { rotulo: 'Produtos', rota: '/estoque/produtos' },
+    { rotulo: 'Movimentações', rota: '/estoque/movimentacoes' }
+  ]
+};
 const ITEM_USUARIOS: ItemNav = { rotulo: 'Usuários', rota: '/usuarios', icone: 'usuarios' };
 const ITEM_CONFIGURACOES: ItemNav = {
   rotulo: 'Configurações',
@@ -80,7 +88,7 @@ export class SidebarComponent {
     if (this.segmentoService.mostrarRotinaDiaria()) itens.push(ITEM_TURMA_ROTINA);
     if (this.segmentoService.mostrarDiarioClasse()) itens.push(ITEM_DIARIO);
     itens.push(ITEM_TURMAS_CADASTRO, { rotulo: this.segmentoService.rotuloCadastro(), rota: '/matricula', icone: 'matricula' });
-    if (this.auth.ehFinanceiro()) itens.push(ITEM_FORNECEDORES, ITEM_FINANCEIRO);
+    if (this.auth.ehFinanceiro()) itens.push(ITEM_FORNECEDORES, ITEM_FINANCEIRO, ITEM_ESTOQUE);
     if (this.auth.ehGestao()) itens.push(ITEM_USUARIOS, ITEM_CONFIGURACOES);
     return itens;
   }
@@ -100,7 +108,7 @@ export class SidebarComponent {
 
   private expandirGruposComRotaAtiva(): void {
     const url = this.router.url;
-    const ativos = [ITEM_FINANCEIRO, ITEM_CONFIGURACOES].filter((item) => item.subitens?.some((sub) => url.startsWith(sub.rota)));
+    const ativos = [ITEM_FINANCEIRO, ITEM_ESTOQUE, ITEM_CONFIGURACOES].filter((item) => item.subitens?.some((sub) => url.startsWith(sub.rota)));
     if (ativos.length === 0) return;
     this.gruposExpandidos.update((atual) => new Set([...atual, ...ativos.map((item) => item.rotulo)]));
   }

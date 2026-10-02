@@ -28,21 +28,23 @@
 
   @if (formularioAberto()) {
     <div class="painel-formulario">
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+
       @if (!cobrancaEmEdicaoId()) {
-        <label>Aluno
+        <label><span class="obrigatorio">Aluno</span>
           <app-seletor-aluno [alunos]="alunos()" [alunoSelecionadoId]="alunoId" (selecionar)="alunoId = $event" />
         </label>
       }
 
-      <label>Descrição
+      <label><span class="obrigatorio">Descrição</span>
         <input type="text" [(ngModel)]="descricao" placeholder="Ex.: Mensalidade - Outubro/2026" />
       </label>
 
-      <label>Valor (R$)
+      <label><span class="obrigatorio">Valor (R$)</span>
         <input type="number" [(ngModel)]="valor" min="0" step="0.01" placeholder="0,00" />
       </label>
 
-      <label>Vencimento</label>
+      <label><span class="obrigatorio">Vencimento</span></label>
       <div class="ancora-calendario">
         <button type="button" class="campo-data" (click)="calendarioAberto.set(!calendarioAberto())">
           <span>{{ vencimento ? formatarDataAbsoluta(vencimento) : 'Selecionar data' }}</span>

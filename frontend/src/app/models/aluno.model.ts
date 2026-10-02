@@ -23,6 +23,35 @@ export interface CriarOuEditarTurma {
   unidadeId: string;
 }
 
+export type PosicaoAtleta =
+  | 'Goleiro'
+  | 'Zagueiro'
+  | 'LateralDireito'
+  | 'LateralEsquerdo'
+  | 'Volante'
+  | 'MeioCampo'
+  | 'MeiaAtacante'
+  | 'PontaDireita'
+  | 'PontaEsquerda'
+  | 'Centroavante';
+
+export const POSICOES_ATLETA: { valor: PosicaoAtleta; rotulo: string }[] = [
+  { valor: 'Goleiro', rotulo: 'Goleiro' },
+  { valor: 'Zagueiro', rotulo: 'Zagueiro' },
+  { valor: 'LateralDireito', rotulo: 'Lateral direito' },
+  { valor: 'LateralEsquerdo', rotulo: 'Lateral esquerdo' },
+  { valor: 'Volante', rotulo: 'Volante' },
+  { valor: 'MeioCampo', rotulo: 'Meio-campo' },
+  { valor: 'MeiaAtacante', rotulo: 'Meia-atacante' },
+  { valor: 'PontaDireita', rotulo: 'Ponta direita' },
+  { valor: 'PontaEsquerda', rotulo: 'Ponta esquerda' },
+  { valor: 'Centroavante', rotulo: 'Centroavante' }
+];
+
+export function rotuloPosicao(posicao: PosicaoAtleta | null | undefined): string {
+  return POSICOES_ATLETA.find((p) => p.valor === posicao)?.rotulo ?? '';
+}
+
 export interface Aluno {
   id: string;
   nome: string;
@@ -31,6 +60,7 @@ export interface Aluno {
   turmaId: string;
   turmaNome: string;
   ativo: boolean;
+  posicao?: PosicaoAtleta | null;
 }
 
 export interface ResponsavelResumo {
@@ -58,4 +88,5 @@ export interface CriarOuEditarAluno {
   turmaId: string;
   fotoUrl: string | null;
   responsaveis: ResponsavelResumo[];
+  posicao: PosicaoAtleta | null;
 }

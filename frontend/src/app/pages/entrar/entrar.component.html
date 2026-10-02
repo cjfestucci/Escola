@@ -4,11 +4,11 @@
   <p class="subtitulo">Entre com seu e-mail e senha.</p>
 
   <form class="formulario" (ngSubmit)="entrar()">
-    <label>E-mail
+    <label><span class="obrigatorio">E-mail</span>
       <input type="email" [(ngModel)]="email" name="email" placeholder="voce@escola.dev" autocomplete="username" />
     </label>
 
-    <label>Senha
+    <label><span class="obrigatorio">Senha</span>
       <div class="campo-senha">
         <input
           [type]="mostrarSenha() ? 'text' : 'password'"

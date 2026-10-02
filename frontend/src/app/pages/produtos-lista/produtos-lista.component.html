@@ -1,0 +1,109 @@
+<div class="container">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Produtos controlados em estoque e o saldo de cada um.</p>
+    <div class="acoes-cabecalho">
+      <button type="button" class="botao-secundario" routerLink="/estoque/movimentacoes">🔄 Movimentações</button>
+      <button type="button" class="botao-primario" (click)="novo()">+ Novo produto</button>
+    </div>
+  </div>
+
+  @if (!carregando()) {
+    <div class="grade-stats">
+      <div class="cartao-stat cartao-stat--total">
+        <span class="stat-valor">{{ resumo().ativos }}</span>
+        <span class="stat-rotulo">{{ resumo().ativos === 1 ? 'Produto ativo' : 'Produtos ativos' }}</span>
+      </div>
+      <div class="cartao-stat" [class.cartao-stat--alerta]="resumo().estoqueBaixo > 0">
+        <span class="stat-valor">{{ resumo().estoqueBaixo }}</span>
+        <span class="stat-rotulo">Com estoque baixo</span>
+      </div>
+      <div class="cartao-stat" [class.cartao-stat--atrasado]="resumo().zerados > 0">
+        <span class="stat-valor">{{ resumo().zerados }}</span>
+        <span class="stat-rotulo">Sem estoque</span>
+      </div>
+    </div>
+  }
+
+  @if (!carregando() && produtos().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por nome ou código..."
+        [ngModel]="filtroBusca()"
+        (ngModelChange)="filtroBusca.set($event)"
+      />
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todos">Todos os status</option>
+        <option value="ativos">Ativos</option>
+        <option value="inativos">Inativos</option>
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroEstoque()" (ngModelChange)="filtroEstoque.set($event)">
+        <option value="todos">Todo o estoque</option>
+        <option value="baixo">Estoque baixo</option>
+        <option value="zerado">Sem estoque</option>
+      </select>
+      @if (filtroBusca() || filtroStatus() !== 'ativos' || filtroEstoque() !== 'todos') {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (produtos().length === 0) {
+    <p class="vazio">Nenhum produto cadastrado ainda.</p>
+  } @else if (produtosFiltrados().length === 0) {
+    <p class="vazio">Nenhum produto encontrado com esses filtros.</p>
+  } @else {
+    <ul class="lista-produtos">
+      @for (produto of produtosFiltrados(); track produto.id) {
+        <li class="cartao-produto">
+          <div class="info-produto">
+            <strong>{{ produto.nome }}</strong>
+            <span class="detalhe">
+              @if (produto.codigo) {
+                Cód. {{ produto.codigo }} ·
+              }
+              Mínimo: {{ formatarQuantidade(produto.estoqueMinimo) }} {{ produto.unidadeMedida }}
+              @if (!produto.ativo) {
+                <span class="status status--inativa">Inativo</span>
+              }
+            </span>
+          </div>
+
+          <div class="saldo" [class.saldo--baixo]="produto.estoqueBaixo" [class.saldo--zerado]="produto.ativo && produto.saldoAtual <= 0">
+            <span class="saldo-valor">{{ formatarQuantidade(produto.saldoAtual) }}</span>
+            <span class="saldo-unidade">{{ produto.unidadeMedida }} em estoque</span>
+            @if (produto.ativo && produto.saldoAtual <= 0) {
+              <span class="status status--zerado">Sem estoque</span>
+            } @else if (produto.estoqueBaixo) {
+              <span class="status status--baixo">Estoque baixo</span>
+            }
+          </div>
+
+          <div class="acoes">
+            <button type="button" class="botao-icone" (click)="abrirHistorico(produto.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+            @if (produto.ativo) {
+              <button type="button" class="botao-texto" (click)="movimentar(produto)">Movimentar</button>
+            }
+            <button
+              type="button"
+              class="botao-texto"
+              [class.botao-texto--perigo]="produto.ativo"
+              [disabled]="processandoId() === produto.id"
+              (click)="alternarStatus(produto)"
+            >
+              {{ produto.ativo ? 'Desativar' : 'Ativar' }}
+            </button>
+            <button type="button" class="botao-icone" (click)="editar(produto)" aria-label="Editar produto" title="Editar produto">✏️</button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Produto" [entidadeId]="id" titulo="Histórico do produto" (fechar)="fecharHistorico()" />
+  }
+</div>

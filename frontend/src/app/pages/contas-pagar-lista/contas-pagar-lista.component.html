@@ -29,7 +29,9 @@
 
   @if (formularioAberto()) {
     <div class="painel-formulario">
-      <label>Fornecedor
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+      <label><span class="obrigatorio">Fornecedor</span>
         <select [(ngModel)]="fornecedorId">
           @for (fornecedor of fornecedores(); track fornecedor.id) {
             <option [value]="fornecedor.id">{{ fornecedor.nome }}</option>
@@ -37,15 +39,15 @@
         </select>
       </label>
 
-      <label>Descrição
+      <label><span class="obrigatorio">Descrição</span>
         <input type="text" [(ngModel)]="descricao" placeholder="Ex.: Compra de material esportivo" />
       </label>
 
-      <label>Valor (R$)
+      <label><span class="obrigatorio">Valor (R$)</span>
         <input type="number" [(ngModel)]="valor" min="0" step="0.01" placeholder="0,00" />
       </label>
 
-      <label>Vencimento</label>
+      <label><span class="obrigatorio">Vencimento</span></label>
       <div class="ancora-calendario">
         <button type="button" class="campo-data" (click)="calendarioAberto.set(!calendarioAberto())">
           <span>{{ vencimento ? formatarDataAbsoluta(vencimento) : 'Selecionar data' }}</span>

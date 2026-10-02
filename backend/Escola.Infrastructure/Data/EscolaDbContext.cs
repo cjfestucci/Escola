@@ -9,6 +9,7 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options) : DbCont
     public DbSet<Unidade> Unidades => Set<Unidade>();
     public DbSet<Aluno> Alunos => Set<Aluno>();
     public DbSet<FichaSaude> FichasSaude => Set<FichaSaude>();
+    public DbSet<DocumentoSaude> DocumentosSaude => Set<DocumentoSaude>();
     public DbSet<Responsavel> Responsaveis => Set<Responsavel>();
     public DbSet<AlunoResponsavel> AlunoResponsaveis => Set<AlunoResponsavel>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
@@ -21,6 +22,8 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options) : DbCont
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
     public DbSet<ContaPagar> ContasPagar => Set<ContaPagar>();
     public DbSet<ContaReceber> ContasReceber => Set<ContaReceber>();
+    public DbSet<Produto> Produtos => Set<Produto>();
+    public DbSet<MovimentacaoEstoque> MovimentacoesEstoque => Set<MovimentacaoEstoque>();
     public DbSet<ConfiguracaoFinanceira> ConfiguracoesFinanceiras => Set<ConfiguracaoFinanceira>();
     public DbSet<ConfiguracaoEscola> ConfiguracoesEscola => Set<ConfiguracaoEscola>();
     public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();

@@ -48,6 +48,8 @@
           <p><span class="rotulo-ficha">Vacinação em dia:</span> {{ f.vacinacaoEmDia ? 'Sim' : 'Não informado' }}</p>
           <p><span class="rotulo-ficha">Autoriza uso de imagem:</span> {{ f.autorizaUsoImagem ? 'Sim' : 'Não' }}</p>
         }
+
+        <app-documentos-saude [alunoId]="alunoId" />
       </div>
     }
   }

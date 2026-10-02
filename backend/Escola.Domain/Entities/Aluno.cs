@@ -1,3 +1,5 @@
+using Escola.Domain.Enums;
+
 namespace Escola.Domain.Entities;
 
 public class Aluno
@@ -7,6 +9,9 @@ public class Aluno
     public DateOnly DataNascimento { get; set; }
     public string? FotoUrl { get; set; }
     public bool Ativo { get; set; } = true;
+
+    /// <summary>Só faz sentido no segmento clube (escola de futebol); fica nulo nos demais.</summary>
+    public PosicaoAtleta? Posicao { get; set; }
 
     public Guid TurmaId { get; set; }
     public Turma Turma { get; set; } = null!;

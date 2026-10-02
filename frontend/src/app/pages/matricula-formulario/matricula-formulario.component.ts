@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/aluno.model';
+import { POSICOES_ATLETA, PosicaoAtleta, ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/aluno.model';
 import { FichaSaude } from '../../models/ficha-saude.model';
 import { AlunoService } from '../../services/aluno.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
@@ -13,6 +13,7 @@ import { TurmaService } from '../../services/turma.service';
 import { UploadService } from '../../services/upload.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
+import { DocumentosSaudeComponent } from '../../shared/documentos-saude/documentos-saude.component';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 import { resolverFotoUrl } from '../../shared/registro-rotina-display';
 import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
@@ -27,7 +28,7 @@ type Aba = 'dados' | 'responsaveis' | 'saude';
 
 @Component({
   selector: 'app-matricula-formulario',
-  imports: [FormsModule, SeletorArquivoComponent, CalendarioComponent, LogsModalComponent],
+  imports: [FormsModule, SeletorArquivoComponent, CalendarioComponent, LogsModalComponent, DocumentosSaudeComponent],
   templateUrl: './matricula-formulario.component.html',
   styleUrl: './matricula-formulario.component.scss'
 })
@@ -42,7 +43,7 @@ export class MatriculaFormularioComponent implements OnInit {
   private readonly notificacao = inject(NotificacaoService);
   protected readonly segmentoService = inject(SegmentoService);
 
-  private alunoId: string | null = null;
+  protected alunoId: string | null = null;
 
   readonly turmas = signal<Turma[]>([]);
   readonly carregando = signal(true);
@@ -64,6 +65,7 @@ export class MatriculaFormularioComponent implements OnInit {
   nome = '';
   dataNascimento = '';
   turmaId = '';
+  posicao: PosicaoAtleta | '' = '';
 
   tipoSanguineo = '';
   alergias = '';
@@ -82,6 +84,7 @@ export class MatriculaFormularioComponent implements OnInit {
   protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
   protected readonly hojeIso = hojeIso;
   protected readonly tiposSanguineos = TIPOS_SANGUINEOS;
+  protected readonly posicoes = POSICOES_ATLETA;
 
   get titulo(): string {
     const pessoa = this.segmentoService.rotuloPessoa();
@@ -103,6 +106,7 @@ export class MatriculaFormularioComponent implements OnInit {
           this.nome = aluno.nome;
           this.dataNascimento = aluno.dataNascimento.slice(0, 10);
           this.turmaId = aluno.turmaId;
+          this.posicao = aluno.posicao ?? '';
           this.fotoUrl.set(aluno.fotoUrl);
           this.responsaveis.set(aluno.responsaveis.length > 0 ? aluno.responsaveis : [novoResponsavelVazio()]);
           this.carregando.set(false);
@@ -264,7 +268,8 @@ export class MatriculaFormularioComponent implements OnInit {
       dataNascimento: this.dataNascimento,
       turmaId: this.turmaId,
       fotoUrl: this.fotoUrl(),
-      responsaveis: responsaveisValidos
+      responsaveis: responsaveisValidos,
+      posicao: this.posicao || null
     };
 
     this.salvando.set(true);

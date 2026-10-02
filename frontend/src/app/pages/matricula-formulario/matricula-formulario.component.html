@@ -30,11 +30,13 @@
 
     @if (abaAtiva() === 'dados') {
       <div class="painel-formulario">
-        <label>Nome completo
+        <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+        <label><span class="obrigatorio">Nome completo</span>
           <input type="text" [(ngModel)]="nome" placeholder="Ex.: Lucas Souza" />
         </label>
 
-        <label>Data de nascimento</label>
+        <label><span class="obrigatorio">Data de nascimento</span></label>
         <div class="ancora-calendario">
           <button type="button" class="campo-data" (click)="calendarioNascimentoAberto.set(!calendarioNascimentoAberto())">
             <span>{{ dataNascimento ? formatarDataAbsoluta(dataNascimento) : 'Selecionar data' }}</span>
@@ -56,7 +58,7 @@
           <div class="backdrop-calendario" (click)="calendarioNascimentoAberto.set(false)"></div>
         }
 
-        <label>Turma
+        <label><span class="obrigatorio">Turma</span>
           <select [(ngModel)]="turmaId">
             <option value="" disabled>Selecione...</option>
             @for (turma of turmas(); track turma.id) {
@@ -64,6 +66,17 @@
             }
           </select>
         </label>
+
+        @if (segmentoService.ehClube()) {
+          <label>Posição (opcional)
+            <select [(ngModel)]="posicao">
+              <option value="">Não informada</option>
+              @for (p of posicoes; track p.valor) {
+                <option [value]="p.valor">{{ p.rotulo }}</option>
+              }
+            </select>
+          </label>
+        }
 
         <label>Foto (opcional)</label>
         @if (fotoUrl()) {
@@ -86,6 +99,8 @@
           <button type="button" class="botao-texto" (click)="adicionarResponsavel()">+ Adicionar</button>
         </div>
 
+        <p class="legenda-obrigatorio">Campo obrigatório — informe ao menos um responsável com nome e e-mail.</p>
+
         @for (responsavel of responsaveis(); track $index) {
           <div class="cartao-responsavel">
             <div class="linha-responsavel-topo">
@@ -95,7 +110,7 @@
               }
             </div>
 
-            <label>Nome
+            <label><span class="obrigatorio">Nome</span>
               <input
                 type="text"
                 [ngModel]="responsavel.nome"
@@ -104,7 +119,7 @@
               />
             </label>
 
-            <label>E-mail
+            <label><span class="obrigatorio">E-mail</span>
               <input
                 type="email"
                 [ngModel]="responsavel.email"
@@ -236,6 +251,12 @@
             </button>
           </div>
         </div>
+
+        @if (alunoId) {
+          <div class="painel-formulario">
+            <app-documentos-saude [alunoId]="alunoId" [podeEditar]="true" />
+          </div>
+        }
       }
     }
   }

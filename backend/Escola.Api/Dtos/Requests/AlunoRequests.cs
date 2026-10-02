@@ -1,3 +1,5 @@
+using Escola.Domain.Enums;
+
 namespace Escola.Api.Dtos.Requests;
 
 // Id nulo = novo responsável (cria); Id preenchido = atualiza o já vinculado ao aluno.
@@ -9,4 +11,5 @@ public record CriarOuEditarAlunoRequest(
     DateOnly DataNascimento,
     Guid TurmaId,
     string? FotoUrl,
-    List<ResponsavelInput> Responsaveis);
+    List<ResponsavelInput> Responsaveis,
+    PosicaoAtleta? Posicao = null);
