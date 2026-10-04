@@ -5,6 +5,7 @@ using Escola.Domain.Enums;
 using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Financeiro;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/responsaveis")]
 [Authorize]
-public class ResponsaveisController(EscolaDbContext db, IAuditoriaService auditoria) : ControllerBase
+public class ResponsaveisController(EscolaDbContext db, IAuditoriaService auditoria, IBloqueioAlunoService bloqueio) : ControllerBase
 {
     [HttpGet("{id:guid}/alunos")]
     public async Task<ActionResult<List<AlunoDto>>> ListarAlunos(Guid id)
@@ -31,10 +32,11 @@ public class ResponsaveisController(EscolaDbContext db, IAuditoriaService audito
             .Where(ar => ar.ResponsavelId == id)
             .Select(ar => new AlunoDto(
                 ar.Aluno.Id, ar.Aluno.Nome, ar.Aluno.DataNascimento, ar.Aluno.FotoUrl,
-                ar.Aluno.TurmaId, ar.Aluno.Turma.Nome, ar.Aluno.Ativo, ar.Aluno.Posicao))
+                ar.Aluno.TurmaId, ar.Aluno.Turma.Nome, ar.Aluno.Ativo, ar.Aluno.Posicao, false))
             .ToListAsync();
 
-        return Ok(alunos);
+        var bloqueados = await bloqueio.ObterBloqueadosAsync(alunos.Select(a => a.Id).ToList());
+        return Ok(alunos.Select(a => a with { Bloqueado = bloqueados.Contains(a.Id) }).ToList());
     }
 
     /// <summary>Gera uma nova senha temporária pro login do Portal dos Pais desse responsável.</summary>

@@ -23,6 +23,48 @@
         todos os usuários, onde quer que estejam.
       </p>
 
+      <div class="campo-cor">
+        <span class="rotulo-campo" id="rotulo-cor">Cor principal</span>
+        <div class="cores" role="radiogroup" aria-labelledby="rotulo-cor">
+          @for (cor of coresSugeridas; track cor.valor) {
+            <button
+              type="button"
+              class="amostra-cor"
+              role="radio"
+              [class.amostra-cor--ativa]="(corEscolhida() ?? corPadrao) === cor.valor"
+              [attr.aria-checked]="(corEscolhida() ?? corPadrao) === cor.valor"
+              [attr.aria-label]="cor.rotulo"
+              [title]="cor.rotulo"
+              [style.background]="cor.valor"
+              (click)="escolherSugerida(cor.valor)"
+            ></button>
+          }
+        </div>
+
+        <div class="linha-cor-personalizada">
+          <label class="campo-hex">Outra cor
+            <input
+              type="text"
+              maxlength="7"
+              placeholder="#6C5DD3"
+              autocomplete="off"
+              [ngModel]="corTexto()"
+              (ngModelChange)="digitarCor($event)"
+            />
+          </label>
+          @if (corEscolhida()) {
+            <button type="button" class="botao-texto" (click)="restaurarPadrao()">Restaurar cor padrão</button>
+          }
+        </div>
+        @if (problemaCor(); as problema) {
+          <p class="ajuda ajuda--erro">{{ problema }}</p>
+        }
+      </div>
+      <p class="ajuda">
+        Cor dos botões, do menu lateral e dos destaques do app, para todos os usuários desta escola (inclusive a
+        tela de login). Ao escolher, o app já muda para você ver como fica; só vale para todos depois de Salvar.
+      </p>
+
       <div class="botoes">
         <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
           {{ salvando() ? 'Salvando...' : 'Salvar' }}

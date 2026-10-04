@@ -113,12 +113,17 @@ export const routes: Routes = [
       import('./pages/configuracao-geral/configuracao-geral.component').then((m) => m.ConfiguracaoGeralComponent)
   },
   {
-    path: 'configuracoes/pix',
+    path: 'configuracoes/financeiro',
     pathMatch: 'full',
     canActivate: [gestaoGuard],
-    data: { titulo: 'Configuração Pix' },
+    data: { titulo: 'Configurações financeiras' },
     loadComponent: () =>
-      import('./pages/configuracao-pix/configuracao-pix.component').then((m) => m.ConfiguracaoPixComponent)
+      import('./pages/configuracao-financeira/configuracao-financeira.component').then((m) => m.ConfiguracaoFinanceiraComponent)
+  },
+  {
+    path: 'configuracoes/pix',
+    pathMatch: 'full',
+    redirectTo: 'configuracoes/financeiro'
   },
   {
     path: 'diario',
@@ -177,6 +182,54 @@ export const routes: Routes = [
     data: { titulo: 'Editar fornecedor' },
     loadComponent: () =>
       import('./pages/fornecedor-formulario/fornecedor-formulario.component').then((m) => m.FornecedorFormularioComponent)
+  },
+  {
+    path: 'jogos',
+    pathMatch: 'full',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Jogos' },
+    loadComponent: () => import('./pages/jogos-lista/jogos-lista.component').then((m) => m.JogosListaComponent)
+  },
+  {
+    path: 'jogos/novo',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Novo jogo' },
+    loadComponent: () => import('./pages/jogo-formulario/jogo-formulario.component').then((m) => m.JogoFormularioComponent)
+  },
+  {
+    path: 'jogos/:id/editar',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Jogo' },
+    loadComponent: () => import('./pages/jogo-formulario/jogo-formulario.component').then((m) => m.JogoFormularioComponent)
+  },
+  {
+    path: 'campeonatos',
+    pathMatch: 'full',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Campeonatos' },
+    loadComponent: () =>
+      import('./pages/campeonatos-lista/campeonatos-lista.component').then((m) => m.CampeonatosListaComponent)
+  },
+  {
+    path: 'campeonatos/novo',
+    canActivate: [gestaoGuard],
+    data: { titulo: 'Novo campeonato' },
+    loadComponent: () =>
+      import('./pages/campeonato-formulario/campeonato-formulario.component').then((m) => m.CampeonatoFormularioComponent)
+  },
+  {
+    path: 'campeonatos/:id/editar',
+    canActivate: [gestaoGuard],
+    data: { titulo: 'Editar campeonato' },
+    loadComponent: () =>
+      import('./pages/campeonato-formulario/campeonato-formulario.component').then((m) => m.CampeonatoFormularioComponent)
+  },
+  {
+    path: 'campeonatos/:id',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Campeonato' },
+    loadComponent: () =>
+      import('./pages/campeonato-detalhe/campeonato-detalhe.component').then((m) => m.CampeonatoDetalheComponent)
   },
   {
     path: 'estoque',

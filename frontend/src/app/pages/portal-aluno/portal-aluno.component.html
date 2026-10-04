@@ -9,6 +9,13 @@
         <span class="turma">{{ a.turmaNome }}</span>
       </div>
     </header>
+
+    @if (a.bloqueado) {
+      <div class="aviso-bloqueio">
+        <strong>🔒 {{ a.nome }} está bloqueado(a) por mensalidade em atraso.</strong>
+        <p>Regularize o pagamento em Financeiro ou fale com a escola.</p>
+      </div>
+    }
   }
 
   @if (fichaSaude(); as f) {

@@ -10,4 +10,5 @@ public record AlunoDto(
     Guid TurmaId,
     string TurmaNome,
     bool Ativo,
-    PosicaoAtleta? Posicao = null);
+    PosicaoAtleta? Posicao = null,
+    bool Bloqueado = false);

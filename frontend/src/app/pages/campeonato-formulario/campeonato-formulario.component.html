@@ -1,0 +1,77 @@
+<div class="container container--estreito">
+  <button type="button" class="voltar" (click)="cancelar()">&larr; Campeonatos</button>
+
+  <h1>{{ titulo }}</h1>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="painel-formulario">
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+      <label><span class="obrigatorio">Nome</span>
+        <input type="text" [(ngModel)]="nome" maxlength="150" placeholder="Ex.: Copa Regional Sub-11" />
+      </label>
+
+      <label><span class="obrigatorio">Data de início</span></label>
+      <div class="ancora-calendario">
+        <button type="button" class="campo-data" (click)="alternarCalendario('inicio')">
+          <span>{{ dataInicio ? formatarDataAbsoluta(dataInicio) : 'Selecionar data' }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
+        </button>
+        @if (calendarioAberto() === 'inicio') {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="dataInicio || hojeIso()" (escolher)="escolherData('inicio', $event)" />
+          </div>
+        }
+      </div>
+
+      <label>Data de término (opcional)</label>
+      <div class="ancora-calendario">
+        <button type="button" class="campo-data" (click)="alternarCalendario('fim')">
+          <span>{{ dataFim ? formatarDataAbsoluta(dataFim) : 'Selecionar data' }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
+        </button>
+        @if (calendarioAberto() === 'fim') {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="dataFim || dataInicio || hojeIso()" (escolher)="escolherData('fim', $event)" />
+          </div>
+        }
+      </div>
+      @if (dataFim) {
+        <button type="button" class="botao-texto" (click)="limparDataFim()">Limpar data de término</button>
+      }
+
+      @if (calendarioAberto()) {
+        <div class="backdrop-calendario" (click)="calendarioAberto.set(null)"></div>
+      }
+
+      <label>Cartões amarelos para suspensão (opcional)
+        <input type="number" [(ngModel)]="amarelosParaSuspensao" min="1" max="10" step="1" placeholder="Ex.: 3" />
+      </label>
+      <p class="ajuda">
+        Com esse total de amarelos acumulados o atleta é suspenso do próximo jogo do campeonato; um cartão vermelho também suspende
+        por 1 jogo. Quem está a 1 amarelo do limite aparece como <strong>pendurado</strong>. Deixe em branco para não controlar.
+      </p>
+
+      <label>Observação (opcional)
+        <textarea [(ngModel)]="observacao" rows="3" maxlength="500" placeholder="Regulamento, local, contato da organização..."></textarea>
+      </label>
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

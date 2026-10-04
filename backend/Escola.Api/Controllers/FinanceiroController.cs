@@ -226,8 +226,9 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         return Ok();
     }
 
-    /// <summary>Configuração de recebimento Pix da escola — GET liberado pra Financeiro (precisa pra gerar os códigos),
-    /// PUT restrito à Gestão (é um dado sensível de identidade financeira da escola).</summary>
+    /// <summary>Configurações financeiras da escola (recebimento Pix e política de bloqueio por atraso) —
+    /// GET liberado pra Financeiro (precisa do Pix pra gerar os códigos), PUT restrito à Gestão
+    /// (é identidade financeira e política da escola, não é operacional do dia a dia).</summary>
     [HttpGet("configuracao")]
     [Authorize(Roles = GruposDePapeis.Financeiro)]
     public async Task<ActionResult<ConfiguracaoFinanceiraDto>> ObterConfiguracao()
@@ -240,17 +241,52 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<ActionResult<ConfiguracaoFinanceiraDto>> EditarConfiguracao(EditarConfiguracaoFinanceiraRequest request)
     {
+        string? chave = null;
+        TipoChavePix? tipo = null;
+        if (!string.IsNullOrWhiteSpace(request.PixChave))
+        {
+            if (request.PixTipoChave is not { } tipoInformado || !Enum.IsDefined(tipoInformado))
+                return BadRequest("Selecione o tipo da chave Pix.");
+
+            chave = ChavePix.Normalizar(tipoInformado, request.PixChave, out var erroChave);
+            if (chave is null) return BadRequest(erroChave);
+            tipo = tipoInformado;
+        }
+
+        if (request.DiasParaBloqueio is < 1 or > 365)
+            return BadRequest("A quantidade de dias para bloqueio deve estar entre 1 e 365 (ou fique em branco para não bloquear).");
+
         var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
+        var criando = config is null;
         if (config is null)
         {
             config = new ConfiguracaoFinanceira { Id = Guid.NewGuid() };
             db.ConfiguracoesFinanceiras.Add(config);
         }
 
-        config.PixChave = request.PixChave?.Trim();
-        config.PixNomeRecebedor = request.PixNomeRecebedor?.Trim();
-        config.PixCidade = request.PixCidade?.Trim();
+        var tipoAntes = config.PixTipoChave?.ToString();
+        var chaveAntes = config.PixChave;
+        var nomeAntes = config.PixNomeRecebedor;
+        var cidadeAntes = config.PixCidade;
+        var diasBloqueioAntes = config.DiasParaBloqueio;
+
+        config.PixChave = chave;
+        config.PixTipoChave = tipo;
+        config.PixNomeRecebedor = string.IsNullOrWhiteSpace(request.PixNomeRecebedor) ? null : request.PixNomeRecebedor.Trim();
+        config.PixCidade = string.IsNullOrWhiteSpace(request.PixCidade) ? null : request.PixCidade.Trim();
+        config.DiasParaBloqueio = request.DiasParaBloqueio;
         config.AtualizadoEm = DateTime.UtcNow;
+
+        var detalhe = AuditoriaDetalhe.MontarAlteracoes(
+            ("Tipo da chave Pix", tipoAntes, config.PixTipoChave?.ToString()),
+            ("Chave Pix", chaveAntes, config.PixChave),
+            ("Nome do recebedor", nomeAntes, config.PixNomeRecebedor),
+            ("Cidade", cidadeAntes, config.PixCidade),
+            ("Dias para bloqueio", diasBloqueioAntes, config.DiasParaBloqueio));
+
+        // Salvar sem mudar nada não vira entrada de histórico (só poluiria a trilha).
+        if (criando || detalhe is not null)
+            auditoria.Registrar(nameof(ConfiguracaoFinanceira), config.Id, criando ? AcaoAuditoria.Criado : AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
 
         return Ok(config.ToDto());

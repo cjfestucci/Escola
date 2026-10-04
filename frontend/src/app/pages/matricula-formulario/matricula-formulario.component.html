@@ -101,15 +101,34 @@
 
         <p class="legenda-obrigatorio">Campo obrigatório — informe ao menos um responsável com nome e e-mail.</p>
 
-        @for (responsavel of responsaveis(); track $index) {
+        @for (responsavel of responsaveis(); track $index; let i = $index) {
+          @let colapsavel = responsaveis().length > 1;
+          @let aberto = responsavelAberto(i);
           <div class="cartao-responsavel">
             <div class="linha-responsavel-topo">
-              <strong>Responsável {{ $index + 1 }}</strong>
-              @if (responsaveis().length > 1) {
-                <button type="button" class="botao-texto botao-texto--perigo" (click)="removerResponsavel($index)">Remover</button>
+              @if (colapsavel) {
+                <button
+                  type="button"
+                  class="titulo-responsavel"
+                  [class.aberto]="aberto"
+                  [attr.aria-expanded]="aberto"
+                  (click)="alternarResponsavel(i)"
+                >
+                  <svg class="seta-responsavel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                  <strong>{{ responsavel.nome.trim() || 'Responsável ' + (i + 1) }}</strong>
+                  @if (responsavel.responsavelFinanceiro) {
+                    <span class="selo-financeiro">Financeiro</span>
+                  }
+                </button>
+                <button type="button" class="botao-texto botao-texto--perigo" (click)="removerResponsavel(i)">Remover</button>
+              } @else {
+                <strong>Responsável {{ i + 1 }}</strong>
               }
             </div>
 
+            @if (aberto) {
             <label><span class="obrigatorio">Nome</span>
               <input
                 type="text"
@@ -163,6 +182,7 @@
                   </p>
                 }
               }
+            }
             }
           </div>
         }

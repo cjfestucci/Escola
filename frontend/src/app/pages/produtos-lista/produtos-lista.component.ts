@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { Produto } from '../../models/produto.model';
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -20,6 +20,7 @@ type EstoqueFiltro = 'todos' | 'baixo' | 'zerado';
 export class ProdutosListaComponent implements OnInit {
   private readonly produtoService = inject(ProdutoService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly notificacao = inject(NotificacaoService);
 
   readonly produtos = signal<Produto[]>([]);
@@ -55,6 +56,9 @@ export class ProdutosListaComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Atalhos do Dashboard abrem a lista já filtrada (ex.: /estoque/produtos?estoque=baixo).
+    const estoque = this.route.snapshot.queryParamMap.get('estoque');
+    if (estoque === 'baixo' || estoque === 'zerado') this.filtroEstoque.set(estoque);
     this.carregar();
   }
 

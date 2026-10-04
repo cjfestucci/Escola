@@ -1,0 +1,123 @@
+<div class="container">
+  <button type="button" class="voltar" routerLink="/campeonatos">&larr; Campeonatos</button>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+  @if (campeonato(); as c) {
+    <header class="cabecalho">
+      <h1>🏆 {{ c.nome }}</h1>
+      <p class="periodo">
+        {{ formatarDataAbsoluta(c.dataInicio) }}{{ c.dataFim ? ' a ' + formatarDataAbsoluta(c.dataFim) : '' }}
+        @if (!c.ativo) {
+          <span class="status-inativo">Inativo</span>
+        }
+      </p>
+      @if (c.observacao) {
+        <p class="observacao">{{ c.observacao }}</p>
+      }
+    </header>
+
+    <section class="painel">
+      <h2>Desempenho do clube</h2>
+      @if (!c.desempenho || c.desempenho.length === 0) {
+        <p class="vazio">Ainda não há jogos realizados neste campeonato.</p>
+      } @else {
+        <div class="tabela-rolavel">
+          <table class="tabela">
+            <thead>
+              <tr>
+                <th class="coluna-time">Turma</th>
+                <th title="Pontos (vitória 3, empate 1)">Pts</th>
+                <th title="Jogos">J</th>
+                <th title="Vitórias">V</th>
+                <th title="Empates">E</th>
+                <th title="Derrotas">D</th>
+                <th title="Gols pró">GP</th>
+                <th title="Gols contra">GC</th>
+                <th title="Saldo de gols">SG</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of c.desempenho; track d.turmaId) {
+                <tr>
+                  <td class="coluna-time">{{ d.turmaNome }}</td>
+                  <td class="destaque">{{ d.pontos }}</td>
+                  <td>{{ d.jogos }}</td>
+                  <td>{{ d.vitorias }}</td>
+                  <td>{{ d.empates }}</td>
+                  <td>{{ d.derrotas }}</td>
+                  <td>{{ d.golsPro }}</td>
+                  <td>{{ d.golsContra }}</td>
+                  <td>{{ saldo(d.golsPro, d.golsContra) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="ajuda">Só conta o nosso time (não é a tabela completa do campeonato). Vitória vale 3 pontos e empate, 1.</p>
+      }
+    </section>
+
+    <section class="painel">
+      <h2>Artilheiros</h2>
+      @if (!c.artilheiros || c.artilheiros.length === 0) {
+        <p class="vazio">Nenhum gol lançado nas súmulas ainda.</p>
+      } @else {
+        <ol class="artilheiros">
+          @for (a of c.artilheiros; track a.alunoId) {
+            <li><span>{{ a.alunoNome }}</span> <strong>{{ a.gols }} {{ a.gols === 1 ? 'gol' : 'gols' }}</strong></li>
+          }
+        </ol>
+      }
+    </section>
+
+    <section class="painel">
+      <h2>Disciplina</h2>
+      @if (c.amarelosParaSuspensao === null) {
+        <p class="vazio">Controle disciplinar desligado neste campeonato (edite o campeonato para definir o limite de amarelos).</p>
+      } @else if (!c.disciplina || c.disciplina.length === 0) {
+        <p class="vazio">Nenhum atleta suspenso ou pendurado no momento.</p>
+      } @else {
+        <ul class="lista-disciplina">
+          @for (a of c.disciplina; track a.alunoId) {
+            <li>
+              <span [class]="a.tipo === 'Suspenso' ? 'selo-suspenso' : 'selo-pendurado'">{{ a.tipo === 'Suspenso' ? '🟥 Suspenso' : '🟨 Pendurado' }}</span>
+              <div class="texto-disciplina">
+                <strong>{{ a.alunoNome }}</strong>
+                <span>{{ a.detalhe }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+      @if (c.amarelosParaSuspensao !== null) {
+        <p class="ajuda">Suspensão com {{ c.amarelosParaSuspensao }} amarelos acumulados ou cartão vermelho, no próximo jogo da turma.</p>
+      }
+    </section>
+
+    <section class="painel">
+      <h2>Jogos</h2>
+      @if (jogos().length === 0) {
+        <p class="vazio">Nenhum jogo cadastrado neste campeonato.</p>
+      } @else {
+        <ul class="lista-jogos">
+          @for (jogo of jogos(); track jogo.id) {
+            <li>
+              <a class="linha-jogo" [routerLink]="['/jogos', jogo.id, 'editar']">
+                <span class="data-jogo">{{ formatarDataAbsoluta(jogo.data) }}</span>
+                <span class="confronto">{{ jogo.turmaNome }} x {{ jogo.adversario }}</span>
+                @if (resultadoDoJogo(jogo); as r) {
+                  <span class="placar resultado--{{ r }}">{{ jogo.golsPro }} x {{ jogo.golsContra }} · {{ rotulosResultado[r] }}</span>
+                } @else {
+                  <span class="situacao">{{ jogo.status }}</span>
+                }
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+  }
+</div>

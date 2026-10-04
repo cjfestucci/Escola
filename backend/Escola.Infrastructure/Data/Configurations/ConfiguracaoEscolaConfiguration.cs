@@ -9,5 +9,6 @@ public class ConfiguracaoEscolaConfiguration : IEntityTypeConfiguration<Configur
     public void Configure(EntityTypeBuilder<ConfiguracaoEscola> builder)
     {
         builder.Property(c => c.FusoHorario).HasMaxLength(64).IsRequired();
+        builder.Property(c => c.CorPrincipal).HasMaxLength(7);
     }
 }

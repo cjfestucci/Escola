@@ -1,0 +1,203 @@
+.voltar {
+  background: none;
+  border: none;
+  color: var(--cor-primaria-escura);
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.cabecalho {
+  margin-bottom: 16px;
+
+  h1 {
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+  }
+}
+
+.periodo,
+.observacao {
+  margin: 2px 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+}
+
+.status-inativo {
+  margin-left: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  background: #fdecea;
+  color: #b3261e;
+}
+
+.painel {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--sombra);
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+  }
+}
+
+.vazio,
+.ajuda {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+}
+
+.ajuda {
+  margin-top: 8px;
+  font-size: 0.78rem;
+}
+
+.tabela-rolavel {
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    padding: 8px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--cor-borda);
+  }
+
+  th {
+    font-size: 0.75rem;
+    color: var(--cor-texto-suave);
+    text-transform: uppercase;
+  }
+
+  .coluna-time {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .destaque {
+    font-weight: 700;
+    color: var(--cor-primaria-escura);
+  }
+}
+
+.artilheiros {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    padding-left: 4px;
+
+    span {
+      margin-right: 8px;
+    }
+  }
+}
+
+.lista-disciplina {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .selo-suspenso,
+  .selo-pendurado {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+.texto-disciplina {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+
+  strong {
+    color: var(--cor-texto);
+    font-size: 0.92rem;
+  }
+}
+
+.lista-jogos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.linha-jogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.data-jogo {
+  color: var(--cor-texto-suave);
+  font-size: 0.82rem;
+}
+
+.confronto {
+  font-weight: 600;
+  flex: 1;
+}
+
+.situacao {
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.placar {
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.resultado--V {
+  background: #eafbea;
+  color: #1e7e34;
+}
+
+.resultado--E {
+  background: #f1f1f1;
+  color: #555;
+}
+
+.resultado--D {
+  background: #fdecea;
+  color: #b3261e;
+}

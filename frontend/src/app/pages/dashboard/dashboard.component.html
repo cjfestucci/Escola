@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container container--largo">
   <p class="subtitulo">
     @if (unidadeSelecionadaId()) {
       Visão da unidade <strong>{{ nomeUnidadeSelecionada() }}</strong>.
@@ -56,6 +56,9 @@
       </div>
       <span class="stat-valor">{{ resumoFinanceiro().pendentes }}</span>
       <span class="stat-rotulo">Cobranças a vencer</span>
+      @if (auth.ehFinanceiro()) {
+        <a routerLink="/financeiro/mensalidades" [queryParams]="{ status: 'pendente' }" class="stat-link">Ver a vencer →</a>
+      }
     </div>
 
     <div class="stat">
@@ -69,6 +72,9 @@
       </div>
       <span class="stat-valor">{{ resumoFinanceiro().atrasadas }}</span>
       <span class="stat-rotulo">Cobranças atrasadas</span>
+      @if (auth.ehFinanceiro()) {
+        <a routerLink="/financeiro/mensalidades" [queryParams]="{ status: 'atrasado' }" class="stat-link">Ver atrasadas →</a>
+      }
     </div>
   </div>
 
@@ -89,34 +95,143 @@
   }
 
   <div class="grade-principal">
-    <div class="painel painel--grafico">
-      <p class="painel-titulo">Recebimentos por mês</p>
-      <p class="painel-subtitulo">Últimos 6 meses</p>
+    <div class="coluna-lateral">
+      <div class="painel painel--grafico">
+        <p class="painel-titulo">Recebimentos por mês</p>
+        <p class="painel-subtitulo">Últimos 6 meses</p>
 
-      <div class="grafico-barras">
-        @for (barra of barrasControle(); track barra.chave) {
-          <div class="coluna-barra">
-            <span class="valor-barra">{{ barra.valor > 0 ? (barra.valor | number: '1.0-0') : '' }}</span>
-            <div class="barra" [class.barra--atual]="barra.atual" [style.height.%]="(barra.valor / maiorBarra()) * 100"></div>
-            <span class="rotulo-barra">{{ barra.rotulo }}</span>
-          </div>
-        }
+        <div class="grafico-barras">
+          @for (barra of barrasControle(); track barra.chave) {
+            <div class="coluna-barra">
+              <span class="valor-barra">{{ barra.valor > 0 ? (barra.valor | number: '1.0-0') : '' }}</span>
+              <div class="barra" [class.barra--atual]="barra.atual" [style.height.%]="(barra.valor / maiorBarra()) * 100"></div>
+              <span class="rotulo-barra">{{ barra.rotulo }}</span>
+            </div>
+          }
+        </div>
       </div>
+
+      @if (auth.ehFinanceiro()) {
+        <div class="painel">
+          <p class="painel-titulo">Balanço do mês</p>
+          <p class="painel-subtitulo">
+            Entradas e saídas já pagas neste mês@if (unidadeSelecionadaId()) {
+              — consolidado da instalação, contas não são separadas por unidade
+            }
+          </p>
+
+          <div class="linha-balanco">
+            <div class="item-balanco">
+              <span class="balanco-valor balanco-valor--entrada">R$ {{ balancoMes().receitas | number: '1.2-2' }}</span>
+              <span class="balanco-rotulo">Receitas</span>
+            </div>
+            <div class="item-balanco">
+              <span class="balanco-valor balanco-valor--saida">R$ {{ balancoMes().despesas | number: '1.2-2' }}</span>
+              <span class="balanco-rotulo">Despesas</span>
+            </div>
+            <div class="item-balanco">
+              <span class="balanco-valor" [class.balanco-valor--entrada]="balancoMes().saldo >= 0" [class.balanco-valor--saida]="balancoMes().saldo < 0">
+                R$ {{ balancoMes().saldo | number: '1.2-2' }}
+              </span>
+              <span class="balanco-rotulo">Saldo</span>
+            </div>
+          </div>
+
+          <div class="bloco-a-pagar">
+            <p class="a-pagar-titulo">
+              A pagar nos próximos {{ diasAPagar }} dias
+              @if (contasAPagarProximas().length > 0) {
+                <span class="a-pagar-total">R$ {{ totalAPagarProximas() | number: '1.2-2' }}</span>
+              }
+            </p>
+            @if (contasAPagarProximas().length === 0) {
+              <p class="vazio-painel">Nenhuma conta vence nesse período.</p>
+            } @else {
+              <ul class="lista-a-pagar">
+                @for (conta of contasAPagarProximas(); track conta.id) {
+                  <li>
+                    <span class="a-pagar-data">{{ formatarDataAbsoluta(conta.vencimento).slice(0, 5) }}</span>
+                    <span class="a-pagar-descricao">{{ conta.descricao }} <span class="a-pagar-fornecedor">· {{ conta.fornecedorNome }}</span></span>
+                    <span class="a-pagar-valor">R$ {{ conta.valor | number: '1.2-2' }}</span>
+                  </li>
+                }
+              </ul>
+              <a routerLink="/financeiro/contas-pagar" [queryParams]="{ status: 'pendente' }" class="stat-link">Ver contas a pagar →</a>
+            }
+          </div>
+        </div>
+      }
     </div>
 
     <div class="coluna-lateral">
+      @if (atencoes().length > 0) {
+        <div class="painel">
+          <p class="painel-titulo">⚠️ Atenção</p>
+          <ul class="lista-atencao">
+            @for (item of atencoes(); track item.texto) {
+              <li>
+                <a [routerLink]="item.rota" [queryParams]="item.consulta" class="item-atencao" [class.item-atencao--erro]="item.tom === 'erro'" [class.item-atencao--aviso]="item.tom === 'aviso'">
+                  <span>{{ item.texto }}</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
+      } @else if (auth.ehFinanceiro() && !carregando()) {
+        <div class="painel">
+          <p class="painel-titulo">✅ Tudo em dia</p>
+          <p class="vazio-painel">Nada atrasado, bloqueado ou com estoque baixo no momento.</p>
+        </div>
+      }
+
+      @if (segmentoService.mostrarCompeticoes()) {
+        <div class="painel">
+          <p class="painel-titulo">⚽ Próximos jogos</p>
+          @if (proximosJogos().length === 0) {
+            <p class="vazio-painel">Nenhum jogo agendado.</p>
+          } @else {
+            <ul class="lista-jogos">
+              @for (jogo of proximosJogos(); track jogo.id) {
+                <li>
+                  <a [routerLink]="['/jogos', jogo.id, 'editar']" class="item-jogo">
+                    <span class="jogo-data">{{ formatarDataAbsoluta(jogo.data.slice(0, 10)).slice(0, 5) }} · {{ jogo.hora.slice(0, 5) }}</span>
+                    <span class="jogo-titulo">{{ jogo.turmaNome }} x {{ jogo.adversario }}</span>
+                    <span class="jogo-detalhe">{{ rotuloMando(jogo) }}{{ jogo.campeonatoNome ? ' · ' + jogo.campeonatoNome : ' · Amistoso' }}</span>
+                    @if ((jogo.suspensos ?? 0) > 0 || (jogo.pendurados ?? 0) > 0) {
+                      <span class="jogo-selos">
+                        @if ((jogo.suspensos ?? 0) > 0) {
+                          <span class="selo-suspenso">🟥 {{ jogo.suspensos }} {{ jogo.suspensos === 1 ? 'suspenso' : 'suspensos' }}</span>
+                        }
+                        @if ((jogo.pendurados ?? 0) > 0) {
+                          <span class="selo-pendurado">🟨 {{ jogo.pendurados }} {{ jogo.pendurados === 1 ? 'pendurado' : 'pendurados' }}</span>
+                        }
+                      </span>
+                    }
+                  </a>
+                </li>
+              }
+            </ul>
+            <a routerLink="/jogos" class="stat-link">Ver todos os jogos →</a>
+          }
+        </div>
+      }
+
+    </div>
+
+    <div class="coluna-lateral coluna-lateral--secundaria">
       <div class="painel">
         <p class="painel-titulo">Resumo geral</p>
 
         <div class="linha-totais">
-          <div class="item-total">
+          <a routerLink="/matricula" class="item-total">
             <span class="avatar-total avatar-total--roxo">{{ totalPessoas() }}</span>
             <span class="rotulo-total">{{ segmentoService.rotuloPessoaPlural() }}</span>
-          </div>
-          <div class="item-total">
+          </a>
+          <a routerLink="/turmas" class="item-total">
             <span class="avatar-total avatar-total--verde">{{ totalTurmas() }}</span>
             <span class="rotulo-total">Turmas</span>
-          </div>
+          </a>
         </div>
       </div>
 

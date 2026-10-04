@@ -70,7 +70,7 @@
   }
 
   &--pendente {
-    background: #f1effc;
+    background: var(--cor-primaria-clara);
     color: var(--cor-primaria-escura);
   }
 
@@ -156,18 +156,36 @@
   flex-shrink: 0;
 }
 
+// Três colunas em tela larga (gráfico/balanço | atenção/jogos | resumo/ações/aniversários), duas em tela
+// média (a terceira passa pra baixo, em linha) e uma só no celular.
 .grade-principal {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px;
   align-items: start;
 
+  @media (max-width: 1180px) {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+
+    .coluna-lateral--secundaria {
+      grid-column: 1 / -1;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: stretch;
+
+      > .painel {
+        flex: 1 1 240px;
+      }
+    }
+  }
+
   @media (max-width: 860px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 .coluna-lateral {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -221,7 +239,7 @@
   width: 100%;
   max-width: 32px;
   min-height: 3px;
-  background: #d9d4f6;
+  background: var(--cor-primaria-suave);
   border-radius: 4px 4px 0 0;
 
   &--atual {
@@ -258,7 +276,7 @@
   font-size: 1.05rem;
 
   &--roxo {
-    background: #f1effc;
+    background: var(--cor-primaria-clara);
     color: var(--cor-primaria-escura);
   }
 
@@ -353,4 +371,181 @@
 .idade-aniversario {
   color: var(--cor-texto-suave);
   font-size: 0.78rem;
+}
+
+.item-total {
+  text-decoration: none;
+  color: inherit;
+}
+
+.vazio-painel {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+}
+
+.linha-balanco {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.item-balanco {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.balanco-valor {
+  font-size: 1.1rem;
+  font-weight: 700;
+
+  &--entrada {
+    color: #1e7e34;
+  }
+
+  &--saida {
+    color: #b3261e;
+  }
+}
+
+.balanco-rotulo {
+  font-size: 0.76rem;
+  color: var(--cor-texto-suave);
+}
+
+.bloco-a-pagar {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.a-pagar-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.a-pagar-total {
+  font-size: 0.8rem;
+  color: #b3261e;
+}
+
+.lista-a-pagar {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+}
+
+.a-pagar-data {
+  flex-shrink: 0;
+  min-width: 42px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--cor-primaria-escura);
+}
+
+.a-pagar-descricao {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.a-pagar-fornecedor {
+  color: var(--cor-texto-suave);
+}
+
+.a-pagar-valor {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.lista-atencao {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-atencao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &--erro {
+    background: #fdecea;
+    color: #b3261e;
+  }
+
+  &--aviso {
+    background: #fff4e5;
+    color: #b3730e;
+  }
+}
+
+.lista-jogos {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-jogo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.jogo-data {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--cor-primaria-escura);
+}
+
+.jogo-titulo {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.jogo-detalhe {
+  font-size: 0.76rem;
+  color: var(--cor-texto-suave);
+}
+
+.jogo-selos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
 }

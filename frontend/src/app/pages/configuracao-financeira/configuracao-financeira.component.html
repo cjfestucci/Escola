@@ -1,0 +1,104 @@
+<div class="container container--estreito">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Configurações do financeiro da escola.</p>
+    @if (configuracaoId()) {
+      <button type="button" class="botao-icone" (click)="abrirHistorico()" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+    }
+  </div>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <section class="painel-formulario">
+      <button
+        type="button"
+        class="titulo-secao"
+        [class.aberta]="pixAberto()"
+        [attr.aria-expanded]="pixAberto()"
+        aria-controls="secao-pix"
+        (click)="pixAberto.set(!pixAberto())"
+      >
+        <span>Recebimento por Pix</span>
+        <svg class="seta-secao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      @if (pixAberto()) {
+        <div class="conteudo-secao" id="secao-pix">
+          <p class="ajuda ajuda--secao">A chave Pix é usada para gerar o código de pagamento de cada mensalidade.</p>
+
+          <fieldset class="grupo-tipo">
+            <legend>Tipo da chave Pix</legend>
+            <div class="opcoes-tipo">
+              @for (tipo of tiposChave; track tipo.valor) {
+                <label class="opcao-radio">
+                  <input type="radio" name="tipoChave" [value]="tipo.valor" [(ngModel)]="tipoChave" />
+                  {{ tipo.rotulo }}
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <label>Chave Pix
+            <input
+              type="text"
+              [(ngModel)]="pixChave"
+              [placeholder]="tipoSelecionado?.placeholder ?? 'Escolha o tipo da chave acima'"
+            />
+          </label>
+          @if (tipoSelecionado; as tipo) {
+            <p class="ajuda">{{ tipo.dica }}</p>
+          }
+
+          <label>Nome do recebedor
+            <input type="text" [(ngModel)]="pixNomeRecebedor" placeholder="Nome da escola" maxlength="25" />
+          </label>
+
+          <label>Cidade
+            <input type="text" [(ngModel)]="pixCidade" placeholder="Cidade da escola" maxlength="15" />
+          </label>
+        </div>
+      }
+    </section>
+
+    <section class="painel-formulario">
+      <button
+        type="button"
+        class="titulo-secao"
+        [class.aberta]="bloqueioAberto()"
+        [attr.aria-expanded]="bloqueioAberto()"
+        aria-controls="secao-bloqueio"
+        (click)="bloqueioAberto.set(!bloqueioAberto())"
+      >
+        <span>Bloqueio por atraso</span>
+        <svg class="seta-secao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      @if (bloqueioAberto()) {
+        <div class="conteudo-secao" id="secao-bloqueio">
+          <label>Quantidade de dias para bloqueio (opcional)
+            <input type="number" [(ngModel)]="diasParaBloqueio" min="1" max="365" step="1" placeholder="Ex.: 30" />
+          </label>
+          <p class="ajuda">
+            Quando uma mensalidade em aberto passa desse número de dias de atraso, o aluno aparece como <strong>Bloqueado</strong>
+            nas listas e os responsáveis são avisados no Portal dos Pais. Ao pagar (ou cancelar) a cobrança, o bloqueio some
+            sozinho. Deixe em branco para não bloquear.
+          </p>
+        </div>
+      }
+    </section>
+
+    <div class="botoes">
+      <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+        {{ salvando() ? 'Salvando...' : 'Salvar' }}
+      </button>
+    </div>
+  }
+
+  @if (historicoAberto() && configuracaoId(); as id) {
+    <app-logs-modal entidadeTipo="ConfiguracaoFinanceira" [entidadeId]="id" titulo="Histórico das configurações financeiras" (fechar)="fecharHistorico()" />
+  }
+</div>

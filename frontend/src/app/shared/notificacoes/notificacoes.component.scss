@@ -41,7 +41,7 @@
 
   &--info {
     border-left-color: var(--cor-primaria);
-    background: #f1effc;
+    background: var(--cor-primaria-clara);
 
     .notificacao-mensagem {
       color: var(--cor-primaria-escura);

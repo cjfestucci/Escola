@@ -1,0 +1,214 @@
+<div class="container container--estreito">
+  <button type="button" class="voltar" (click)="voltar()">&larr; Jogos</button>
+
+  <h1>{{ titulo }}</h1>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    @if (cancelado) {
+      <div class="aviso-cancelado">
+        <strong>Este jogo está cancelado.</strong>
+        <span>Reabra-o na lista de jogos para editar os dados ou a convocação.</span>
+      </div>
+    }
+
+    @if (ehEdicao) {
+      <div class="abas">
+        <button type="button" class="aba" [class.ativa]="abaAtiva() === 'dados'" (click)="abaAtiva.set('dados')">Dados do jogo</button>
+        <button type="button" class="aba" [class.ativa]="abaAtiva() === 'convocacao'" (click)="abaAtiva.set('convocacao')">
+          Convocação e súmula
+        </button>
+      </div>
+    }
+
+    @if (abaAtiva() === 'dados') {
+      <div class="painel-formulario">
+        <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+        <label>Campeonato (opcional)
+          <select [(ngModel)]="campeonatoId" [disabled]="cancelado">
+            <option value="">— Amistoso (sem campeonato) —</option>
+            @for (campeonato of campeonatosDisponiveis; track campeonato.id) {
+              <option [value]="campeonato.id">{{ campeonato.nome }}</option>
+            }
+          </select>
+        </label>
+
+        <label><span class="obrigatorio">Turma</span>
+          <select [(ngModel)]="turmaId" [disabled]="cancelado || ehEdicao">
+            <option value="" disabled>Selecione...</option>
+            @for (turma of turmasDisponiveis; track turma.id) {
+              <option [value]="turma.id">{{ turma.nome }}</option>
+            }
+          </select>
+        </label>
+        @if (ehEdicao) {
+          <p class="ajuda">A turma não pode ser trocada depois de criado o jogo (a convocação é montada a partir dela).</p>
+        }
+
+        <label><span class="obrigatorio">Adversário</span>
+          <input type="text" [(ngModel)]="adversario" maxlength="150" placeholder="Ex.: Escola de Futebol Estrela" [disabled]="cancelado" />
+        </label>
+
+        <label><span class="obrigatorio">Data</span></label>
+        <div class="ancora-calendario">
+          <button type="button" class="campo-data" [disabled]="cancelado" (click)="calendarioAberto.set(!calendarioAberto())">
+            <span>{{ data ? formatarDataAbsoluta(data) : 'Selecionar data' }}</span>
+            <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="5" width="16" height="16" rx="2" />
+              <path d="M4 10h16" />
+              <path d="M8 3v4M16 3v4" />
+            </svg>
+          </button>
+          @if (calendarioAberto()) {
+            <div class="popover-calendario">
+              <app-calendario [dataSelecionada]="data || hojeIso()" (escolher)="selecionarData($event)" />
+            </div>
+          }
+        </div>
+        @if (calendarioAberto()) {
+          <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+        }
+
+        <label><span class="obrigatorio">Horário</span>
+          <app-seletor-horario [horario]="hora" (horarioChange)="hora = $event" />
+        </label>
+
+        <label>Local (opcional)
+          <input type="text" [(ngModel)]="local" maxlength="150" placeholder="Ex.: Campo do Estrela, Rua das Flores, 100" [disabled]="cancelado" />
+        </label>
+
+        <label><span class="obrigatorio">Mando de campo</span>
+          <select [(ngModel)]="mando" [disabled]="cancelado">
+            @for (m of mandos; track m.valor) {
+              <option [value]="m.valor">{{ m.rotulo }}</option>
+            }
+          </select>
+        </label>
+
+        <label><span class="obrigatorio">Situação</span>
+          <select [(ngModel)]="status" [disabled]="cancelado">
+            <option value="Agendado">Agendado</option>
+            <option value="Realizado">Realizado</option>
+          </select>
+        </label>
+
+        @if (status === 'Realizado') {
+          <div class="linha-placar">
+            <label><span class="obrigatorio">Gols do nosso time</span>
+              <input type="number" [(ngModel)]="golsPro" min="0" max="99" step="1" placeholder="0" [disabled]="cancelado" />
+            </label>
+            <span class="x">x</span>
+            <label><span class="obrigatorio">Gols do adversário</span>
+              <input type="number" [(ngModel)]="golsContra" min="0" max="99" step="1" placeholder="0" [disabled]="cancelado" />
+            </label>
+          </div>
+        }
+
+        <label>Observação (opcional)
+          <textarea [(ngModel)]="observacao" rows="3" maxlength="500" placeholder="Ponto de encontro, uniforme, ocorrências..." [disabled]="cancelado"></textarea>
+        </label>
+
+        <div class="botoes">
+          <button type="button" class="secundario" (click)="voltar()">Cancelar</button>
+          @if (!cancelado) {
+            <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+              {{ salvando() ? 'Salvando...' : 'Salvar' }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (abaAtiva() === 'convocacao' && ehEdicao) {
+      <div class="painel-formulario">
+        <div class="resumo-convocacao">
+          <strong>{{ totalConvocados }} {{ totalConvocados === 1 ? 'convocado' : 'convocados' }}</strong>
+          <span>{{ totalTitulares }} {{ totalTitulares === 1 ? 'titular' : 'titulares' }}</span>
+          @if (sumulaLiberada) {
+            <span>Gols dos atletas: {{ totalGolsAtletas }} de {{ jogo()?.golsPro }}</span>
+          }
+        </div>
+
+        @if (jogo()?.alertas?.length) {
+          <div class="alertas-disciplina">
+            <strong>⚠️ Atenção — disciplina</strong>
+            @for (alerta of jogo()!.alertas!; track alerta.alunoId) {
+              <p>
+                <span [class]="alerta.tipo === 'Suspenso' ? 'selo-suspenso' : 'selo-pendurado'">{{ alerta.tipo === 'Suspenso' ? '🟥 Suspenso' : '🟨 Pendurado' }}</span>
+                <strong>{{ alerta.alunoNome }}</strong> — {{ alerta.detalhe }}
+              </p>
+            }
+          </div>
+        }
+
+        @if (!sumulaLiberada && !cancelado) {
+          <p class="ajuda">Gols e cartões podem ser lançados depois que o jogo for marcado como Realizado (aba "Dados do jogo").</p>
+        }
+
+        @if (linhas.length === 0) {
+          <p class="vazio">Esta turma não tem atletas ativos.</p>
+        } @else {
+          @if (!cancelado) {
+            <div class="atalhos">
+              <button type="button" class="botao-texto" (click)="convocarTodos()">Convocar todos</button>
+              <button type="button" class="botao-texto" (click)="limparConvocacao()">Limpar convocação</button>
+            </div>
+          }
+
+          <ul class="lista-atletas">
+            @for (linha of linhas; track linha.alunoId) {
+              <li class="atleta" [class.atleta--convocado]="linha.convocado">
+                <label class="linha-checkbox">
+                  <input type="checkbox" [(ngModel)]="linha.convocado" [disabled]="cancelado" />
+                  <span class="nome-atleta">{{ linha.nome }}</span>
+                  @if (alertaDe(linha.alunoId); as alerta) {
+                    <span [class]="alerta.tipo === 'Suspenso' ? 'selo-suspenso' : 'selo-pendurado'">{{ alerta.tipo === 'Suspenso' ? '🟥 Suspenso' : '🟨 Pendurado' }}</span>
+                  }
+                </label>
+                @if (linha.convocado && alertaDe(linha.alunoId)?.tipo === 'Suspenso') {
+                  <p class="aviso-suspenso">Atleta suspenso para este jogo — confirme se ele deve mesmo ser convocado.</p>
+                }
+
+                @if (linha.convocado) {
+                  <div class="detalhes-atleta">
+                    <label class="linha-checkbox">
+                      <input type="checkbox" [(ngModel)]="linha.titular" [disabled]="cancelado" />
+                      Titular
+                    </label>
+
+                    @if (sumulaLiberada) {
+                      <label class="campo-pequeno">Gols
+                        <input type="number" [(ngModel)]="linha.gols" min="0" max="99" step="1" [disabled]="cancelado" />
+                      </label>
+                      <label class="campo-pequeno">Amarelos
+                        <select [(ngModel)]="linha.amarelos" [disabled]="cancelado">
+                          <option [ngValue]="0">0</option>
+                          <option [ngValue]="1">1</option>
+                          <option [ngValue]="2">2</option>
+                        </select>
+                      </label>
+                      <label class="linha-checkbox">
+                        <input type="checkbox" [(ngModel)]="linha.vermelho" [disabled]="cancelado" />
+                        Vermelho
+                      </label>
+                    }
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+
+          @if (!cancelado) {
+            <div class="botoes">
+              <button type="button" class="primario" [disabled]="salvandoConvocacao()" (click)="salvarConvocacao()">
+                {{ salvandoConvocacao() ? 'Salvando...' : 'Salvar convocação' }}
+              </button>
+            </div>
+          }
+        }
+      </div>
+    }
+  }
+</div>

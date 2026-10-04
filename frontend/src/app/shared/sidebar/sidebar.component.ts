@@ -15,7 +15,7 @@ interface SubItemNav {
 interface ItemNav {
   rotulo: string;
   rota?: string;
-  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes' | 'estoque';
+  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes' | 'estoque' | 'competicoes';
   subitens?: SubItemNav[];
 }
 
@@ -33,6 +33,14 @@ const ITEM_FINANCEIRO: ItemNav = {
     { rotulo: 'Contas a Receber', rota: '/financeiro/contas-receber' }
   ]
 };
+const ITEM_COMPETICOES: ItemNav = {
+  rotulo: 'Competições',
+  icone: 'competicoes',
+  subitens: [
+    { rotulo: 'Jogos', rota: '/jogos' },
+    { rotulo: 'Campeonatos', rota: '/campeonatos' }
+  ]
+};
 const ITEM_FORNECEDORES: ItemNav = { rotulo: 'Fornecedores', rota: '/fornecedores', icone: 'fornecedores' };
 const ITEM_ESTOQUE: ItemNav = {
   rotulo: 'Estoque',
@@ -48,7 +56,7 @@ const ITEM_CONFIGURACOES: ItemNav = {
   icone: 'configuracoes',
   subitens: [
     { rotulo: 'Geral', rota: '/configuracoes/geral' },
-    { rotulo: 'Pix', rota: '/configuracoes/pix' }
+    { rotulo: 'Financeiro', rota: '/configuracoes/financeiro' }
   ]
 };
 const ITENS_PORTAL: ItemNav[] = [
@@ -88,6 +96,7 @@ export class SidebarComponent {
     if (this.segmentoService.mostrarRotinaDiaria()) itens.push(ITEM_TURMA_ROTINA);
     if (this.segmentoService.mostrarDiarioClasse()) itens.push(ITEM_DIARIO);
     itens.push(ITEM_TURMAS_CADASTRO, { rotulo: this.segmentoService.rotuloCadastro(), rota: '/matricula', icone: 'matricula' });
+    if (this.segmentoService.mostrarCompeticoes()) itens.push(ITEM_COMPETICOES);
     if (this.auth.ehFinanceiro()) itens.push(ITEM_FORNECEDORES, ITEM_FINANCEIRO, ITEM_ESTOQUE);
     if (this.auth.ehGestao()) itens.push(ITEM_USUARIOS, ITEM_CONFIGURACOES);
     return itens;
@@ -108,7 +117,7 @@ export class SidebarComponent {
 
   private expandirGruposComRotaAtiva(): void {
     const url = this.router.url;
-    const ativos = [ITEM_FINANCEIRO, ITEM_ESTOQUE, ITEM_CONFIGURACOES].filter((item) => item.subitens?.some((sub) => url.startsWith(sub.rota)));
+    const ativos = [ITEM_COMPETICOES, ITEM_FINANCEIRO, ITEM_ESTOQUE, ITEM_CONFIGURACOES].filter((item) => item.subitens?.some((sub) => url.startsWith(sub.rota)));
     if (ativos.length === 0) return;
     this.gruposExpandidos.update((atual) => new Set([...atual, ...ativos.map((item) => item.rotulo)]));
   }

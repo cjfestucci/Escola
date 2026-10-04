@@ -6,6 +6,7 @@ using Escola.Domain.Enums;
 using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Financeiro;
 using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/alunos")]
 [Authorize]
-public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio) : ControllerBase
+public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio, IBloqueioAlunoService bloqueio) : ControllerBase
 {
     [HttpGet]
     [Authorize(Roles = GruposDePapeis.Equipe)]
@@ -28,7 +29,8 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
             query = query.Where(a => a.TurmaId == turmaId);
 
         var alunos = await query.OrderBy(a => a.Nome).ToListAsync();
-        return Ok(alunos.Select(a => a.ToDto()));
+        var bloqueados = await bloqueio.ObterBloqueadosAsync(alunos.Select(a => a.Id).ToList());
+        return Ok(alunos.Select(a => a.ToDto(bloqueados.Contains(a.Id))));
     }
 
     /// <summary>Equipe pode ver qualquer aluno; um Responsável só o(s) próprio(s) filho(s).</summary>
@@ -44,7 +46,7 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         }
 
         var aluno = await ComIncludes().FirstOrDefaultAsync(a => a.Id == id);
-        return aluno is null ? NotFound("Aluno não encontrado.") : Ok(aluno.ToDetalheDto());
+        return aluno is null ? NotFound("Aluno não encontrado.") : Ok(aluno.ToDetalheDto(await EstaBloqueadoAsync(id)));
     }
 
     [HttpPost]
@@ -70,8 +72,7 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         await db.SaveChangesAsync();
 
         var criado = await ComIncludes().FirstAsync(a => a.Id == aluno.Id);
-        return CreatedAtAction(nameof(ObterPorId), new { id = aluno.Id }, criado.ToDetalheDto() with { SenhasGeradas = senhasGeradas });
-    }
+        return CreatedAtAction(nameof(ObterPorId), new { id = aluno.Id }, criado.ToDetalheDto() with { SenhasGeradas = senhasGeradas });    }
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = GruposDePapeis.Gestao)]
@@ -111,7 +112,7 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         await db.SaveChangesAsync();
 
         var editado = await ComIncludes().FirstAsync(a => a.Id == aluno.Id);
-        return Ok(editado.ToDetalheDto() with { SenhasGeradas = senhasGeradas });
+        return Ok(editado.ToDetalheDto(await EstaBloqueadoAsync(id)) with { SenhasGeradas = senhasGeradas });
     }
 
     [HttpPost("{id:guid}/desativar")]
@@ -126,7 +127,7 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         await db.SaveChangesAsync();
 
         var atualizado = await ComIncludes().FirstAsync(a => a.Id == id);
-        return Ok(atualizado.ToDetalheDto());
+        return Ok(atualizado.ToDetalheDto(await EstaBloqueadoAsync(id)));
     }
 
     [HttpPost("{id:guid}/ativar")]
@@ -141,8 +142,10 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         await db.SaveChangesAsync();
 
         var atualizado = await ComIncludes().FirstAsync(a => a.Id == id);
-        return Ok(atualizado.ToDetalheDto());
+        return Ok(atualizado.ToDetalheDto(await EstaBloqueadoAsync(id)));
     }
+
+    private async Task<bool> EstaBloqueadoAsync(Guid alunoId) => (await bloqueio.ObterBloqueadosAsync([alunoId])).Contains(alunoId);
 
     private async Task<string?> ValidarAsync(CriarOuEditarAlunoRequest request)
     {

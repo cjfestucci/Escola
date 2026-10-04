@@ -88,6 +88,9 @@
           <span class="avatar">{{ aluno.nome.charAt(0) }}</span>
           <span class="nome">{{ aluno.nome }}</span>
           <span class="idade">{{ idade(aluno.dataNascimento) }}</span>
+          @if (aluno.bloqueado) {
+            <span class="selo-bloqueado">🔒 Bloqueado</span>
+          }
         </button>
       }
     </div>

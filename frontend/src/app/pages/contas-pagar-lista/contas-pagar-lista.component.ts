@@ -1,7 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { ContaPagar } from '../../models/conta-pagar.model';
 import { Fornecedor } from '../../models/fornecedor.model';
@@ -23,6 +23,7 @@ type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado' | 'cancelada';
 export class ContasPagarListaComponent implements OnInit {
   private readonly contaPagarService = inject(ContaPagarService);
   private readonly fornecedorService = inject(FornecedorService);
+  private readonly route = inject(ActivatedRoute);
   private readonly notificacao = inject(NotificacaoService);
 
   readonly contas = signal<ContaPagar[]>([]);
@@ -96,6 +97,9 @@ export class ContasPagarListaComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Atalhos do Dashboard abrem a lista já filtrada (ex.: /financeiro/contas-pagar?status=atrasado).
+    const status = this.route.snapshot.queryParamMap.get('status');
+    if (status === 'pendente' || status === 'pago' || status === 'atrasado' || status === 'cancelada') this.filtroStatus.set(status);
     this.fornecedorService.listar().subscribe((fornecedores) => this.fornecedores.set(fornecedores));
     this.carregar();
   }

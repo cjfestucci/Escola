@@ -1,0 +1,292 @@
+.voltar {
+  background: none;
+  border: none;
+  color: var(--cor-primaria-escura);
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: 1.3rem;
+}
+
+.aviso-cancelado {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #f1f1f1;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 12px 14px;
+  margin: 12px 0;
+  font-size: 0.88rem;
+  color: var(--cor-texto-suave);
+}
+
+.abas {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.aba {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 4px;
+  margin-bottom: -1px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+
+  &.ativa {
+    color: var(--cor-primaria-escura);
+    border-bottom-color: var(--cor-primaria);
+  }
+}
+
+.painel-formulario {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  select,
+  input[type='text'],
+  input[type='number'],
+  textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+    resize: vertical;
+  }
+}
+
+.ajuda,
+.vazio {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+}
+
+.ajuda {
+  margin-top: -8px;
+}
+
+.ancora-calendario {
+  position: relative;
+}
+
+.campo-data {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.icone-calendario {
+  width: 16px;
+  height: 16px;
+  color: var(--cor-texto-suave);
+  flex-shrink: 0;
+}
+
+.popover-calendario {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+}
+
+.backdrop-calendario {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.linha-placar {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+
+  label {
+    flex: 1;
+  }
+
+  .x {
+    padding-bottom: 12px;
+    font-weight: 700;
+    color: var(--cor-texto-suave);
+  }
+}
+
+.resumo-convocacao {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-size: 0.88rem;
+  color: var(--cor-texto-suave);
+
+  strong {
+    color: var(--cor-texto);
+    font-size: 1rem;
+  }
+}
+
+.alertas-disciplina {
+  background: #fff8e6;
+  border: 1px solid #f3dca0;
+  border-radius: var(--raio);
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: #6b4e00;
+
+  p {
+    margin: 6px 0 0;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+}
+
+.aviso-suspenso {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #b3261e;
+  padding-left: 24px;
+}
+
+.atalhos {
+  display: flex;
+  gap: 8px;
+}
+
+.botao-texto {
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 4px 6px;
+  color: var(--cor-primaria-escura);
+}
+
+.lista-atletas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.atleta {
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &--convocado {
+    border-color: var(--cor-primaria);
+    background: var(--cor-primaria-clara);
+  }
+}
+
+.painel-formulario .linha-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  color: var(--cor-texto);
+  font-weight: 600;
+
+  input {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    accent-color: var(--cor-primaria);
+  }
+}
+
+.nome-atleta {
+  font-size: 0.95rem;
+}
+
+.detalhes-atleta {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-left: 24px;
+}
+
+.painel-formulario .campo-pequeno {
+  width: 72px;
+  font-size: 0.78rem;
+
+  input,
+  select {
+    padding: 6px 8px;
+    font-size: 0.9rem;
+  }
+}
+
+.botoes {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+
+  button {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+
+  .secundario {
+    background: transparent;
+    border-color: var(--cor-borda);
+    color: var(--cor-texto-suave);
+  }
+
+  .primario {
+    background: var(--cor-primaria);
+    color: #fff;
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}

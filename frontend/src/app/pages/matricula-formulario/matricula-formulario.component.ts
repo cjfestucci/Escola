@@ -51,6 +51,8 @@ export class MatriculaFormularioComponent implements OnInit {
   readonly enviandoFoto = signal(false);
   readonly fotoUrl = signal<string | null>(null);
   readonly responsaveis = signal<ResponsavelResumo[]>([novoResponsavelVazio()]);
+  // Posições dos cartões de responsável abertos (só vale com 2+): o primeiro nasce aberto, os demais minimizados.
+  readonly responsaveisAbertos = signal<Set<number>>(new Set([0]));
   readonly calendarioNascimentoAberto = signal(false);
   readonly senhasGeradas = signal<SenhaGeradaResponsavel[]>([]);
   readonly redefinindoSenhaId = signal<string | null>(null);
@@ -213,12 +215,34 @@ export class MatriculaFormularioComponent implements OnInit {
     this.fotoUrl.set(null);
   }
 
+  /** Com um responsável só não há o que recolher; com mais de um, cada cartão tem seu toggle. */
+  responsavelAberto(indice: number): boolean {
+    return this.responsaveis().length <= 1 || this.responsaveisAbertos().has(indice);
+  }
+
+  alternarResponsavel(indice: number): void {
+    this.responsaveisAbertos.update((atual) => {
+      const proximo = new Set(atual);
+      if (proximo.has(indice)) proximo.delete(indice);
+      else proximo.add(indice);
+      return proximo;
+    });
+  }
+
   adicionarResponsavel(): void {
+    const novoIndice = this.responsaveis().length;
     this.responsaveis.update((atual) => [...atual, novoResponsavelVazio()]);
+    this.responsaveisAbertos.update((atual) => new Set(atual).add(novoIndice));
   }
 
   removerResponsavel(indice: number): void {
-    this.responsaveis.update((atual) => (atual.length > 1 ? atual.filter((_, i) => i !== indice) : atual));
+    if (this.responsaveis().length <= 1) return;
+
+    this.responsaveis.update((atual) => atual.filter((_, i) => i !== indice));
+    // O estado aberto/fechado é por posição: quem estava depois do removido desce uma posição.
+    this.responsaveisAbertos.update(
+      (atual) => new Set([...atual].filter((i) => i !== indice).map((i) => (i > indice ? i - 1 : i)))
+    );
   }
 
   atualizarResponsavel(indice: number, campo: keyof ResponsavelResumo, valor: string | boolean): void {
@@ -259,6 +283,11 @@ export class MatriculaFormularioComponent implements OnInit {
     }
     const responsaveisValidos = this.responsaveis().filter((r) => r.nome.trim() && r.email.trim());
     if (responsaveisValidos.length === 0) {
+      // Leva o usuário até o problema: aba dos responsáveis com os cartões incompletos abertos.
+      this.abaAtiva.set('responsaveis');
+      this.responsaveisAbertos.set(
+        new Set(this.responsaveis().flatMap((r, i) => (r.nome.trim() && r.email.trim() ? [] : [i])))
+      );
       this.notificacao.erro('Informe ao menos um responsável, com nome e e-mail.');
       return;
     }

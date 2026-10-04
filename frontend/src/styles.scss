@@ -1,6 +1,10 @@
 :root {
   --cor-primaria: #6c5dd3;
   --cor-primaria-escura: #5645b5;
+  // Tons claros da cor principal (fundos de destaque, hover, barras). Derivados de --cor-primaria quando a
+  // escola escolhe outra cor (ver shared/tema.ts) — por isso nada deve usar um roxo fixo em hexadecimal.
+  --cor-primaria-clara: #f1effc;
+  --cor-primaria-suave: #d9d4f6;
   --cor-fundo: #f4f6fb;
   --cor-superficie: #ffffff;
   --cor-texto: #1f2430;
@@ -61,6 +65,55 @@ button {
   font-weight: 700;
 }
 
+/* Aluno bloqueado por mensalidade em atraso (ver "Dias para bloqueio" em Configurações → Financeiro). */
+.selo-bloqueado {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #b3261e;
+  color: #fff;
+}
+
+/* Disciplina de campeonato: suspenso (vermelho) e pendurado (âmbar). */
+.selo-suspenso,
+.selo-pendurado {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.selo-suspenso {
+  background: #b3261e;
+  color: #fff;
+}
+
+.selo-pendurado {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.aviso-bloqueio {
+  background: #fdecea;
+  border: 1px solid #f5c2bf;
+  border-radius: var(--raio);
+  color: #8c1d18;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+
+  p {
+    margin: 4px 0 0;
+  }
+}
+
 .legenda-obrigatorio {
   margin: 0;
   font-size: 0.78rem;
@@ -80,5 +133,10 @@ button {
 
   &--estreito {
     max-width: 480px;
+  }
+
+  // Painéis de visão geral (Dashboard) aproveitam monitor largo em vez de ficar centrados com margem vazia.
+  &--largo {
+    max-width: 1480px;
   }
 }

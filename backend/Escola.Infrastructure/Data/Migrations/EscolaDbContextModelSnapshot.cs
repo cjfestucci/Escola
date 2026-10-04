@@ -31,6 +31,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateOnly>("DataNascimento")
                         .HasColumnType("date");
 
@@ -50,6 +53,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("TurmaId");
 
                     b.ToTable("Alunos");
@@ -66,14 +71,80 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<bool>("AutorizadoParaBuscar")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("ResponsavelFinanceiro")
                         .HasColumnType("boolean");
 
                     b.HasKey("AlunoId", "ResponsavelId");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("ResponsavelId");
 
                     b.ToTable("AlunoResponsaveis");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.Campeonato", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("AmarelosParaSuspensao")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("DataFim")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("DataInicio")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("RegistradoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.ToTable("Campeonatos");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.Cliente", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Clientes");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.Cobranca", b =>
@@ -90,6 +161,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<DateOnly?>("CanceladaEm")
                         .HasColumnType("date");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Descricao")
                         .IsRequired()
@@ -114,6 +188,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("AlunoId", "Vencimento");
 
                     b.ToTable("Cobrancas");
@@ -128,12 +204,21 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<DateTime>("AtualizadoEm")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CorPrincipal")
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)");
+
                     b.Property<string>("FusoHorario")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
 
                     b.ToTable("ConfiguracoesEscola");
                 });
@@ -147,6 +232,12 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<DateTime>("AtualizadoEm")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("DiasParaBloqueio")
+                        .HasColumnType("integer");
+
                     b.Property<string>("PixChave")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -159,7 +250,12 @@ namespace Escola.Infrastructure.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int?>("PixTipoChave")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
 
                     b.ToTable("ConfiguracoesFinanceiras");
                 });
@@ -175,6 +271,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<DateOnly?>("CanceladaEm")
                         .HasColumnType("date");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Descricao")
                         .IsRequired()
@@ -202,6 +301,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("FornecedorId");
 
                     b.HasIndex("Vencimento");
@@ -220,6 +321,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<DateOnly?>("CanceladaEm")
                         .HasColumnType("date");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Descricao")
                         .IsRequired()
@@ -248,6 +352,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("Vencimento");
 
                     b.ToTable("ContasReceber");
@@ -266,6 +372,9 @@ namespace Escola.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ContentType")
                         .IsRequired()
@@ -290,6 +399,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasIndex("AlunoId");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("DocumentosSaude");
@@ -312,6 +423,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<bool>("AutorizaUsoImagem")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CondicoesSaude")
                         .HasColumnType("text");
@@ -348,6 +462,8 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.HasIndex("AlunoId")
                         .IsUnique();
 
+                    b.HasIndex("ClienteId");
+
                     b.ToTable("FichasSaude");
                 });
 
@@ -359,6 +475,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<bool>("Ativo")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Documento")
                         .HasMaxLength(20)
@@ -379,6 +498,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.ToTable("Fornecedores");
                 });
 
@@ -386,6 +507,9 @@ namespace Escola.Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Ordem")
@@ -401,6 +525,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("RegistroDiarioClasseId");
 
                     b.ToTable("FotosDiarioClasse");
@@ -410,6 +536,9 @@ namespace Escola.Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Ordem")
@@ -425,9 +554,112 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("RegistroRotinaId");
 
                     b.ToTable("Fotos");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.Jogo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Adversario")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<Guid?>("CampeonatoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Data")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("GolsContra")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("GolsPro")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeOnly>("Hora")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("Local")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("Mando")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("RegistradoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TurmaId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampeonatoId");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("Data");
+
+                    b.HasIndex("TurmaId");
+
+                    b.ToTable("Jogos");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.JogoAtleta", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AlunoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("CartaoVermelho")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("CartoesAmarelos")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Gols")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("JogoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Titular")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlunoId");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("JogoId", "AlunoId")
+                        .IsUnique();
+
+                    b.ToTable("JogoAtletas");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.LogAuditoria", b =>
@@ -438,6 +670,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<int>("Acao")
                         .HasColumnType("integer");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateOnly?>("Data")
                         .HasColumnType("date");
@@ -465,6 +700,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("UsuarioId");
 
                     b.HasIndex("EntidadeTipo", "EntidadeId");
@@ -478,6 +715,9 @@ namespace Escola.Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
                     b.Property<DateOnly>("Data")
@@ -508,6 +748,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("FornecedorId");
 
                     b.HasIndex("UsuarioId");
@@ -525,6 +767,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<bool>("Ativo")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Codigo")
                         .HasMaxLength(50)
@@ -549,6 +794,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.ToTable("Produtos");
                 });
 
@@ -556,6 +803,9 @@ namespace Escola.Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("CriadoPorUsuarioId")
@@ -578,6 +828,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("CriadoPorUsuarioId");
 
                     b.HasIndex("TurmaId", "RegistradoEm");
@@ -599,6 +851,9 @@ namespace Escola.Infrastructure.Data.Migrations
                         .HasMaxLength(21)
                         .HasColumnType("character varying(21)");
 
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CriadoPorUsuarioId")
                         .HasColumnType("uuid");
 
@@ -610,6 +865,8 @@ namespace Escola.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
 
                     b.HasIndex("CriadoPorUsuarioId");
 
@@ -628,6 +885,9 @@ namespace Escola.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -643,7 +903,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("ClienteId", "Email")
                         .IsUnique();
 
                     b.ToTable("Responsaveis");
@@ -657,6 +919,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<bool>("Ativa")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<TimeOnly>("HorarioEntrada")
                         .HasColumnType("time without time zone");
@@ -677,6 +942,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("UnidadeId");
 
                     b.ToTable("Turmas");
@@ -690,7 +957,12 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("UsuarioId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("TurmaId", "UsuarioId");
+
+                    b.HasIndex("ClienteId");
 
                     b.HasIndex("UsuarioId");
 
@@ -705,6 +977,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<bool>("Ativa")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Endereco")
                         .HasMaxLength(200)
@@ -721,6 +996,8 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.ToTable("Unidades");
                 });
 
@@ -732,6 +1009,9 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<bool>("Ativo")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -755,10 +1035,12 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                    b.HasIndex("ClienteId");
 
                     b.HasIndex("ResponsavelId");
+
+                    b.HasIndex("ClienteId", "Email")
+                        .IsUnique();
 
                     b.ToTable("Usuarios");
                 });
@@ -818,6 +1100,12 @@ namespace Escola.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Escola.Domain.Entities.Aluno", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Turma", "Turma")
                         .WithMany("Alunos")
                         .HasForeignKey("TurmaId")
@@ -835,6 +1123,12 @@ namespace Escola.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Responsavel", "Responsavel")
                         .WithMany("Alunos")
                         .HasForeignKey("ResponsavelId")
@@ -846,6 +1140,15 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Responsavel");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Campeonato", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.Cobranca", b =>
                 {
                     b.HasOne("Escola.Domain.Entities.Aluno", "Aluno")
@@ -854,11 +1157,41 @@ namespace Escola.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Aluno");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.ConfiguracaoEscola", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.ConfiguracaoFinanceira", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.ContaPagar", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Fornecedor", "Fornecedor")
                         .WithMany("ContasPagar")
                         .HasForeignKey("FornecedorId")
@@ -868,12 +1201,27 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Fornecedor");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.ContaReceber", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.DocumentoSaude", b =>
                 {
                     b.HasOne("Escola.Domain.Entities.Aluno", "Aluno")
                         .WithMany()
                         .HasForeignKey("AlunoId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Escola.Domain.Entities.Usuario", "Usuario")
@@ -895,11 +1243,32 @@ namespace Escola.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Aluno");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.Fornecedor", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.FotoDiarioClasse", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.RegistroDiarioClasse", "RegistroDiarioClasse")
                         .WithMany("Fotos")
                         .HasForeignKey("RegistroDiarioClasseId")
@@ -911,6 +1280,12 @@ namespace Escola.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Escola.Domain.Entities.FotoRegistro", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.RegistroRotina", "RegistroRotina")
                         .WithMany("Fotos")
                         .HasForeignKey("RegistroRotinaId")
@@ -920,8 +1295,63 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("RegistroRotina");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Jogo", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Campeonato", "Campeonato")
+                        .WithMany("Jogos")
+                        .HasForeignKey("CampeonatoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Turma", "Turma")
+                        .WithMany()
+                        .HasForeignKey("TurmaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Campeonato");
+
+                    b.Navigation("Turma");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.JogoAtleta", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Aluno", "Aluno")
+                        .WithMany()
+                        .HasForeignKey("AlunoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Jogo", "Jogo")
+                        .WithMany("Convocados")
+                        .HasForeignKey("JogoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Aluno");
+
+                    b.Navigation("Jogo");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.LogAuditoria", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
@@ -933,6 +1363,12 @@ namespace Escola.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Escola.Domain.Entities.MovimentacaoEstoque", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Fornecedor", "Fornecedor")
                         .WithMany()
                         .HasForeignKey("FornecedorId")
@@ -957,8 +1393,23 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Produto", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.RegistroDiarioClasse", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Usuario", "CriadoPor")
                         .WithMany()
                         .HasForeignKey("CriadoPorUsuarioId")
@@ -984,6 +1435,12 @@ namespace Escola.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Usuario", "CriadoPor")
                         .WithMany()
                         .HasForeignKey("CriadoPorUsuarioId")
@@ -995,8 +1452,23 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("CriadoPor");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Responsavel", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.Turma", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Unidade", "Unidade")
                         .WithMany("Turmas")
                         .HasForeignKey("UnidadeId")
@@ -1008,6 +1480,12 @@ namespace Escola.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Escola.Domain.Entities.TurmaEducador", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Turma", "Turma")
                         .WithMany("Educadores")
                         .HasForeignKey("TurmaId")
@@ -1025,8 +1503,23 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Unidade", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.Usuario", b =>
                 {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Escola.Domain.Entities.Responsavel", "Responsavel")
                         .WithMany()
                         .HasForeignKey("ResponsavelId")
@@ -1044,9 +1537,19 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Responsaveis");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.Campeonato", b =>
+                {
+                    b.Navigation("Jogos");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.Fornecedor", b =>
                 {
                     b.Navigation("ContasPagar");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.Jogo", b =>
+                {
+                    b.Navigation("Convocados");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.Produto", b =>

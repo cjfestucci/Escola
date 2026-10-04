@@ -18,8 +18,11 @@ public static class CobrancaMapper
         c.CanceladaEm);
 
     public static ConfiguracaoFinanceiraDto ToDto(this ConfiguracaoFinanceira c) => new(
+        c.Id == Guid.Empty ? null : c.Id,
         c.PixChave,
+        c.PixTipoChave,
         c.PixNomeRecebedor,
         c.PixCidade,
+        c.DiasParaBloqueio,
         !string.IsNullOrWhiteSpace(c.PixChave) && !string.IsNullOrWhiteSpace(c.PixNomeRecebedor) && !string.IsNullOrWhiteSpace(c.PixCidade));
 }

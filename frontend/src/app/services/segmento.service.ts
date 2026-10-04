@@ -30,6 +30,7 @@ export class SegmentoService {
 
   readonly mostrarRotinaDiaria = computed(() => !this.ehClube());
   readonly mostrarDiarioClasse = computed(() => !this.ehClube());
+  readonly mostrarCompeticoes = computed(() => this.ehClube());
 
   definir(segmento: Segmento): void {
     this._segmento.set(segmento);

@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno, rotuloPosicao } from '../../models/aluno.model';
 import { AlunoService } from '../../services/aluno.service';
@@ -16,7 +16,7 @@ interface OpcaoTurma {
   nome: string;
 }
 
-type StatusFiltro = 'todos' | 'ativos' | 'inativos';
+type StatusFiltro = 'todos' | 'ativos' | 'inativos' | 'bloqueados';
 
 @Component({
   selector: 'app-matricula-lista',
@@ -27,6 +27,7 @@ type StatusFiltro = 'todos' | 'ativos' | 'inativos';
 export class MatriculaListaComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly notificacao = inject(NotificacaoService);
   protected readonly auth = inject(AuthService);
   protected readonly segmentoService = inject(SegmentoService);
@@ -56,7 +57,11 @@ export class MatriculaListaComponent implements OnInit {
     return this.alunos().filter((aluno) => {
       const bateNome = !nome || aluno.nome.toLowerCase().includes(nome);
       const bateTurma = !turmaId || aluno.turmaId === turmaId;
-      const bateStatus = status === 'todos' || (status === 'ativos' ? aluno.ativo : !aluno.ativo);
+      const bateStatus =
+        status === 'todos' ||
+        (status === 'ativos' && aluno.ativo) ||
+        (status === 'inativos' && !aluno.ativo) ||
+        (status === 'bloqueados' && !!aluno.bloqueado);
       return bateNome && bateTurma && bateStatus;
     });
   });
@@ -73,6 +78,9 @@ export class MatriculaListaComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Atalhos do Dashboard abrem a lista já filtrada (ex.: /matricula?status=bloqueados).
+    const status = this.route.snapshot.queryParamMap.get('status');
+    if (status === 'ativos' || status === 'inativos' || status === 'bloqueados') this.filtroStatus.set(status);
     this.carregar();
   }
 

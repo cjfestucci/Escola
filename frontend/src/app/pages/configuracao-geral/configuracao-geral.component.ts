@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FUSOS_HORARIOS } from '../../models/configuracao-escola.model';
 import { ConfiguracaoEscolaService } from '../../services/configuracao-escola.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
+import { COR_PADRAO, CORES_SUGERIDAS, aplicarTema, corValida, normalizarCor, problemaDaCor } from '../../shared/tema';
 
 @Component({
   selector: 'app-configuracao-geral',
@@ -12,7 +13,7 @@ import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component
   templateUrl: './configuracao-geral.component.html',
   styleUrl: './configuracao-geral.component.scss'
 })
-export class ConfiguracaoGeralComponent implements OnInit {
+export class ConfiguracaoGeralComponent implements OnInit, OnDestroy {
   private readonly configuracaoService = inject(ConfiguracaoEscolaService);
   private readonly notificacao = inject(NotificacaoService);
 
@@ -24,11 +25,27 @@ export class ConfiguracaoGeralComponent implements OnInit {
   fusoHorario = '';
   fusos = FUSOS_HORARIOS;
 
+  protected readonly coresSugeridas = CORES_SUGERIDAS;
+  protected readonly corPadrao = COR_PADRAO;
+
+  /** Cor escolhida na tela (null = padrão do produto). Aplicada ao vivo como prévia; só vale depois de salvar. */
+  readonly corEscolhida = signal<string | null>(null);
+  readonly corTexto = signal('');
+  private corSalva: string | null = null;
+
+  readonly problemaCor = computed(() => {
+    const texto = this.corTexto().trim();
+    return texto ? problemaDaCor(normalizarCor(texto)) : null;
+  });
+
   ngOnInit(): void {
     this.configuracaoService.obter().subscribe({
       next: (config) => {
         this.fusoHorario = config.fusoHorario;
         this.configuracaoId.set(config.id);
+        this.corSalva = config.corPrincipal;
+        this.corEscolhida.set(config.corPrincipal);
+        this.corTexto.set(config.corPrincipal ?? '');
         // Fuso salvo por fora da lista (ex.: direto na API) continua aparecendo como opção
         if (!this.fusos.some((f) => f.valor === config.fusoHorario)) {
           this.fusos = [...this.fusos, { valor: config.fusoHorario, rotulo: config.fusoHorario }];
@@ -42,11 +59,47 @@ export class ConfiguracaoGeralComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    // Saiu sem salvar: desfaz a prévia e volta pra cor que está valendo de fato.
+    aplicarTema(this.corSalva);
+  }
+
+  escolherSugerida(cor: string): void {
+    this.definirCor(cor === COR_PADRAO ? null : cor);
+    this.corTexto.set(cor === COR_PADRAO ? '' : cor);
+  }
+
+  restaurarPadrao(): void {
+    this.definirCor(null);
+    this.corTexto.set('');
+  }
+
+  digitarCor(texto: string): void {
+    this.corTexto.set(texto);
+    const cor = normalizarCor(texto);
+    // Só vira prévia uma cor completa e legível; enquanto digita, a tela segue com a última cor válida.
+    if (corValida(cor) && !problemaDaCor(cor)) this.definirCor(cor === COR_PADRAO ? null : cor);
+  }
+
+  private definirCor(cor: string | null): void {
+    this.corEscolhida.set(cor);
+    aplicarTema(cor);
+  }
+
   salvar(): void {
+    const problema = this.problemaCor();
+    if (problema) {
+      this.notificacao.erro(problema);
+      return;
+    }
+
     this.salvando.set(true);
-    this.configuracaoService.editar(this.fusoHorario).subscribe({
+    this.configuracaoService.editar(this.fusoHorario, this.corEscolhida()).subscribe({
       next: (config) => {
         this.configuracaoId.set(config.id);
+        this.corSalva = config.corPrincipal;
+        this.corEscolhida.set(config.corPrincipal);
+        this.corTexto.set(config.corPrincipal ?? '');
         this.salvando.set(false);
         this.notificacao.sucesso('Configuração salva com sucesso.');
       },

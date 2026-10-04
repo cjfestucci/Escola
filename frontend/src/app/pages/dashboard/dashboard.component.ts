@@ -4,13 +4,21 @@ import { RouterLink } from '@angular/router';
 
 import { Aluno, Turma } from '../../models/aluno.model';
 import { Cobranca } from '../../models/cobranca.model';
+import { Jogo, ROTULOS_MANDO } from '../../models/competicao.model';
+import { ContaPagar } from '../../models/conta-pagar.model';
+import { ContaReceber } from '../../models/conta-receber.model';
+import { Produto } from '../../models/produto.model';
 import { Unidade } from '../../models/unidade.model';
 import { AlunoService } from '../../services/aluno.service';
 import { AuthService } from '../../services/auth.service';
+import { ContaPagarService } from '../../services/conta-pagar.service';
+import { ContaReceberService } from '../../services/conta-receber.service';
 import { FinanceiroService } from '../../services/financeiro.service';
+import { JogoService } from '../../services/jogo.service';
+import { ProdutoService } from '../../services/produto.service';
 import { SegmentoService } from '../../services/segmento.service';
 import { UnidadeService } from '../../services/unidade.service';
-import { hojeIso } from '../../shared/data-utils';
+import { formatarDataAbsoluta, hojeIso, somarDias } from '../../shared/data-utils';
 
 interface BarraMes {
   chave: string;
@@ -25,6 +33,16 @@ interface Aniversariante {
   idadeCompleta: number;
 }
 
+interface Atencao {
+  texto: string;
+  rota: string;
+  consulta: Record<string, string>;
+  tom: 'erro' | 'aviso';
+}
+
+/** Quantos dias à frente entram em "A pagar nos próximos dias". */
+const DIAS_A_PAGAR = 7;
+
 const NOMES_MES_CURTO = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 @Component({
@@ -37,6 +55,10 @@ export class DashboardComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly financeiroService = inject(FinanceiroService);
   private readonly unidadeService = inject(UnidadeService);
+  private readonly contaPagarService = inject(ContaPagarService);
+  private readonly contaReceberService = inject(ContaReceberService);
+  private readonly produtoService = inject(ProdutoService);
+  private readonly jogoService = inject(JogoService);
   protected readonly auth = inject(AuthService);
   protected readonly segmentoService = inject(SegmentoService);
 
@@ -44,7 +66,17 @@ export class DashboardComponent implements OnInit {
   readonly turmas = signal<Turma[]>([]);
   readonly unidades = signal<Unidade[]>([]);
   readonly cobrancas = signal<Cobranca[]>([]);
+  readonly contasPagar = signal<ContaPagar[]>([]);
+  readonly contasReceber = signal<ContaReceber[]>([]);
+  readonly produtos = signal<Produto[]>([]);
+  readonly jogos = signal<Jogo[]>([]);
   readonly carregando = signal(true);
+
+  protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
+  protected readonly diasAPagar = DIAS_A_PAGAR;
+  protected rotuloMando(jogo: Jogo): string {
+    return ROTULOS_MANDO[jogo.mando];
+  }
 
   readonly unidadeSelecionadaId = signal<string | null>(null);
 
@@ -93,7 +125,8 @@ export class DashboardComponent implements OnInit {
 
   readonly resumoFinanceiro = computed(() => {
     const hoje = hojeIso();
-    const emAberto = this.cobrancasFiltradas().filter((c) => !c.paga);
+    // Cancelada não é cobrança em aberto: some de "a vencer", "atrasadas" e do total em aberto.
+    const emAberto = this.cobrancasFiltradas().filter((c) => !c.paga && !c.cancelada);
     const pendentes = emAberto.filter((c) => c.vencimento >= hoje);
     const atrasadas = emAberto.filter((c) => c.vencimento < hoje);
     return {
@@ -159,6 +192,98 @@ export class DashboardComponent implements OnInit {
       .sort((a, b) => a.dia - b.dia);
   });
 
+  // Contas a pagar/receber e estoque são da instalação inteira (não carregam Unidade), então o balanço
+  // e os alertas dessas áreas ficam consolidados mesmo com uma Unidade selecionada.
+  readonly balancoMes = computed(() => {
+    const chave = hojeIso().slice(0, 7);
+    const mensalidades = this.cobrancas()
+      .filter((c) => c.paga && !c.cancelada && c.pagoEm?.slice(0, 7) === chave)
+      .reduce((soma, c) => soma + c.valor, 0);
+    const outras = this.contasReceber()
+      .filter((c) => c.recebida && !c.cancelada && c.recebidoEm?.slice(0, 7) === chave)
+      .reduce((soma, c) => soma + c.valor, 0);
+    const despesas = this.contasPagar()
+      .filter((c) => c.paga && !c.cancelada && c.pagoEm?.slice(0, 7) === chave)
+      .reduce((soma, c) => soma + c.valor, 0);
+    const receitas = mensalidades + outras;
+    return { receitas, despesas, saldo: receitas - despesas };
+  });
+
+  private readonly contasPagarEmAberto = computed(() => this.contasPagar().filter((c) => !c.paga && !c.cancelada));
+
+  readonly contasPagarAtrasadas = computed(() => {
+    const hoje = hojeIso();
+    return this.contasPagarEmAberto().filter((c) => c.vencimento < hoje);
+  });
+
+  readonly contasAPagarProximas = computed(() => {
+    const hoje = hojeIso();
+    const limite = somarDias(hoje, DIAS_A_PAGAR);
+    return this.contasPagarEmAberto()
+      .filter((c) => c.vencimento >= hoje && c.vencimento <= limite)
+      .sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+  });
+
+  readonly totalAPagarProximas = computed(() => this.contasAPagarProximas().reduce((soma, c) => soma + c.valor, 0));
+
+  readonly atletasBloqueados = computed(() => this.alunosFiltrados().filter((a) => a.ativo && a.bloqueado).length);
+  readonly produtosEstoqueBaixo = computed(() => this.produtos().filter((p) => p.ativo && p.estoqueBaixo).length);
+  readonly produtosSemEstoque = computed(() => this.produtos().filter((p) => p.ativo && p.saldoAtual <= 0).length);
+
+  readonly proximosJogos = computed(() => {
+    const hoje = hojeIso();
+    const unidadeId = this.unidadeSelecionadaId();
+    const porTurma = this.mapaTurmaParaUnidade();
+    return this.jogos()
+      .filter((j) => j.status === 'Agendado' && j.data.slice(0, 10) >= hoje)
+      .filter((j) => !unidadeId || porTurma.get(j.turmaId) === unidadeId)
+      .sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora))
+      .slice(0, 3);
+  });
+
+  /** Pendências que pedem uma ação, cada uma levando pra tela já filtrada. Só entra o que tem ocorrência. */
+  readonly atencoes = computed<Atencao[]>(() => {
+    const itens: Atencao[] = [];
+    const bloqueados = this.atletasBloqueados();
+    if (bloqueados > 0) {
+      const pessoa = this.segmentoService.rotuloPessoa().toLowerCase();
+      itens.push({
+        texto: `${bloqueados} ${bloqueados === 1 ? `${pessoa} bloqueado` : `${this.segmentoService.rotuloPessoaPlural().toLowerCase()} bloqueados`} por atraso`,
+        rota: '/matricula',
+        consulta: { status: 'bloqueados' },
+        tom: 'erro'
+      });
+    }
+    const atrasadasPagar = this.contasPagarAtrasadas().length;
+    if (atrasadasPagar > 0) {
+      itens.push({
+        texto: `${atrasadasPagar} ${atrasadasPagar === 1 ? 'conta a pagar atrasada' : 'contas a pagar atrasadas'}`,
+        rota: '/financeiro/contas-pagar',
+        consulta: { status: 'atrasado' },
+        tom: 'erro'
+      });
+    }
+    const semEstoque = this.produtosSemEstoque();
+    if (semEstoque > 0) {
+      itens.push({
+        texto: `${semEstoque} ${semEstoque === 1 ? 'produto sem estoque' : 'produtos sem estoque'}`,
+        rota: '/estoque/produtos',
+        consulta: { estoque: 'zerado' },
+        tom: 'erro'
+      });
+    }
+    const baixo = this.produtosEstoqueBaixo();
+    if (baixo > 0) {
+      itens.push({
+        texto: `${baixo} ${baixo === 1 ? 'produto com estoque baixo' : 'produtos com estoque baixo'}`,
+        rota: '/estoque/produtos',
+        consulta: { estoque: 'baixo' },
+        tom: 'aviso'
+      });
+    }
+    return itens;
+  });
+
   selecionarUnidade(unidadeId: string | null): void {
     this.unidadeSelecionadaId.set(unidadeId);
   }
@@ -176,8 +301,16 @@ export class DashboardComponent implements OnInit {
         },
         error: () => this.carregando.set(false)
       });
+      // Carregamentos secundários: se algum falhar, só o painel correspondente fica vazio.
+      this.contaPagarService.listar().subscribe({ next: (contas) => this.contasPagar.set(contas), error: () => undefined });
+      this.contaReceberService.listar().subscribe({ next: (contas) => this.contasReceber.set(contas), error: () => undefined });
+      this.produtoService.listar().subscribe({ next: (produtos) => this.produtos.set(produtos), error: () => undefined });
     } else {
       this.carregando.set(false);
+    }
+
+    if (this.segmentoService.mostrarCompeticoes()) {
+      this.jogoService.listar().subscribe({ next: (jogos) => this.jogos.set(jogos), error: () => undefined });
     }
   }
 }

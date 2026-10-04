@@ -6,6 +6,13 @@
       <span class="avatar">{{ a.nome.charAt(0) }}</span>
       <h1>{{ a.nome }}</h1>
     </header>
+
+    @if (a.bloqueado) {
+      <div class="aviso-bloqueio">
+        <strong>🔒 Bloqueado por mensalidade em atraso.</strong>
+        <p>Para regularizar, encaminhe o responsável ao financeiro da escola.</p>
+      </div>
+    }
   }
 
   @if (alertasSaude().length > 0) {

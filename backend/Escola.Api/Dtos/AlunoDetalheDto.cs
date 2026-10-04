@@ -12,12 +12,14 @@ public record AlunoDetalheDto(
     bool Ativo,
     IReadOnlyList<ResponsavelResumoDto> Responsaveis,
     IReadOnlyList<SenhaGeradaDto> SenhasGeradas,
-    PosicaoAtleta? Posicao = null)
+    PosicaoAtleta? Posicao = null,
+    bool Bloqueado = false)
 {
     public AlunoDetalheDto(
         Guid Id, string Nome, DateOnly DataNascimento, string? FotoUrl, Guid TurmaId,
-        string TurmaNome, bool Ativo, IReadOnlyList<ResponsavelResumoDto> Responsaveis, PosicaoAtleta? Posicao = null)
-        : this(Id, Nome, DataNascimento, FotoUrl, TurmaId, TurmaNome, Ativo, Responsaveis, [], Posicao)
+        string TurmaNome, bool Ativo, IReadOnlyList<ResponsavelResumoDto> Responsaveis,
+        PosicaoAtleta? Posicao = null, bool Bloqueado = false)
+        : this(Id, Nome, DataNascimento, FotoUrl, TurmaId, TurmaNome, Ativo, Responsaveis, [], Posicao, Bloqueado)
     {
     }
 }

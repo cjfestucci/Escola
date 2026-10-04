@@ -4,6 +4,7 @@ using System.Text;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
 using Escola.Infrastructure.Auth;
+using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,14 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/auth")]
 [AllowAnonymous]
-public class AuthController(EscolaDbContext db, IConfiguration config) : ControllerBase
+public class AuthController(EscolaDbContext db, IConfiguration config, IClienteAtual clienteAtual) : ControllerBase
 {
     [HttpPost("entrar")]
     public async Task<ActionResult<LoginRespostaDto>> Entrar(LoginRequest request)
     {
+        if (!await db.Clientes.AnyAsync(c => c.Id == clienteAtual.Id && c.Ativo))
+            return Unauthorized("O acesso desta escola está suspenso. Entre em contato com o suporte.");
+
         var email = request.Email.Trim().ToLowerInvariant();
         var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
@@ -42,7 +46,8 @@ public class AuthController(EscolaDbContext db, IConfiguration config) : Control
         {
             new(ClaimTypes.NameIdentifier, usuarioId.ToString()),
             new(ClaimTypes.Name, nome),
-            new(ClaimTypes.Role, papel)
+            new(ClaimTypes.Role, papel),
+            new("clienteId", clienteAtual.Id.ToString())
         };
         if (responsavelId is { } id)
             claims.Add(new Claim("responsavelId", id.ToString()));

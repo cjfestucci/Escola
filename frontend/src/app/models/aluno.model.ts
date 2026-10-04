@@ -61,6 +61,8 @@ export interface Aluno {
   turmaNome: string;
   ativo: boolean;
   posicao?: PosicaoAtleta | null;
+  /** Derivado pelo backend das mensalidades em atraso e da configuração "dias para bloqueio" — não é editável. */
+  bloqueado?: boolean;
 }
 
 export interface ResponsavelResumo {

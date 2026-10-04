@@ -25,17 +25,24 @@ export interface EditarCobranca {
   vencimento: string;
 }
 
+export type TipoChavePix = 'Cpf' | 'Cnpj' | 'Telefone' | 'Email' | 'Aleatoria';
+
 export interface ConfiguracaoFinanceira {
+  id: string | null;
   pixChave: string | null;
+  pixTipoChave: TipoChavePix | null;
   pixNomeRecebedor: string | null;
   pixCidade: string | null;
+  diasParaBloqueio: number | null;
   configurado: boolean;
 }
 
 export interface EditarConfiguracaoFinanceira {
   pixChave: string | null;
+  pixTipoChave: TipoChavePix | null;
   pixNomeRecebedor: string | null;
   pixCidade: string | null;
+  diasParaBloqueio: number | null;
 }
 
 export interface PixCobranca {

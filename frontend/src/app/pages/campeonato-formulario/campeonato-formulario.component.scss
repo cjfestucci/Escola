@@ -1,0 +1,127 @@
+.voltar {
+  background: none;
+  border: none;
+  color: var(--cor-primaria-escura);
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: 1.3rem;
+}
+
+.painel-formulario {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  input[type='text'],
+  input[type='number'],
+  textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+    resize: vertical;
+  }
+}
+
+.ajuda {
+  margin: -8px 0 0;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.ancora-calendario {
+  position: relative;
+}
+
+.campo-data {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+}
+
+.icone-calendario {
+  width: 16px;
+  height: 16px;
+  color: var(--cor-texto-suave);
+  flex-shrink: 0;
+}
+
+.popover-calendario {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+}
+
+.backdrop-calendario {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.botao-texto {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0;
+  margin-top: -8px;
+  color: var(--cor-texto-suave);
+}
+
+.botoes {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+
+  button {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+
+  .secundario {
+    background: transparent;
+    border-color: var(--cor-borda);
+    color: var(--cor-texto-suave);
+  }
+
+  .primario {
+    background: var(--cor-primaria);
+    color: #fff;
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}

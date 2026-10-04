@@ -1,6 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 import { Aluno, Turma } from '../../models/aluno.model';
 import { Cobranca } from '../../models/cobranca.model';
@@ -23,6 +24,7 @@ type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado' | 'cancelada';
 export class FinanceiroListaComponent implements OnInit {
   private readonly financeiroService = inject(FinanceiroService);
   private readonly alunoService = inject(AlunoService);
+  private readonly route = inject(ActivatedRoute);
   private readonly notificacao = inject(NotificacaoService);
 
   readonly cobrancas = signal<Cobranca[]>([]);
@@ -103,6 +105,9 @@ export class FinanceiroListaComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Atalhos do Dashboard abrem a lista já filtrada (ex.: /financeiro/mensalidades?status=atrasado).
+    const status = this.route.snapshot.queryParamMap.get('status');
+    if (status === 'pendente' || status === 'pago' || status === 'atrasado' || status === 'cancelada') this.filtroStatus.set(status);
     this.alunoService.listarTurmas().subscribe((turmas) => this.turmas.set(turmas));
     this.alunoService.listarAlunos().subscribe((alunos) => this.alunos.set(alunos));
     this.carregar();

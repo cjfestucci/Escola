@@ -172,6 +172,52 @@ h1 {
   color: var(--cor-texto);
 }
 
+.titulo-responsavel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--cor-texto);
+  text-align: left;
+
+  strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.seta-responsavel {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--cor-texto-suave);
+  transition: transform 0.15s;
+  transform: rotate(-90deg);
+
+  .aberto & {
+    transform: rotate(0deg);
+  }
+}
+
+.selo-financeiro {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+}
+
 .linha-checkbox {
   flex-direction: row !important;
   align-items: center;

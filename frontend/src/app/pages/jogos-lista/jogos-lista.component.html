@@ -1,0 +1,133 @@
+<div class="container">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Jogos e amistosos das turmas do clube.</p>
+    <button type="button" class="botao-primario" (click)="novo()">+ Novo jogo</button>
+  </div>
+
+  @if (!carregando() && jogos().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por adversário..."
+        [ngModel]="filtroAdversario()"
+        (ngModelChange)="filtroAdversario.set($event)"
+      />
+      <select class="campo-filtro" [ngModel]="filtroTurmaId()" (ngModelChange)="filtroTurmaId.set($event)">
+        <option value="">Todas as turmas</option>
+        @for (turma of turmasDisponiveis(); track turma.id) {
+          <option [value]="turma.id">{{ turma.nome }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroCampeonatoId()" (ngModelChange)="filtroCampeonatoId.set($event)">
+        <option value="">Todos os campeonatos</option>
+        <option value="amistoso">Amistosos (sem campeonato)</option>
+        @for (campeonato of campeonatosDisponiveis(); track campeonato.id) {
+          <option [value]="campeonato.id">{{ campeonato.nome }}</option>
+        }
+      </select>
+      <select class="campo-filtro" [ngModel]="filtroSituacao()" (ngModelChange)="filtroSituacao.set($event)">
+        <option value="todas">Todas as situações</option>
+        <option value="Agendado">Agendados</option>
+        <option value="Realizado">Realizados</option>
+        <option value="Cancelado">Cancelados</option>
+      </select>
+      @if (temFiltro()) {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
+  <ng-template #cartaoJogo let-jogo>
+    <li class="cartao-jogo" [class.cartao-jogo--cancelado]="jogo.status === 'Cancelado'">
+      <button type="button" class="info-jogo" (click)="abrir(jogo)">
+        <span class="quando">{{ formatarDataAbsoluta(jogo.data) }} · {{ jogo.hora.slice(0, 5) }}</span>
+        <strong>{{ jogo.turmaNome }} x {{ jogo.adversario }}</strong>
+        <span class="detalhe">
+          {{ rotuloMando(jogo.mando) }}{{ jogo.local ? ' · ' + jogo.local : '' }}
+          · {{ jogo.campeonatoNome ?? 'Amistoso' }}
+          @if (jogo.quantidadeConvocados > 0) {
+            · {{ jogo.quantidadeConvocados }} {{ jogo.quantidadeConvocados === 1 ? 'convocado' : 'convocados' }}
+          }
+        </span>
+        @if (jogo.suspensos > 0 || jogo.pendurados > 0) {
+          <span class="alertas-disciplina">
+            @if (jogo.suspensos > 0) {
+              <span class="selo-suspenso">🟥 {{ jogo.suspensos }} {{ jogo.suspensos === 1 ? 'suspenso' : 'suspensos' }}</span>
+            }
+            @if (jogo.pendurados > 0) {
+              <span class="selo-pendurado">🟨 {{ jogo.pendurados }} {{ jogo.pendurados === 1 ? 'pendurado' : 'pendurados' }}</span>
+            }
+          </span>
+        }
+      </button>
+
+      <div class="lado-direito">
+        @if (resultadoDoJogo(jogo); as r) {
+          <span class="placar resultado--{{ r }}">{{ jogo.golsPro }} x {{ jogo.golsContra }} · {{ rotulosResultado[r] }}</span>
+        } @else if (jogo.status === 'Cancelado') {
+          <span class="situacao situacao--cancelado">Cancelado</span>
+        } @else {
+          <span class="situacao">{{ jogo.status }}</span>
+        }
+
+        @if (confirmandoCancelamentoId() === jogo.id) {
+          <div class="confirmar-cancelamento">
+            <span>Cancelar o jogo?</span>
+            <button type="button" class="botao-texto" (click)="cancelarCancelamento()">Voltar</button>
+            <button
+              type="button"
+              class="botao-texto botao-texto--perigo"
+              [disabled]="processandoId() === jogo.id"
+              (click)="confirmarCancelamento(jogo)"
+            >
+              {{ processandoId() === jogo.id ? 'Cancelando...' : 'Cancelar jogo' }}
+            </button>
+          </div>
+        } @else {
+          <div class="acoes">
+            <button type="button" class="botao-icone" (click)="abrirHistorico(jogo.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+            @if (jogo.status === 'Cancelado') {
+              <button type="button" class="botao-texto" [disabled]="processandoId() === jogo.id" (click)="reabrir(jogo)">Reabrir</button>
+            } @else {
+              <button type="button" class="botao-icone" (click)="abrir(jogo)" aria-label="Abrir jogo" title="Abrir jogo">✏️</button>
+              @if (jogo.status === 'Agendado') {
+                <button type="button" class="botao-icone" (click)="pedirConfirmacaoCancelamento(jogo.id)" aria-label="Cancelar jogo" title="Cancelar jogo">🚫</button>
+              }
+            }
+          </div>
+        }
+      </div>
+    </li>
+  </ng-template>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (jogos().length === 0) {
+    <p class="vazio">Nenhum jogo cadastrado ainda.</p>
+  } @else if (jogosFiltrados().length === 0) {
+    <p class="vazio">Nenhum jogo encontrado com esses filtros.</p>
+  } @else {
+    @if (proximos().length > 0) {
+      <h2 class="titulo-grupo">Próximos jogos</h2>
+      <ul class="lista-jogos">
+        @for (jogo of proximos(); track jogo.id) {
+          <ng-container *ngTemplateOutlet="cartaoJogo; context: { $implicit: jogo }" />
+        }
+      </ul>
+    }
+
+    @if (anteriores().length > 0) {
+      <h2 class="titulo-grupo">Anteriores</h2>
+      <ul class="lista-jogos">
+        @for (jogo of anteriores(); track jogo.id) {
+          <ng-container *ngTemplateOutlet="cartaoJogo; context: { $implicit: jogo }" />
+        }
+      </ul>
+    }
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Jogo" [entidadeId]="id" titulo="Histórico do jogo" (fechar)="fecharHistorico()" />
+  }
+</div>

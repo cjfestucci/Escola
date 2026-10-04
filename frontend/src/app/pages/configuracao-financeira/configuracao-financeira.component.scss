@@ -1,0 +1,156 @@
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0;
+}
+
+.painel-formulario {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  input[type='text'],
+  input[type='number'] {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+  }
+
+}
+
+.titulo-secao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+.seta-secao {
+  width: 18px;
+  height: 18px;
+  color: var(--cor-texto-suave);
+  transition: transform 0.15s;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+
+  .aberta & {
+    transform: rotate(0deg);
+  }
+}
+
+.conteudo-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cabecalho-pagina {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.botao-icone {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  padding: 4px;
+}
+
+.grupo-tipo {
+  border: none;
+  margin: 0;
+  padding: 0;
+
+  legend {
+    padding: 0;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+}
+
+.opcoes-tipo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.painel-formulario .opcao-radio {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  font-size: 0.88rem;
+  color: var(--cor-texto);
+  cursor: pointer;
+
+  &:has(input:checked) {
+    border-color: var(--cor-primaria);
+    background: var(--cor-primaria-clara);
+    color: var(--cor-primaria-escura);
+  }
+
+  input {
+    accent-color: var(--cor-primaria);
+    margin: 0;
+  }
+}
+
+.ajuda {
+  margin: -6px 0 0;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.ajuda--secao {
+  margin-top: -8px;
+}
+
+.botoes {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+
+  .primario {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    background: var(--cor-primaria);
+    color: #fff;
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}

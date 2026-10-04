@@ -1,0 +1,73 @@
+<div class="container">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">Campeonatos e torneios em que o clube joga.</p>
+    @if (auth.ehGestao()) {
+      <button type="button" class="botao-primario" (click)="novo()">+ Novo campeonato</button>
+    }
+  </div>
+
+  @if (!carregando() && campeonatos().length > 0) {
+    <div class="filtros">
+      <input
+        type="search"
+        class="campo-busca"
+        placeholder="Buscar por nome..."
+        [ngModel]="filtroNome()"
+        (ngModelChange)="filtroNome.set($event)"
+      />
+      <select class="campo-filtro" [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)">
+        <option value="todos">Todos os status</option>
+        <option value="ativos">Ativos</option>
+        <option value="inativos">Inativos</option>
+      </select>
+      @if (filtroNome() || filtroStatus() !== 'ativos') {
+        <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
+      }
+    </div>
+  }
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (campeonatos().length === 0) {
+    <p class="vazio">Nenhum campeonato cadastrado ainda.</p>
+  } @else if (campeonatosFiltrados().length === 0) {
+    <p class="vazio">Nenhum campeonato encontrado com esses filtros.</p>
+  } @else {
+    <ul class="lista-campeonatos">
+      @for (campeonato of campeonatosFiltrados(); track campeonato.id) {
+        <li class="cartao-campeonato">
+          <a class="info-campeonato" [routerLink]="['/campeonatos', campeonato.id]">
+            <strong>🏆 {{ campeonato.nome }}</strong>
+            <span class="detalhe">
+              {{ formatarDataAbsoluta(campeonato.dataInicio) }}{{ campeonato.dataFim ? ' a ' + formatarDataAbsoluta(campeonato.dataFim) : '' }}
+              · {{ campeonato.quantidadeJogos }} {{ campeonato.quantidadeJogos === 1 ? 'jogo' : 'jogos' }}
+              @if (!campeonato.ativo) {
+                <span class="status status--inativa">Inativo</span>
+              }
+            </span>
+          </a>
+
+          <div class="acoes">
+            <button type="button" class="botao-icone" (click)="abrirHistorico(campeonato.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+            @if (auth.ehGestao()) {
+              <button
+                type="button"
+                class="botao-texto"
+                [class.botao-texto--perigo]="campeonato.ativo"
+                [disabled]="processandoId() === campeonato.id"
+                (click)="alternarStatus(campeonato)"
+              >
+                {{ campeonato.ativo ? 'Desativar' : 'Ativar' }}
+              </button>
+              <button type="button" class="botao-icone" (click)="editar(campeonato)" aria-label="Editar campeonato" title="Editar campeonato">✏️</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (historicoAbertoId(); as id) {
+    <app-logs-modal entidadeTipo="Campeonato" [entidadeId]="id" titulo="Histórico do campeonato" (fechar)="fecharHistorico()" />
+  }
+</div>

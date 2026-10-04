@@ -1,6 +1,8 @@
 export interface ConfiguracaoEscola {
   id: string | null;
   fusoHorario: string;
+  /** "#RRGGBB"; nulo = cor padrão do produto. */
+  corPrincipal: string | null;
 }
 
 /** Fusos oferecidos na tela de configuração (o backend aceita qualquer fuso IANA válido). */
