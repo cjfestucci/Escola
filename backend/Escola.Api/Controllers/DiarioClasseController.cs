@@ -29,9 +29,9 @@ public class DiarioClasseController(EscolaDbContext db, IAuditoriaService audito
 
         if (User.IsInRole("Responsavel"))
         {
-            var responsavelId = User.FindFirst("responsavelId")?.Value;
+            var responsavelId = this.ResponsavelIdAtual();
             var temFilhoNaTurma = await db.Alunos.AnyAsync(a =>
-                a.TurmaId == turmaId && a.Responsaveis.Any(ar => ar.ResponsavelId.ToString() == responsavelId));
+                a.TurmaId == turmaId && a.Responsaveis.Any(ar => ar.ResponsavelId == responsavelId));
             if (!temFilhoNaTurma) return Forbid();
         }
 

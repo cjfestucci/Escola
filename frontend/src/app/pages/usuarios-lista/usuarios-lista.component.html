@@ -70,6 +70,17 @@
             <button type="button" class="botao-icone" (click)="abrirHistorico(conta.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
             <button type="button" class="botao-icone" (click)="editar(conta)" aria-label="Editar conta">✏️</button>
             @if (conta.id !== meuId) {
+              @if (conta.ativo) {
+                <button
+                  type="button"
+                  class="botao-texto"
+                  title="Derruba os logins abertos desta conta (aparelho perdido, suspeita de acesso indevido). A senha não muda."
+                  [disabled]="processandoId() === conta.id"
+                  (click)="encerrarSessoes(conta)"
+                >
+                  Encerrar sessões
+                </button>
+              }
               <button
                 type="button"
                 class="botao-texto"

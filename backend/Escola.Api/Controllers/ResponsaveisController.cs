@@ -22,7 +22,7 @@ public class ResponsaveisController(EscolaDbContext db, IAuditoriaService audito
     {
         // Um responsável só pode ver os próprios filhos; a equipe pode consultar qualquer um (suporte).
         var ehEquipe = User.IsInRole("Admin") || User.IsInRole("Coordenador") || User.IsInRole("Educador") || User.IsInRole("Financeiro");
-        if (!ehEquipe && User.FindFirst("responsavelId")?.Value != id.ToString())
+        if (!ehEquipe && this.ResponsavelIdAtual() != id)
             return Forbid();
 
         if (!await db.Responsaveis.AnyAsync(r => r.Id == id))
@@ -52,6 +52,7 @@ public class ResponsaveisController(EscolaDbContext db, IAuditoriaService audito
 
         var senha = GeradorSenhaTemporaria.Gerar();
         usuario.SenhaHash = SenhaHasher.Hash(senha);
+        usuario.EncerrarSessoes();
         auditoria.Registrar(nameof(Responsavel), responsavel.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Senha redefinida: {responsavel.Nome}");
         await db.SaveChangesAsync();
 

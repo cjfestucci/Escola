@@ -39,6 +39,11 @@ export class UsuarioService {
     return this.http.post<UsuarioConta>(`${this.baseUrl}/usuarios/contas/${id}/desativar`, {});
   }
 
+  /** Derruba as sessões abertas da conta (a senha e o cadastro continuam); a pessoa só precisa entrar de novo. */
+  encerrarSessoes(id: string): Observable<UsuarioConta> {
+    return this.http.post<UsuarioConta>(`${this.baseUrl}/usuarios/contas/${id}/encerrar-sessoes`, {});
+  }
+
   ativarConta(id: string): Observable<UsuarioConta> {
     return this.http.post<UsuarioConta>(`${this.baseUrl}/usuarios/contas/${id}/ativar`, {});
   }

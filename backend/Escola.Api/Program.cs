@@ -1,3 +1,4 @@
+using Escola.Api.Auth;
 using System.Text;
 using System.Text.Json.Serialization;
 using Escola.Domain.Entities;
@@ -99,14 +100,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromMinutes(1)
         };
 
-        // Um token emitido pelo site de outro cliente (mesmo com a mesma chave Jwt) não vale aqui.
         options.Events = new JwtBearerEvents
         {
-            OnTokenValidated = contexto =>
+            OnTokenValidated = async contexto =>
             {
+                // Um token emitido pelo site de outro cliente (mesmo com a mesma chave Jwt) não vale aqui.
                 var doToken = contexto.Principal?.FindFirst("clienteId")?.Value;
-                if (doToken != clienteId.ToString()) contexto.Fail("Token de outro cliente.");
-                return Task.CompletedTask;
+                if (doToken != clienteId.ToString())
+                {
+                    contexto.Fail("Token de outro cliente.");
+                    return;
+                }
+
+                // O JWT dura dias e não dá pra "desemitir": a cada requisição confere no banco se a conta ainda existe, está ativa e não teve as
+                // sessões revogadas depois da emissão deste token (desativar conta, trocar senha, "encerrar sessões"), e se o cliente não foi suspenso.
+                var db = contexto.HttpContext.RequestServices.GetRequiredService<EscolaDbContext>();
+                var motivo = await Autenticacao.MotivoDeRecusaAsync(db, contexto.Principal!, clienteId);
+                if (motivo is not null) contexto.Fail(motivo);
             }
         };
     });
@@ -160,6 +170,15 @@ builder.Services.AddScoped<IDisciplinaService, DisciplinaService>();
 
 var app = builder.Build();
 
+// Aplica as migrations do banco ao iniciar — só quando pedido (Database:MigrarAoIniciar=true), pensado pro deploy em contêiner.
+// Desligado por padrão: em dev as migrations rodam com 'dotnet ef database update'. Com vários clientes no mesmo banco, o EF
+// serializa a migration com um lock do próprio banco, então dois deploys subindo juntos não se atropelam.
+if (builder.Configuration.GetValue<bool>("Database:MigrarAoIniciar"))
+{
+    using var escopoMigracao = app.Services.CreateScope();
+    await escopoMigracao.ServiceProvider.GetRequiredService<EscolaDbContext>().Database.MigrateAsync();
+}
+
 // Garante a linha do cliente desta instalação (idempotente) — é o que permite provisionar um cliente novo só
 // configurando Cliente:Id/Cliente:Nome no deploy. Todas as demais tabelas apontam pra ela.
 using (var escopoCliente = app.Services.CreateScope())
@@ -202,4 +221,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Verificação de saúde pro balanceador/contêiner: anônima e sem detalhe nenhum (só "no ar e falando com o banco", ou não).
+app.MapGet("/healthz", async (EscolaDbContext db) =>
+    await db.Database.CanConnectAsync() ? Results.Ok(new { status = "ok" }) : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
+
 app.Run();
+
+// Necessário pra os testes de integração (WebApplicationFactory<Program>) enxergarem o ponto de entrada.
+public partial class Program;

@@ -129,6 +129,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
 
         var senha = GeradorSenhaTemporaria.Gerar();
         usuario.SenhaHash = SenhaHasher.Hash(senha);
+        if (usuario.Id != this.UsuarioIdAtual()) usuario.EncerrarSessoes(); // a senha antiga não pode continuar com sessão aberta
         auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Senha redefinida: {usuario.Nome}");
         await db.SaveChangesAsync();
 
@@ -147,7 +148,24 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         if (usuario is null) return NotFound("Conta não encontrada.");
 
         usuario.Ativo = false;
+        usuario.EncerrarSessoes(); // reativar depois não ressuscita as sessões antigas
         auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Desativado: {usuario.Nome}");
+        await db.SaveChangesAsync();
+
+        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));
+    }
+
+    /// <summary>Derruba todas as sessões abertas da conta (aparelho perdido, suspeita de acesso indevido) sem desativá-la nem trocar a senha:
+    /// a pessoa só precisa entrar de novo.</summary>
+    [HttpPost("contas/{id:guid}/encerrar-sessoes")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<UsuarioContaDto>> EncerrarSessoes(Guid id)
+    {
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte);
+        if (usuario is null) return NotFound("Conta não encontrada.");
+
+        usuario.EncerrarSessoes();
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Sessões encerradas: {usuario.Nome}");
         await db.SaveChangesAsync();
 
         return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));

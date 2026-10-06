@@ -40,6 +40,13 @@ public static class ChavePix
             case TipoChavePix.Telefone:
             {
                 var digitos = SoDigitos(texto);
+                // Um "+" explícito com outro código de país (ex.: +1) não é número brasileiro: sem esta checagem o "+" era
+                // ignorado e o "55" acrescentado, aceitando um telefone estrangeiro como se fosse do Brasil.
+                if (texto.StartsWith('+') && !digitos.StartsWith("55"))
+                {
+                    erro = "Telefone inválido. Use +55, o DDD e o número (ex.: +5511999998888).";
+                    return null;
+                }
                 // Sem o código do país (10 ou 11 dígitos: DDD + número) acrescenta o 55; com ele (12 ou 13) mantém.
                 // Um DDD 55 (RS) sem o código do país tem 11 dígitos, então não se confunde com "55" + número.
                 if (digitos.Length is 10 or 11) digitos = "55" + digitos;

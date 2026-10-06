@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/appsettings.Development.json
+**/appsettings.Local.json
+Escola.Api/wwwroot/uploads/*
+Escola.Api/dados-privados/
+**/.vs/
+**/*.user

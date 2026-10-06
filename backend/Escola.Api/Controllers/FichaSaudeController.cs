@@ -26,8 +26,8 @@ public class FichaSaudeController(EscolaDbContext db, IAuditoriaService auditori
 
         if (User.IsInRole("Responsavel"))
         {
-            var responsavelId = User.FindFirst("responsavelId")?.Value;
-            var ehFilho = await db.AlunoResponsaveis.AnyAsync(ar => ar.AlunoId == alunoId && ar.ResponsavelId.ToString() == responsavelId);
+            var responsavelId = this.ResponsavelIdAtual();
+            var ehFilho = await db.AlunoResponsaveis.AnyAsync(ar => ar.AlunoId == alunoId && ar.ResponsavelId == responsavelId);
             if (!ehFilho) return Forbid();
         }
 

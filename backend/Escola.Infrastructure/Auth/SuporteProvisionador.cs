@@ -23,6 +23,7 @@ public static class SuporteProvisionador
             if (existente is { Ativo: true })
             {
                 existente.Ativo = false;
+                existente.EncerrarSessoes();
                 await db.SaveChangesAsync();
                 logger.LogWarning("Conta de Suporte desativada: a configuração Suporte:* foi removida deste ambiente.");
             }
@@ -37,6 +38,7 @@ public static class SuporteProvisionador
             if (existente is { Ativo: true })
             {
                 existente.Ativo = false;
+                existente.EncerrarSessoes();
                 await db.SaveChangesAsync();
             }
 
@@ -50,6 +52,7 @@ public static class SuporteProvisionador
             if (existente is { Ativo: true })
             {
                 existente.Ativo = false;
+                existente.EncerrarSessoes();
                 await db.SaveChangesAsync();
             }
 
@@ -83,6 +86,8 @@ public static class SuporteProvisionador
         {
             existente.Nome = nomeFinal;
             existente.Email = emailNormalizado;
+            // Credencial trocada (ou conta reativada): sessões antigas do Suporte não sobrevivem.
+            if (existente.SenhaHash != senhaHash || !existente.Ativo) existente.EncerrarSessoes();
             existente.SenhaHash = senhaHash!;
             existente.Ativo = true;
             await db.SaveChangesAsync();

@@ -1,0 +1,57 @@
+# Um cliente (uma escola/clube) = uma cópia deste compose com o próprio .env (ver docs/DEPLOY.md).
+# Os clientes compartilham o MESMO banco (variável DB_CONNECTION); cada um tem o seu Cliente__Id.
+#
+#   cp .env.example .env     # preencha os valores
+#   docker compose up -d --build
+services:
+  api:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ConnectionStrings__DefaultConnection: ${DB_CONNECTION:?Informe DB_CONNECTION no .env}
+      Database__MigrarAoIniciar: ${MIGRAR_AO_INICIAR:-true}
+      Jwt__Chave: ${JWT_CHAVE:?Informe JWT_CHAVE no .env (32+ caracteres aleatórios)}
+      Jwt__Emissor: RotinaEscola
+      Cliente__Id: ${CLIENTE_ID:?Informe CLIENTE_ID no .env (um GUID por cliente)}
+      Cliente__Nome: ${CLIENTE_NOME:?Informe CLIENTE_NOME no .env}
+      Cliente__Segmento: ${CLIENTE_SEGMENTO:-Escola}
+      App__UrlBase: ${APP_URL_BASE:?Informe APP_URL_BASE no .env (endereço público do site, com https)}
+      # Suporte (equipe do produto): sem os três, a conta de suporte fica desativada neste ambiente.
+      Suporte__Email: ${SUPORTE_EMAIL:-}
+      Suporte__Nome: ${SUPORTE_NOME:-Suporte}
+      Suporte__SenhaHash: ${SUPORTE_SENHA_HASH:-}
+      Suporte__TotpSegredo: ${SUPORTE_TOTP_SEGREDO:-}
+      # E-mail (convite do admin, "esqueci a senha", cobrança). Sem SMTP o convite de admin é recusado em produção.
+      Smtp__Host: ${SMTP_HOST:-}
+      Smtp__Porta: ${SMTP_PORTA:-587}
+      Smtp__Usuario: ${SMTP_USUARIO:-}
+      Smtp__Senha: ${SMTP_SENHA:-}
+      Smtp__RemetenteEmail: ${SMTP_REMETENTE_EMAIL:-}
+      Smtp__RemetenteNome: ${SMTP_REMETENTE_NOME:-Rotina Escola}
+      # Pix automático do Banco do Brasil (opcional; vazio = Pix estático com baixa manual)
+      Pix__Bb__ClientId: ${PIX_BB_CLIENT_ID:-}
+      Pix__Bb__ClientSecret: ${PIX_BB_CLIENT_SECRET:-}
+      Pix__Bb__ChaveAplicacao: ${PIX_BB_CHAVE_APLICACAO:-}
+      Pix__Bb__Ambiente: ${PIX_BB_AMBIENTE:-Homologacao}
+    volumes:
+      - fotos:/app/wwwroot/uploads
+      - documentos:/app/dados-privados
+
+  site:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_UPSTREAM: http://api:8080
+    ports:
+      - "${PORTA_SITE:-8080}:80"
+
+volumes:
+  fotos:
+  documentos:

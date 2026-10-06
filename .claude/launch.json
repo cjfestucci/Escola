@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start", "--prefix", "frontend"],
       "port": 4200
+    },
+    {
+      "name": "escola-api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "backend/Escola.Api", "--launch-profile", "http", "--", "--urls", "http://localhost:5080"],
+      "port": 5080
     }
   ]
 }

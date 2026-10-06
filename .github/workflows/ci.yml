@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancela a execução anterior da mesma branch quando sai um commit novo.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (build + testes)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restaurar
+        run: dotnet restore backend/Escola.sln
+
+      - name: Compilar (avisos não derrubam, erros sim)
+        run: dotnet build backend/Escola.sln --no-restore -c Release
+
+      - name: Testes
+        run: dotnet test backend/Escola.Tests --no-build -c Release --logger "trx;LogFileName=resultado.trx"
+
+      - name: Guardar o resultado dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultado-testes-backend
+          path: backend/Escola.Tests/TestResults/*.trx
+
+  migrations:
+    name: Migrations (banco vazio até a última)
+    runs-on: ubuntu-latest
+    # As migrations têm ajustes feitos à mão (valores padrão de colunas novas): este job prova que a cadeia inteira aplica
+    # num Postgres de verdade, que é o que um cliente novo vai receber.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: escola_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Subir a API aplicando as migrations
+        env:
+          ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=escola_ci;Username=postgres;Password=postgres
+          Database__MigrarAoIniciar: "true"
+          Jwt__Chave: chave-so-do-ci-com-mais-de-32-caracteres-aleatorios
+          Cliente__Id: 00000000-0000-0000-0000-0000000000ce
+          Cliente__Nome: CI
+          ASPNETCORE_ENVIRONMENT: Production
+        run: |
+          dotnet run --project backend/Escola.Api -c Release --urls http://localhost:5199 > api.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fs http://localhost:5199/healthz; then echo; echo "API no ar, migrations aplicadas."; exit 0; fi
+            sleep 2
+          done
+          echo "A API não subiu a tempo. Log:"; cat api.log; exit 1
+
+  frontend:
+    name: Frontend (build de produção + testes)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Testes (Chrome sem interface)
+        run: npm run test:ci
+
+      - name: Build de produção
+        run: npx ng build --configuration production
+
+  docker:
+    name: Imagens Docker (compilam)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: API
+        run: docker build -f backend/Dockerfile -t escola-api:ci backend
+      - name: Site
+        run: docker build -f frontend/Dockerfile -t escola-site:ci frontend

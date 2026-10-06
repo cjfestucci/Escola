@@ -212,6 +212,7 @@ public class PlataformaController(
         if (admin.SenhaHash != SenhaHasher.ConvitePendente) return BadRequest("Só dá para cancelar um convite que ainda não foi aceito.");
 
         admin.Ativo = false;
+        admin.EncerrarSessoes();
         var abertos = await db.RedefinicoesSenha.Where(r => r.UsuarioId == admin.Id && r.UsadoEm == null).ToListAsync();
         foreach (var aberto in abertos) aberto.UsadoEm = DateTime.UtcNow;
 

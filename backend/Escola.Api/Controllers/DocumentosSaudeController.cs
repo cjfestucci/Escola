@@ -132,8 +132,8 @@ public class DocumentosSaudeController(EscolaDbContext db, IDocumentoStorage sto
     {
         if (!User.IsInRole("Responsavel")) return true;
 
-        var responsavelId = User.FindFirst("responsavelId")?.Value;
-        return await db.AlunoResponsaveis.AnyAsync(ar => ar.AlunoId == alunoId && ar.ResponsavelId.ToString() == responsavelId);
+        var responsavelId = this.ResponsavelIdAtual();
+        return await db.AlunoResponsaveis.AnyAsync(ar => ar.AlunoId == alunoId && ar.ResponsavelId == responsavelId);
     }
 
     private static async Task<(string ContentType, string Extensao)?> DetectarTipoAsync(Stream stream, CancellationToken ct)

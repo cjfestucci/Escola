@@ -1,3 +1,4 @@
+using Escola.Api.Auth;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -75,6 +76,7 @@ public class AuthController(
         if (pedido is null || !pedido.Usuario.Ativo) return BadRequest(linkInvalido);
 
         pedido.Usuario.SenhaHash = SenhaHasher.Hash(request.NovaSenha);
+        pedido.Usuario.EncerrarSessoes(); // quem tinha a senha antiga (ou um aparelho perdido) sai de todas as sessões
 
         // Esse link (e qualquer outro ainda aberto dessa conta) não vale mais.
         var abertos = await db.RedefinicoesSenha.Where(r => r.UsuarioId == pedido.UsuarioId && r.UsadoEm == null).ToListAsync();
@@ -156,7 +158,9 @@ public class AuthController(
             new(ClaimTypes.NameIdentifier, usuarioId.ToString()),
             new(ClaimTypes.Name, nome),
             new(ClaimTypes.Role, papel),
-            new("clienteId", clienteAtual.Id.ToString())
+            new("clienteId", clienteAtual.Id.ToString()),
+            // Instante de emissão com precisão de tick (o "iat" do JWT é em segundos): comparado com Usuario.SessoesValidasDesde pra revogar sessões.
+            new(Autenticacao.ClaimEmitidoEm, DateTime.UtcNow.Ticks.ToString())
         };
         if (responsavelId is { } id)
             claims.Add(new Claim("responsavelId", id.ToString()));

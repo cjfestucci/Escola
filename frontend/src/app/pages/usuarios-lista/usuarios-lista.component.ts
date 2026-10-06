@@ -140,6 +140,20 @@ export class UsuariosListaComponent implements OnInit {
     });
   }
 
+  encerrarSessoes(conta: UsuarioConta): void {
+    this.processandoId.set(conta.id);
+    this.usuarioService.encerrarSessoes(conta.id).subscribe({
+      next: () => {
+        this.processandoId.set(null);
+        this.notificacao.sucesso(`Sessões de ${conta.nome} encerradas. A pessoa precisa entrar de novo.`);
+      },
+      error: (resposta) => {
+        this.processandoId.set(null);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível encerrar as sessões.');
+      }
+    });
+  }
+
   abrirHistorico(contaId: string): void {
     this.historicoAbertoId.set(contaId);
   }
