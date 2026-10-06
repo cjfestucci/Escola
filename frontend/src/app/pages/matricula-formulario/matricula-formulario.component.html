@@ -261,6 +261,38 @@
             <input type="tel" [(ngModel)]="contatoEmergenciaTelefone" placeholder="(11) 99999-9999" />
           </label>
 
+          <div class="cabecalho-secao">
+            <span>Atestado médico (opcional)</span>
+          </div>
+          <label>Válido até</label>
+          <div class="linha-atestado">
+            <div class="ancora-calendario">
+              <button type="button" class="campo-data" (click)="calendarioAtestadoAberto.set(!calendarioAtestadoAberto())">
+                <span>{{ atestadoValidoAte ? formatarDataAbsoluta(atestadoValidoAte) : 'Selecionar data' }}</span>
+                <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="5" width="16" height="16" rx="2" />
+                  <path d="M4 10h16" />
+                  <path d="M8 3v4M16 3v4" />
+                </svg>
+              </button>
+
+              @if (calendarioAtestadoAberto()) {
+                <div class="popover-calendario">
+                  <app-calendario [dataSelecionada]="atestadoValidoAte || hojeIso()" (escolher)="selecionarAtestado($event)" />
+                </div>
+              }
+            </div>
+            @if (atestadoValidoAte) {
+              <button type="button" class="botao-texto" (click)="limparAtestado()">Limpar</button>
+            }
+          </div>
+          @if (atestadoValidoAte && situacaoAtestado(atestadoValidoAte) !== 'valido') {
+            <p class="selo-atestado" [class.selo-atestado--vencido]="situacaoAtestado(atestadoValidoAte) === 'vencido'">
+              🩺 {{ rotuloAtestado(atestadoValidoAte) }}
+            </p>
+          }
+          <p class="dica">Último dia de validade do atestado de aptidão para atividade física. A escola é avisada {{ diasAvisoAtestado }} dias antes de vencer.</p>
+
           <label class="linha-checkbox">
             <input type="checkbox" [(ngModel)]="vacinacaoEmDia" />
             Vacinação em dia

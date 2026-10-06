@@ -269,6 +269,18 @@ Registro de saúde do aluno — 1:1 com `Aluno` (`FichaSaude`, criada sob demand
 - Mostrada de forma resumida (alergias, restrições alimentares, medicamentos, condições de saúde) como um alerta visível no topo de `aluno-rotina`, pro educador ver antes de registrar a rotina do dia. Só aparece o que estiver preenchido — sem ficha ainda, sem alerta.
 - No Portal dos Pais (`portal-aluno`), aparece como um painel colapsável (fechado por padrão) com todos os campos, incluindo uma mensagem própria quando ainda não há nada preenchido — sempre somente leitura pro Responsável.
 
+### Validade do atestado médico (desde 2026-10-06) — os dois segmentos
+
+`FichaSaude.AtestadoValidoAte` (`DateOnly?`, migration `AddAtestadoValidoAte`, nullable = não informado): **último dia** em que o atestado de aptidão vale (vence no dia seguinte). Editado na aba Ficha de Saúde da Matrícula (`app-calendario` sem data máxima + "Limpar"), salvo junto com a ficha, com diff na auditoria (`Atestado médico válido até alterado de "27/09/2026" para "20/10/2026"`).
+
+- **Situação é derivada, nunca gravada** (`models/atestado.model.ts`: `situacaoAtestado`/`rotuloAtestado`, com testes): `sem` / `vencido` / `vencendo` (vence em menos de `DIAS_AVISO_ATESTADO` = 30 dias, contando hoje) / `valido`, contra o "hoje" da escola (`hojeIso`). Mesmo espírito do "atrasado" e do "bloqueado": sem job.
+- **Como chega ao front**: `AlunoDto.AtestadoValidoAte` só na **listagem** (`GET /api/alunos`, buscado à parte em `FichasSaude`, uma consulta pra lista toda); o Portal lê do `GET …/ficha-saude` (que já era Equipe + Responsável-dono).
+- **Onde aparece**: Matrícula (selo 🩺 em aluno **ativo** vencido/vencendo + filtro "Atestado": vencido ou vencendo / vencido / vence em breve / sem atestado, também por `?atestado=pendente|vencido|vencendo|sem`); **Dashboard → ⚠️ Atenção** ("N atletas com atestado médico vencido" e "N atestados vencem em até 30 dias", respeita a Unidade, link pra Matrícula filtrada); **Portal da Família/dos Pais** (aviso no topo da página do filho quando vencido/vencendo + linha na Ficha de Saúde); **convocação do jogo** (selo "🩺 Atestado vencido" quando o atestado **não vale na data do jogo** — não hoje —, só informa, não impede convocar, igual suspensão/frequência).
+- **"Sem atestado" não gera aviso** no Dashboard nem no Portal, de propósito: quem não controla atestado teria um aviso eterno pra todo mundo. Fica só no filtro da Matrícula.
+- Classes globais `.selo-atestado` (+ `--vencido`, `--sem`) e `.aviso-atestado` (+ `--vencido`) em `styles.scss`.
+- **Fora do escopo**: vincular a data a um documento anexado (hoje a data e o arquivo em "📎 Documentos" são independentes), avisar a família por e-mail antes de vencer, bloquear a convocação/chamada de quem está vencido, e prazo de aviso configurável por escola.
+- **Dados de dev**: 61 fichas do cliente de dev ganharam datas por SQL (4 vencidas, 5 vencendo, o resto válido); o Renan Rocha Cardoso foi editado pela tela (20/10/2026).
+
 ### Documentos anexados à saúde do aluno (desde 2026-10-02)
 
 Na aba "Ficha de saúde" da Matrícula há uma seção **📎 Documentos** pra anexar exames, cartão de vacina, laudos etc. (PDF ou imagem JPEG/PNG/WEBP, até 10MB, máx. 20 por aluno). Componente compartilhado `app-documentos-saude` (`shared/documentos-saude/`, inputs `alunoId` e `podeEditar`), usado em `matricula-formulario` (editável) e no painel da Ficha de Saúde do `portal-aluno` (somente leitura: lista + "Baixar"). Cada ação vale na hora — não depende do botão "Salvar ficha de saúde".

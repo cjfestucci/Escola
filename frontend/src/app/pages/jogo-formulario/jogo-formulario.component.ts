@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { Turma } from '../../models/aluno.model';
+import { situacaoAtestado } from '../../models/atestado.model';
 import { AlertaDisciplinar, Campeonato, Jogo, JogoAtleta, LocalJogo, ROTULOS_MANDO, StatusJogo } from '../../models/competicao.model';
 import { AlunoService } from '../../services/aluno.service';
 import { PresencaService } from '../../services/presenca.service';
@@ -26,6 +27,8 @@ interface LinhaConvocacao {
   gols: number;
   amarelos: number;
   vermelho: boolean;
+  /** Validade do atestado médico (Ficha de Saúde); conferida contra a data do jogo. */
+  atestadoValidoAte?: string | null;
 }
 
 @Component({
@@ -104,6 +107,13 @@ export class JogoFormularioComponent implements OnInit {
   private frequencias = new Map<string, FrequenciaAluno>();
   protected readonly alertaFaltas = FALTAS_SEGUIDAS_PARA_ALERTA;
 
+  /** Data do jogo carregado: o atestado precisa valer no dia do jogo, não só hoje. */
+  private dataDoJogo = '';
+
+  atestadoVencidoNoJogo(linha: LinhaConvocacao): boolean {
+    return !!linha.atestadoValidoAte && !!this.dataDoJogo && situacaoAtestado(linha.atestadoValidoAte, this.dataDoJogo) === 'vencido';
+  }
+
   frequenciaDe(alunoId: string): FrequenciaAluno | undefined {
     return this.frequencias.get(alunoId);
   }
@@ -180,6 +190,7 @@ export class JogoFormularioComponent implements OnInit {
 
   /** Candidatos = atletas ativos da turma do jogo + quem já está convocado (mesmo de outra turma, ex.: jogando "por cima"). */
   private carregarCandidatos(jogo: Jogo): void {
+    this.dataDoJogo = jogo.data.slice(0, 10);
     this.presencaService.frequenciaDaTurma(jogo.turmaId).subscribe({
       next: (lista) => (this.frequencias = new Map(lista.map((f) => [f.alunoId, f]))),
       error: () => undefined
@@ -189,7 +200,7 @@ export class JogoFormularioComponent implements OnInit {
         const convocados = new Map((jogo.convocados ?? []).map((c) => [c.alunoId, c]));
         const linhas: LinhaConvocacao[] = alunos
           .filter((a) => a.ativo || convocados.has(a.id))
-          .map((a) => this.criarLinha(a.id, a.nome, convocados.get(a.id)));
+          .map((a) => ({ ...this.criarLinha(a.id, a.nome, convocados.get(a.id)), atestadoValidoAte: a.atestadoValidoAte }));
 
         for (const c of convocados.values()) {
           if (!linhas.some((l) => l.alunoId === c.alunoId)) linhas.push(this.criarLinha(c.alunoId, c.alunoNome, c));

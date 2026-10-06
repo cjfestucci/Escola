@@ -13,4 +13,6 @@ export interface FichaSaude {
   vacinacaoEmDia: boolean;
   autorizaUsoImagem: boolean;
   atualizadoEm: string | null;
+  /** Último dia de validade do atestado médico (YYYY-MM-DD); nulo = não informado. */
+  atestadoValidoAte?: string | null;
 }

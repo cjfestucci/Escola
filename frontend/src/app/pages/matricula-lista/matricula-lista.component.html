@@ -27,7 +27,14 @@
         <option value="inativos">Inativos</option>
         <option value="bloqueados">Bloqueados</option>
       </select>
-      @if (filtroNome() || filtroTurmaId() || filtroStatus() !== 'todos') {
+      <select class="campo-filtro" [ngModel]="filtroAtestado()" (ngModelChange)="filtroAtestado.set($event)" aria-label="Atestado médico">
+        <option value="">Atestado: todos</option>
+        <option value="pendente">Vencido ou vencendo</option>
+        <option value="vencido">Atestado vencido</option>
+        <option value="vencendo">Vence em breve</option>
+        <option value="sem">Sem atestado</option>
+      </select>
+      @if (filtroNome() || filtroTurmaId() || filtroStatus() !== 'todos' || filtroAtestado()) {
         <button type="button" class="botao-limpar" (click)="limparFiltros()">Limpar</button>
       }
     </div>
@@ -61,6 +68,16 @@
               }
               @if (aluno.bloqueado) {
                 <span class="selo-bloqueado" title="Mensalidade em atraso além do limite de dias configurado">🔒 Bloqueado</span>
+              }
+              @if (aluno.ativo) {
+                @switch (situacaoAtestado(aluno.atestadoValidoAte)) {
+                  @case ('vencido') {
+                    <span class="selo-atestado selo-atestado--vencido">🩺 {{ rotuloAtestado(aluno.atestadoValidoAte) }}</span>
+                  }
+                  @case ('vencendo') {
+                    <span class="selo-atestado">🩺 {{ rotuloAtestado(aluno.atestadoValidoAte) }}</span>
+                  }
+                }
               }
             </span>
           </div>

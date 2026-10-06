@@ -18,7 +18,8 @@ public static class FichaSaudeMapper
         ficha.ContatoEmergenciaTelefone,
         ficha.VacinacaoEmDia,
         ficha.AutorizaUsoImagem,
-        ficha.AtualizadoEm);
+        ficha.AtualizadoEm,
+        ficha.AtestadoValidoAte);
 
     public static readonly FichaSaudeDto Vazia = new(
         null, null, null, null, null, null, null, null, null, null, null, false, false, null);

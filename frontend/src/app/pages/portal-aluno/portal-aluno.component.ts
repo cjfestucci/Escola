@@ -6,6 +6,7 @@ import { Aluno } from '../../models/aluno.model';
 import { Cobranca } from '../../models/cobranca.model';
 import { RegistroDiarioClasse } from '../../models/diario-classe.model';
 import { CampeonatoFamilia, JogosCampeonatoDoAluno, LocalJogo, JogosDoAluno, ROTULOS_MANDO, ROTULOS_RESULTADO, resultadoDoJogo } from '../../models/competicao.model';
+import { rotuloAtestado, situacaoAtestado } from '../../models/atestado.model';
 import { FichaSaude } from '../../models/ficha-saude.model';
 import { FrequenciaDoAluno, ROTULOS_PRESENCA } from '../../models/presenca.model';
 import { CategoriaRegistro, RegistroRotina } from '../../models/registro-rotina.model';
@@ -60,6 +61,15 @@ export class PortalAlunoComponent implements OnInit {
 
   readonly fichaSaude = signal<FichaSaude | null>(null);
   readonly mostrarFicha = signal(false);
+  protected readonly rotuloAtestado = rotuloAtestado;
+  /** Aviso no topo só quando o atestado informado venceu ou vence em breve — sem data informada não incomoda a família. */
+  readonly avisoAtestado = computed(() => {
+    const validoAte = this.fichaSaude()?.atestadoValidoAte;
+    const situacao = situacaoAtestado(validoAte);
+    if (situacao !== 'vencido' && situacao !== 'vencendo') return null;
+    return { vencido: situacao === 'vencido', texto: rotuloAtestado(validoAte) };
+  });
+
   readonly fichaPreenchida = computed(() => {
     const f = this.fichaSaude();
     if (!f) return false;
@@ -71,7 +81,8 @@ export class PortalAlunoComponent implements OnInit {
       f.condicoesSaude ||
       f.planoSaude ||
       f.pediatraNome ||
-      f.contatoEmergenciaNome
+      f.contatoEmergenciaNome ||
+      f.atestadoValidoAte
     );
   });
 

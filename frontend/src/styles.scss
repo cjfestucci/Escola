@@ -78,6 +78,30 @@ button {
   color: #fff;
 }
 
+/* Atestado médico: vence em breve (âmbar), vencido (vermelho), não informado (cinza). Situação derivada em atestado.model.ts. */
+.selo-atestado {
+  display: inline-block;
+  align-self: flex-start;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #b45309;
+  white-space: nowrap;
+}
+
+.selo-atestado--vencido {
+  background: #fde8e7;
+  color: #b3261e;
+}
+
+.selo-atestado--sem {
+  background: #f1f1f4;
+  color: #5f6170;
+}
+
 /* Disciplina de campeonato: suspenso (vermelho) e pendurado (âmbar). */
 .selo-suspenso,
 .selo-pendurado {
@@ -139,4 +163,25 @@ button {
   &--largo {
     max-width: 1480px;
   }
+}
+
+/* Aviso de atestado médico no Portal (âmbar = vence em breve, vermelho = vencido). */
+.aviso-atestado {
+  background: #fef6e4;
+  border: 1px solid #f6d79a;
+  border-radius: var(--raio);
+  color: #8a4b08;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+
+  p {
+    margin: 4px 0 0;
+  }
+}
+
+.aviso-atestado--vencido {
+  background: #fdecea;
+  border-color: #f5c2bf;
+  color: #8c1d18;
 }

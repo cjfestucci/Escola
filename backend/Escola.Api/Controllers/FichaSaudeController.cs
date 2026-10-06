@@ -66,6 +66,7 @@ public class FichaSaudeController(EscolaDbContext db, IAuditoriaService auditori
             var contatoEmergenciaTelefoneAntes = ficha.ContatoEmergenciaTelefone;
             var vacinacaoEmDiaAntes = ficha.VacinacaoEmDia;
             var autorizaUsoImagemAntes = ficha.AutorizaUsoImagem;
+            var atestadoValidoAteAntes = ficha.AtestadoValidoAte;
 
             AplicarCampos(ficha, request);
 
@@ -81,7 +82,8 @@ public class FichaSaudeController(EscolaDbContext db, IAuditoriaService auditori
                 ("Contato de emergência", contatoEmergenciaNomeAntes, ficha.ContatoEmergenciaNome),
                 ("Telefone de emergência", contatoEmergenciaTelefoneAntes, ficha.ContatoEmergenciaTelefone),
                 ("Vacinação em dia", vacinacaoEmDiaAntes, ficha.VacinacaoEmDia),
-                ("Autoriza uso de imagem", autorizaUsoImagemAntes, ficha.AutorizaUsoImagem));
+                ("Autoriza uso de imagem", autorizaUsoImagemAntes, ficha.AutorizaUsoImagem),
+                ("Atestado médico válido até", atestadoValidoAteAntes, ficha.AtestadoValidoAte));
         }
 
         if (acao == AcaoAuditoria.Criado)
@@ -107,6 +109,7 @@ public class FichaSaudeController(EscolaDbContext db, IAuditoriaService auditori
         ficha.ContatoEmergenciaTelefone = request.ContatoEmergenciaTelefone;
         ficha.VacinacaoEmDia = request.VacinacaoEmDia;
         ficha.AutorizaUsoImagem = request.AutorizaUsoImagem;
+        ficha.AtestadoValidoAte = request.AtestadoValidoAte;
         ficha.AtualizadoEm = DateTime.UtcNow;
     }
 }

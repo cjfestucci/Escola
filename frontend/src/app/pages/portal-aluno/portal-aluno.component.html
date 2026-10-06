@@ -16,6 +16,12 @@
         <p>Regularize o pagamento em Financeiro ou fale com a escola.</p>
       </div>
     }
+    @if (avisoAtestado(); as aviso) {
+      <div class="aviso-atestado" [class.aviso-atestado--vencido]="aviso.vencido">
+        <strong>🩺 {{ aviso.texto }}.</strong>
+        <p>Envie um atestado médico atualizado à escola.</p>
+      </div>
+    }
   }
 
   <ng-template #itemJogo let-jogo>
@@ -211,6 +217,7 @@
           @if (f.contatoEmergenciaNome) {
             <p><span class="rotulo-ficha">Contato de emergência:</span> {{ f.contatoEmergenciaNome }} {{ f.contatoEmergenciaTelefone ? '— ' + f.contatoEmergenciaTelefone : '' }}</p>
           }
+          <p><span class="rotulo-ficha">Atestado médico:</span> {{ f.atestadoValidoAte ? rotuloAtestado(f.atestadoValidoAte) : 'Não informado' }}</p>
           <p><span class="rotulo-ficha">Vacinação em dia:</span> {{ f.vacinacaoEmDia ? 'Sim' : 'Não informado' }}</p>
           <p><span class="rotulo-ficha">Autoriza uso de imagem:</span> {{ f.autorizaUsoImagem ? 'Sim' : 'Não' }}</p>
         }

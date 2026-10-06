@@ -29,8 +29,12 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
             query = query.Where(a => a.TurmaId == turmaId);
 
         var alunos = await query.OrderBy(a => a.Nome).ToListAsync();
-        var bloqueados = await bloqueio.ObterBloqueadosAsync(alunos.Select(a => a.Id).ToList());
-        return Ok(alunos.Select(a => a.ToDto(bloqueados.Contains(a.Id))));
+        var ids = alunos.Select(a => a.Id).ToList();
+        var bloqueados = await bloqueio.ObterBloqueadosAsync(ids);
+        var atestados = await db.FichasSaude
+            .Where(f => ids.Contains(f.AlunoId) && f.AtestadoValidoAte != null)
+            .ToDictionaryAsync(f => f.AlunoId, f => f.AtestadoValidoAte);
+        return Ok(alunos.Select(a => a.ToDto(bloqueados.Contains(a.Id), atestados.GetValueOrDefault(a.Id))));
     }
 
     /// <summary>Equipe pode ver qualquer aluno; um Responsável só o(s) próprio(s) filho(s).</summary>

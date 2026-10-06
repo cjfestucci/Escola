@@ -11,4 +11,5 @@ public record AlunoDto(
     string TurmaNome,
     bool Ativo,
     PosicaoAtleta? Posicao = null,
-    bool Bloqueado = false);
+    bool Bloqueado = false,
+    DateOnly? AtestadoValidoAte = null);

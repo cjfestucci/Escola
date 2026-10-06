@@ -176,6 +176,9 @@
                   @if (alertaDe(linha.alunoId); as alerta) {
                     <span [class]="alerta.tipo === 'Suspenso' ? 'selo-suspenso' : 'selo-pendurado'">{{ alerta.tipo === 'Suspenso' ? '🟥 Suspenso' : '🟨 Pendurado' }}</span>
                   }
+                  @if (atestadoVencidoNoJogo(linha)) {
+                    <span class="selo-atestado selo-atestado--vencido" title="O atestado médico não vale na data do jogo">🩺 Atestado vencido</span>
+                  }
                 </label>
                 @if (linha.convocado && alertaDe(linha.alunoId)?.tipo === 'Suspenso') {
                   <p class="aviso-suspenso">Atleta suspenso para este jogo — confirme se ele deve mesmo ser convocado.</p>

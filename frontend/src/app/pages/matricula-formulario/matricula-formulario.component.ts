@@ -1,3 +1,4 @@
+import { DIAS_AVISO_ATESTADO, rotuloAtestado, situacaoAtestado } from '../../models/atestado.model';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -83,12 +84,17 @@ export class MatriculaFormularioComponent implements OnInit {
   contatoEmergenciaTelefone = '';
   vacinacaoEmDia = false;
   autorizaUsoImagem = false;
+  atestadoValidoAte = '';
+  readonly calendarioAtestadoAberto = signal(false);
 
   protected readonly resolverFotoUrl = resolverFotoUrl;
   protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
   protected readonly hojeIso = hojeIso;
   protected readonly tiposSanguineos = TIPOS_SANGUINEOS;
   protected readonly posicoes = POSICOES_ATLETA;
+  protected readonly rotuloAtestado = rotuloAtestado;
+  protected readonly situacaoAtestado = situacaoAtestado;
+  protected readonly diasAvisoAtestado = DIAS_AVISO_ATESTADO;
 
   get titulo(): string {
     const pessoa = this.segmentoService.rotuloPessoa();
@@ -145,6 +151,7 @@ export class MatriculaFormularioComponent implements OnInit {
         this.contatoEmergenciaTelefone = ficha.contatoEmergenciaTelefone ?? '';
         this.vacinacaoEmDia = ficha.vacinacaoEmDia;
         this.autorizaUsoImagem = ficha.autorizaUsoImagem;
+        this.atestadoValidoAte = ficha.atestadoValidoAte ?? '';
         this.carregandoFicha.set(false);
       },
       error: () => {
@@ -179,6 +186,7 @@ export class MatriculaFormularioComponent implements OnInit {
       contatoEmergenciaTelefone: this.contatoEmergenciaTelefone || null,
       vacinacaoEmDia: this.vacinacaoEmDia,
       autorizaUsoImagem: this.autorizaUsoImagem,
+      atestadoValidoAte: this.atestadoValidoAte || null,
       atualizadoEm: null
     };
 
@@ -194,6 +202,16 @@ export class MatriculaFormularioComponent implements OnInit {
         this.notificacao.erro('Não foi possível salvar a ficha de saúde.');
       }
     });
+  }
+
+  selecionarAtestado(dataIso: string): void {
+    this.atestadoValidoAte = dataIso;
+    this.calendarioAtestadoAberto.set(false);
+  }
+
+  limparAtestado(): void {
+    this.atestadoValidoAte = '';
+    this.calendarioAtestadoAberto.set(false);
   }
 
   selecionarNascimento(dataIso: string): void {

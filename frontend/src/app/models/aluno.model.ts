@@ -66,6 +66,8 @@ export interface Aluno {
   posicao?: PosicaoAtleta | null;
   /** Derivado pelo backend das mensalidades em atraso e da configuração "dias para bloqueio" — não é editável. */
   bloqueado?: boolean;
+  /** Validade do atestado médico, da Ficha de Saúde (só vem na listagem). */
+  atestadoValidoAte?: string | null;
 }
 
 export interface ResponsavelResumo {

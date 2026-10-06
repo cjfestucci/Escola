@@ -14,4 +14,5 @@ public record FichaSaudeDto(
     string? ContatoEmergenciaTelefone,
     bool VacinacaoEmDia,
     bool AutorizaUsoImagem,
-    DateTime? AtualizadoEm);
+    DateTime? AtualizadoEm,
+    DateOnly? AtestadoValidoAte = null);

@@ -3,6 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { Aluno, Turma } from '../../models/aluno.model';
+import { DIAS_AVISO_ATESTADO, situacaoAtestado } from '../../models/atestado.model';
 import { Cobranca } from '../../models/cobranca.model';
 import { Jogo, ROTULOS_MANDO } from '../../models/competicao.model';
 import { ContaPagar } from '../../models/conta-pagar.model';
@@ -277,6 +278,35 @@ export class DashboardComponent implements OnInit {
         texto: faltosos.length + ' ' + (faltosos.length === 1 ? this.segmentoService.rotuloPessoa().toLowerCase() : pessoas) + ' com ' + FALTAS_SEGUIDAS_PARA_ALERTA + '+ faltas seguidas',
         rota: '/chamada',
         consulta: { turmaId },
+        tom: 'aviso'
+      });
+    }
+    // Atestado médico: só conta quem tem data informada (o "sem atestado" fica no filtro da Matrícula — no Dashboard viraria um aviso
+    // permanente pra quem não controla atestado).
+    const hoje = hojeIso();
+    let atestadosVencidos = 0;
+    let atestadosVencendo = 0;
+    for (const aluno of this.alunosFiltrados()) {
+      if (!aluno.ativo) continue;
+      const situacao = situacaoAtestado(aluno.atestadoValidoAte, hoje);
+      if (situacao === 'vencido') atestadosVencidos++;
+      else if (situacao === 'vencendo') atestadosVencendo++;
+    }
+    const pessoaPlural = this.segmentoService.rotuloPessoaPlural().toLowerCase();
+    const pessoaSingular = this.segmentoService.rotuloPessoa().toLowerCase();
+    if (atestadosVencidos > 0) {
+      itens.push({
+        texto: `${atestadosVencidos} ${atestadosVencidos === 1 ? pessoaSingular : pessoaPlural} com atestado médico vencido`,
+        rota: '/matricula',
+        consulta: { status: 'ativos', atestado: 'vencido' },
+        tom: 'erro'
+      });
+    }
+    if (atestadosVencendo > 0) {
+      itens.push({
+        texto: `${atestadosVencendo} ${atestadosVencendo === 1 ? 'atestado médico vence' : 'atestados médicos vencem'} em até ${DIAS_AVISO_ATESTADO} dias`,
+        rota: '/matricula',
+        consulta: { status: 'ativos', atestado: 'vencendo' },
         tom: 'aviso'
       });
     }

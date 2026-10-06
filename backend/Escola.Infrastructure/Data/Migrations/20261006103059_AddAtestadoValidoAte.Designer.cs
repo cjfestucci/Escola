@@ -3,6 +3,7 @@ using System;
 using Escola.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Escola.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(EscolaDbContext))]
-    partial class EscolaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261006103059_AddAtestadoValidoAte")]
+    partial class AddAtestadoValidoAte
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno, rotuloPosicao } from '../../models/aluno.model';
+import { rotuloAtestado, situacaoAtestado } from '../../models/atestado.model';
 import { AlunoService } from '../../services/aluno.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { SegmentoService } from '../../services/segmento.service';
-import { idadeFormatada } from '../../shared/data-utils';
+import { hojeIso, idadeFormatada } from '../../shared/data-utils';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 import { resolverFotoUrl } from '../../shared/registro-rotina-display';
 
@@ -17,6 +18,7 @@ interface OpcaoTurma {
 }
 
 type StatusFiltro = 'todos' | 'ativos' | 'inativos' | 'bloqueados';
+type AtestadoFiltro = '' | 'pendente' | 'vencido' | 'vencendo' | 'sem';
 
 @Component({
   selector: 'app-matricula-lista',
@@ -40,6 +42,7 @@ export class MatriculaListaComponent implements OnInit {
   readonly filtroNome = signal('');
   readonly filtroTurmaId = signal('');
   readonly filtroStatus = signal<StatusFiltro>('todos');
+  readonly filtroAtestado = signal<AtestadoFiltro>('');
 
   readonly turmasDisponiveis = computed<OpcaoTurma[]>(() => {
     const porId = new Map<string, string>();
@@ -53,6 +56,8 @@ export class MatriculaListaComponent implements OnInit {
     const nome = this.filtroNome().trim().toLowerCase();
     const turmaId = this.filtroTurmaId();
     const status = this.filtroStatus();
+    const atestado = this.filtroAtestado();
+    const hoje = hojeIso();
 
     return this.alunos().filter((aluno) => {
       const bateNome = !nome || aluno.nome.toLowerCase().includes(nome);
@@ -62,12 +67,17 @@ export class MatriculaListaComponent implements OnInit {
         (status === 'ativos' && aluno.ativo) ||
         (status === 'inativos' && !aluno.ativo) ||
         (status === 'bloqueados' && !!aluno.bloqueado);
-      return bateNome && bateTurma && bateStatus;
+      const situacao = situacaoAtestado(aluno.atestadoValidoAte, hoje);
+      const bateAtestado =
+        !atestado || (atestado === 'pendente' ? situacao === 'vencido' || situacao === 'vencendo' : situacao === atestado);
+      return bateNome && bateTurma && bateStatus && bateAtestado;
     });
   });
 
   protected readonly idade = idadeFormatada;
   protected readonly rotuloPosicao = rotuloPosicao;
+  protected readonly rotuloAtestado = rotuloAtestado;
+  protected readonly situacaoAtestado = situacaoAtestado;
   protected readonly resolverFotoUrl = resolverFotoUrl;
 
   // Foto cadastrada mas arquivo ausente/quebrado: volta pra inicial do nome em vez de mostrar imagem quebrada.
@@ -81,6 +91,8 @@ export class MatriculaListaComponent implements OnInit {
     // Atalhos do Dashboard abrem a lista já filtrada (ex.: /matricula?status=bloqueados).
     const status = this.route.snapshot.queryParamMap.get('status');
     if (status === 'ativos' || status === 'inativos' || status === 'bloqueados') this.filtroStatus.set(status);
+    const atestado = this.route.snapshot.queryParamMap.get('atestado');
+    if (atestado === 'pendente' || atestado === 'vencido' || atestado === 'vencendo' || atestado === 'sem') this.filtroAtestado.set(atestado);
     this.carregar();
   }
 
@@ -102,6 +114,7 @@ export class MatriculaListaComponent implements OnInit {
     this.filtroNome.set('');
     this.filtroTurmaId.set('');
     this.filtroStatus.set('todos');
+    this.filtroAtestado.set('');
   }
 
   novo(): void {

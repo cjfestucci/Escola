@@ -21,5 +21,9 @@ public class FichaSaude
     public bool VacinacaoEmDia { get; set; }
     public bool AutorizaUsoImagem { get; set; }
 
+    /// <summary>Último dia de validade do atestado médico (aptidão para atividade física). Nulo = não informado. "Vencido"/"vence em
+    /// breve" é sempre derivado desta data contra o "hoje" da escola — nunca gravado.</summary>
+    public DateOnly? AtestadoValidoAte { get; set; }
+
     public DateTime AtualizadoEm { get; set; }
 }

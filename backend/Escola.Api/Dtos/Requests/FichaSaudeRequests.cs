@@ -12,4 +12,5 @@ public record SalvarFichaSaudeRequest(
     string? ContatoEmergenciaNome,
     string? ContatoEmergenciaTelefone,
     bool VacinacaoEmDia,
-    bool AutorizaUsoImagem);
+    bool AutorizaUsoImagem,
+    DateOnly? AtestadoValidoAte = null);
