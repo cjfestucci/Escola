@@ -69,7 +69,9 @@ jobs:
           Cliente__Nome: CI
           ASPNETCORE_ENVIRONMENT: Production
         run: |
-          dotnet run --project backend/Escola.Api -c Release --urls http://localhost:5199 > api.log 2>&1 &
+          # --no-launch-profile: sem ele o launchSettings.json força Development por cima do ASPNETCORE_ENVIRONMENT acima
+          # (roda o seed de dev e deixa de testar o que um deploy de produção faz).
+          dotnet run --project backend/Escola.Api -c Release --no-launch-profile --urls http://localhost:5199 > api.log 2>&1 &
           for i in $(seq 1 60); do
             if curl -fs http://localhost:5199/healthz; then echo; echo "API no ar, migrations aplicadas."; exit 0; fi
             sleep 2

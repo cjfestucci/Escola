@@ -40,6 +40,16 @@ public static class DbInitializer
         };
         var turmas = new[] { turmaBercario1, turmaBercario2, turmaMaternal1, turmaJardim1 };
 
+        // Turma exige Unidade (desde 2026-09-24). O seed é anterior a isso: sem esta linha, num banco/cliente novo as turmas iam com
+        // UnidadeId vazio e a subida em Development caía na FK (a "Unidade Principal" da migration só existe pro cliente padrão).
+        var unidade = await context.Unidades.FirstOrDefaultAsync();
+        if (unidade is null)
+        {
+            unidade = new Unidade { Id = Guid.NewGuid(), Nome = "Unidade Principal" };
+            context.Unidades.Add(unidade);
+        }
+        foreach (var turma in turmas) turma.UnidadeId = unidade.Id;
+
         var senhaDevHash = SenhaHasher.Hash(SenhaDev);
 
         var professoraAna = new Usuario
