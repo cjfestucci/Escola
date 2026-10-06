@@ -12,4 +12,5 @@ public record AlunoDto(
     bool Ativo,
     PosicaoAtleta? Posicao = null,
     bool Bloqueado = false,
-    DateOnly? AtestadoValidoAte = null);
+    DateOnly? AtestadoValidoAte = null,
+    bool MatriculaPendente = false);

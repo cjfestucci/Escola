@@ -1,0 +1,35 @@
+<div class="container container--estreito">
+  @if (termo(); as t) {
+    @if (matriculasPendentes().length > 0) {
+      <div class="aviso-efetivacao">
+        <strong>A matrícula de {{ nomesPendentes() }} ainda não está efetivada.</strong>
+        <p>Ela só será efetivada depois que você ler e aceitar o termo abaixo.</p>
+      </div>
+    } @else {
+      <p class="explicacao">Antes de continuar, leia e aceite o termo de matrícula e de tratamento de dados.</p>
+    }
+
+    <article class="painel-termo" aria-labelledby="titulo-termo">
+      <h2 id="titulo-termo">{{ t.titulo }}</h2>
+      <p class="versao">Versão {{ t.versao }}</p>
+      @for (paragrafo of t.paragrafos; track $index) {
+        <p>{{ paragrafo }}</p>
+      }
+    </article>
+
+    <label class="linha-checkbox concordo">
+      <input type="checkbox" [(ngModel)]="concordo" />
+      Li e concordo com o termo de matrícula e de tratamento de dados pessoais.
+    </label>
+
+    <div class="botoes">
+      <button type="button" class="secundario" (click)="sair()">Sair</button>
+      <button type="button" class="botao-primario" [disabled]="!concordo || enviando()" (click)="aceitar()">
+        {{ enviando() ? 'Registrando...' : 'Aceitar e continuar' }}
+      </button>
+    </div>
+    <p class="rodape">Se não concordar com algum ponto, fale com a escola antes de aceitar.</p>
+  } @else if (carregando()) {
+    <p>Carregando...</p>
+  }
+</div>

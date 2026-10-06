@@ -1,6 +1,7 @@
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
+using Escola.Api.Servicos;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
 using Escola.Infrastructure.Auditoria;
@@ -17,7 +18,9 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/alunos")]
 [Authorize]
-public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio, IBloqueioAlunoService bloqueio) : ControllerBase
+public class AlunosController(
+    EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio, IBloqueioAlunoService bloqueio, IConviteMatriculaService conviteMatricula)
+    : ControllerBase
 {
     [HttpGet]
     [Authorize(Roles = GruposDePapeis.Equipe)]
@@ -50,7 +53,7 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         }
 
         var aluno = await ComIncludes().FirstOrDefaultAsync(a => a.Id == id);
-        return aluno is null ? NotFound("Aluno não encontrado.") : Ok(aluno.ToDetalheDto(await EstaBloqueadoAsync(id)));
+        return aluno is null ? NotFound("Aluno não encontrado.") : Ok(await DetalheAsync(aluno));
     }
 
     [HttpPost]
@@ -73,12 +76,15 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         };
         db.Alunos.Add(aluno);
 
-        var senhasGeradas = await SincronizarResponsaveisAsync(aluno, request.Responsaveis);
-        auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(), aluno.Nome);
+        await SincronizarResponsaveisAsync(aluno, request.Responsaveis);
+        auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(), $"{aluno.Nome} (matrícula aguardando o aceite do responsável)");
         await db.SaveChangesAsync();
 
+        // Depois de salvar: as contas novas precisam existir pro link de convite.
+        var convites = await conviteMatricula.EnviarAsync(aluno.Id);
         var criado = await ComIncludes().FirstAsync(a => a.Id == aluno.Id);
-        return CreatedAtAction(nameof(ObterPorId), new { id = aluno.Id }, criado.ToDetalheDto() with { SenhasGeradas = senhasGeradas });    }
+        return CreatedAtAction(nameof(ObterPorId), new { id = aluno.Id }, await DetalheAsync(criado) with { Convites = convites });
+    }
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = GruposDePapeis.Gestao)]
@@ -106,7 +112,7 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         aluno.TurmaId = request.TurmaId;
         aluno.Posicao = request.Posicao;
 
-        var senhasGeradas = await SincronizarResponsaveisAsync(aluno, request.Responsaveis);
+        var responsaveisNovos = await SincronizarResponsaveisAsync(aluno, request.Responsaveis);
 
         var turmaNomeDepois = request.TurmaId == turmaIdAntes
             ? turmaNomeAntes
@@ -123,8 +129,10 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
 
+        // Quem passou a ser responsável agora recebe o e-mail (convite ou aviso) — o termo aparece pra ele no portal.
+        var convites = responsaveisNovos.Count > 0 ? await conviteMatricula.EnviarAsync(aluno.Id, responsaveisNovos) : [];
         var editado = await ComIncludes().FirstAsync(a => a.Id == aluno.Id);
-        return Ok(editado.ToDetalheDto(await EstaBloqueadoAsync(id)) with { SenhasGeradas = senhasGeradas });
+        return Ok(await DetalheAsync(editado) with { Convites = convites });
     }
 
     [HttpPost("{id:guid}/desativar")]
@@ -139,7 +147,7 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         await db.SaveChangesAsync();
 
         var atualizado = await ComIncludes().FirstAsync(a => a.Id == id);
-        return Ok(atualizado.ToDetalheDto(await EstaBloqueadoAsync(id)));
+        return Ok(await DetalheAsync(atualizado));
     }
 
     [HttpPost("{id:guid}/ativar")]
@@ -154,10 +162,35 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         await db.SaveChangesAsync();
 
         var atualizado = await ComIncludes().FirstAsync(a => a.Id == id);
-        return Ok(atualizado.ToDetalheDto(await EstaBloqueadoAsync(id)));
+        return Ok(await DetalheAsync(atualizado));
+    }
+
+    /// <summary>Manda de novo o e-mail da matrícula a um responsável: convite (conta ainda não ativada) ou aviso pra entrar no portal.</summary>
+    [HttpPost("{id:guid}/responsaveis/{responsavelId:guid}/reenviar-convite")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<ConviteMatriculaDto>> ReenviarConvite(Guid id, Guid responsavelId)
+    {
+        if (!await db.AlunoResponsaveis.AnyAsync(ar => ar.AlunoId == id && ar.ResponsavelId == responsavelId))
+            return NotFound("Responsável não encontrado neste aluno.");
+
+        var resultado = (await conviteMatricula.EnviarAsync(id, [responsavelId])).First();
+        auditoria.Registrar(nameof(Aluno), id, AcaoAuditoria.Editado, this.UsuarioIdAtual(),
+            $"E-mail da matrícula reenviado para {resultado.Nome} ({resultado.Email}){(resultado.Entregue ? string.Empty : " — não entregue")}");
+        await db.SaveChangesAsync();
+        return Ok(resultado);
     }
 
     private async Task<bool> EstaBloqueadoAsync(Guid alunoId) => (await bloqueio.ObterBloqueadosAsync([alunoId])).Contains(alunoId);
+
+    private async Task<AlunoDetalheDto> DetalheAsync(Aluno aluno)
+    {
+        var responsavelIds = aluno.Responsaveis.Select(r => r.ResponsavelId).ToList();
+        var pendentes = (await db.Usuarios
+            .Where(u => u.ResponsavelId != null && responsavelIds.Contains(u.ResponsavelId.Value) && u.SenhaHash == SenhaHasher.ConvitePendente)
+            .Select(u => u.ResponsavelId!.Value)
+            .ToListAsync()).ToHashSet();
+        return aluno.ToDetalheDto(await EstaBloqueadoAsync(aluno.Id), pendentes);
+    }
 
     private async Task<string?> ValidarAsync(CriarOuEditarAlunoRequest request)
     {
@@ -185,11 +218,12 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         return null;
     }
 
-    private async Task<List<SenhaGeradaDto>> SincronizarResponsaveisAsync(Aluno aluno, List<ResponsavelInput> inputs)
+    /// <returns>Os responsáveis que passaram a ser vinculados a este aluno agora (recebem o e-mail da matrícula).</returns>
+    private async Task<List<Guid>> SincronizarResponsaveisAsync(Aluno aluno, List<ResponsavelInput> inputs)
     {
         var vinculosAtuais = aluno.Responsaveis.ToList();
         var responsavelIdsMantidos = new HashSet<Guid>();
-        var senhasGeradas = new List<SenhaGeradaDto>();
+        var novosVinculos = new List<Guid>();
 
         foreach (var input in inputs)
         {
@@ -218,18 +252,19 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
                 // já pertença a uma conta existente (ex.: alguém da equipe que também é responsável).
                 if (!await db.Usuarios.AnyAsync(u => u.Email.ToLower() == email.ToLower()))
                 {
-                    var senha = GeradorSenhaTemporaria.Gerar();
+                    // Sem senha: a conta nasce com convite pendente e o responsável cria a própria senha pelo link do e-mail
+                    // (que também confirma o e-mail). A Gestão ainda pode gerar uma senha pela Matrícula se o e-mail não chegar.
                     db.Usuarios.Add(new Usuario
                     {
                         Id = Guid.NewGuid(), Nome = responsavel.Nome, Email = responsavel.Email,
-                        SenhaHash = SenhaHasher.Hash(senha), Papel = PapelUsuario.Responsavel, ResponsavelId = responsavel.Id
+                        SenhaHash = SenhaHasher.ConvitePendente, Papel = PapelUsuario.Responsavel, ResponsavelId = responsavel.Id
                     });
-                    senhasGeradas.Add(new SenhaGeradaDto(responsavel.Nome, responsavel.Email, senha));
                 }
             }
 
             if (vinculosAtuais.All(v => v.ResponsavelId != responsavel.Id))
             {
+                novosVinculos.Add(responsavel.Id);
                 db.AlunoResponsaveis.Add(new AlunoResponsavel
                 {
                     AlunoId = aluno.Id,
@@ -245,7 +280,7 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         if (vinculosRemover.Count > 0)
             db.AlunoResponsaveis.RemoveRange(vinculosRemover);
 
-        return senhasGeradas;
+        return novosVinculos;
     }
 
     private IQueryable<Aluno> ComIncludes() =>

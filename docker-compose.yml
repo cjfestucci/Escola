@@ -18,6 +18,7 @@ services:
       Cliente__Nome: ${CLIENTE_NOME:?Informe CLIENTE_NOME no .env}
       Cliente__Segmento: ${CLIENTE_SEGMENTO:-Escola}
       App__UrlBase: ${APP_URL_BASE:?Informe APP_URL_BASE no .env (endereço público do site, com https)}
+      App__ProxiesNaFrente: ${PROXIES_NA_FRENTE:-2}
       # Suporte (equipe do produto): sem os três, a conta de suporte fica desativada neste ambiente.
       Suporte__Email: ${SUPORTE_EMAIL:-}
       Suporte__Nome: ${SUPORTE_NOME:-Suporte}

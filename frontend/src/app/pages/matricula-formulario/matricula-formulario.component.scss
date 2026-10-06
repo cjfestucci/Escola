@@ -331,3 +331,99 @@ h1 {
   align-items: center;
   gap: 12px;
 }
+
+.linha-convite {
+  p {
+    margin: 4px 0;
+  }
+
+  .nao-entregue {
+    color: #b3261e;
+    font-weight: 600;
+  }
+
+  .detalhe-convite {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--cor-texto-suave);
+  }
+}
+
+.link-convite,
+.aviso-senha-inline {
+  .link {
+    display: block;
+    font-family: monospace;
+    font-size: 0.78rem;
+    word-break: break-all;
+    user-select: all;
+    margin-top: 4px;
+  }
+}
+
+.aviso-matricula-pendente {
+  background: #fef6e4;
+  border: 1px solid #f6d79a;
+  border-radius: 10px;
+  color: #8a4b08;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+
+  p {
+    margin: 4px 0 0;
+  }
+}
+
+.selo-convite {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #8a4b08;
+}
+
+.lista-aceites {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.88rem;
+}
+
+.linha-aceite {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.texto-aceito {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.82rem;
+  background: var(--cor-fundo);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 6px 0 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.linha-exportar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+
+  .secundario {
+    background: transparent;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 600;
+    color: var(--cor-texto);
+  }
+}

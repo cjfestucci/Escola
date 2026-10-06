@@ -1,7 +1,10 @@
+using Escola.Api.Servicos;
 using Escola.Domain.Enums;
 
 namespace Escola.Api.Dtos;
 
+/// <param name="Convites">Só na resposta de criar/editar: o que aconteceu com o e-mail da matrícula de cada responsável.</param>
+/// <param name="MatriculaPendente">Nenhum responsável aceitou o termo ainda — a matrícula não está efetivada.</param>
 public record AlunoDetalheDto(
     Guid Id,
     string Nome,
@@ -11,17 +14,10 @@ public record AlunoDetalheDto(
     string TurmaNome,
     bool Ativo,
     IReadOnlyList<ResponsavelResumoDto> Responsaveis,
-    IReadOnlyList<SenhaGeradaDto> SenhasGeradas,
+    IReadOnlyList<ConviteMatriculaDto> Convites,
     PosicaoAtleta? Posicao = null,
     bool Bloqueado = false,
     decimal DescontoMensalidadePercentual = 0,
-    string? MotivoDesconto = null)
-{
-    public AlunoDetalheDto(
-        Guid Id, string Nome, DateOnly DataNascimento, string? FotoUrl, Guid TurmaId,
-        string TurmaNome, bool Ativo, IReadOnlyList<ResponsavelResumoDto> Responsaveis,
-        PosicaoAtleta? Posicao = null, bool Bloqueado = false)
-        : this(Id, Nome, DataNascimento, FotoUrl, TurmaId, TurmaNome, Ativo, Responsaveis, [], Posicao, Bloqueado, 0, null)
-    {
-    }
-}
+    string? MotivoDesconto = null,
+    bool MatriculaPendente = false,
+    DateTime? MatriculaConfirmadaEm = null);

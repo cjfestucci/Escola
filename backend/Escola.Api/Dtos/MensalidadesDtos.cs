@@ -9,7 +9,9 @@ public enum SituacaoMensalidade
     /// <summary>A turma não tem valor de mensalidade definido.</summary>
     SemValor,
     /// <summary>Desconto de 100% (bolsa integral): não gera cobrança.</summary>
-    Isento
+    Isento,
+    /// <summary>A matrícula ainda não foi confirmada pelo responsável (termo não aceito): não gera cobrança.</summary>
+    MatriculaPendente
 }
 
 public record MensalidadeItemDto(
@@ -31,6 +33,7 @@ public record PreviaMensalidadesDto(
     int JaExistem,
     int SemValor,
     int Isentos,
-    decimal TotalAGerar);
+    decimal TotalAGerar,
+    int MatriculasPendentes = 0);
 
 public record GeracaoMensalidadesDto(int Geradas, int JaExistiam, int SemValor, int Isentos, decimal Total);

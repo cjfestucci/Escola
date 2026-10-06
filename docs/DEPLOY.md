@@ -52,6 +52,8 @@ migra; as outras só encontram o banco já atualizado.
 
 - [ ] `JWT_CHAVE` única por cliente, longa e aleatória (não a de teste).
 - [ ] HTTPS no proxy; `APP_URL_BASE` com `https://`.
+- [ ] `PROXIES_NA_FRENTE` certo (2 com proxy HTTPS na frente do site; 1 sem) — é o que grava o IP real no aceite do termo de matrícula.
+- [ ] **Texto do termo de matrícula revisado** pela parte jurídica da escola (`backend/Escola.Api/Servicos/TermoMatricula.cs`; mudou o texto → mude a `Versao`).
 - [ ] Banco acessível só pela rede interna, com usuário próprio da aplicação.
 - [ ] `Suporte__*` configurado só onde o suporte precisa atuar; segredo 2FA no cofre.
 - [ ] SMTP funcionando (teste o "Esqueceu a senha?" com um e-mail real).

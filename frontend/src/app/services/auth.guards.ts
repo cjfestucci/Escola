@@ -1,8 +1,10 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { catchError, map, of } from 'rxjs';
 
 import { AuthService } from './auth.service';
 import { SegmentoService } from './segmento.service';
+import { TermoService } from './termo.service';
 
 /** Pra onde mandar quem tentou entrar numa área que não é dele. O Suporte (equipe do produto) nunca vai pras telas do
  * cliente — sua casa é a Plataforma; o Responsável vai pro portal; o resto da equipe, pra rotina. */
@@ -73,4 +75,20 @@ export const portalGuard: CanActivateFn = () => {
 
   if (auth.ehResponsavel()) return true;
   return router.parseUrl(auth.estaLogado() ? destinoSemAcesso(auth) : '/entrar');
+};
+
+/** No portal, antes de qualquer tela: se algum filho ainda não tem o aceite do termo de matrícula (versão atual), vai pro termo.
+ * Falha da API não tranca o portal (o termo volta a ser pedido na próxima navegação). */
+export const termoPortalGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const termo = inject(TermoService);
+  const router = inject(Router);
+
+  const usuarioId = auth.identidade()?.usuarioId;
+  if (!auth.ehResponsavel() || !usuarioId || termo.jaSemPendencias(usuarioId)) return true;
+
+  return termo.pendente(usuarioId).pipe(
+    map((t) => (t.alunos.length > 0 ? router.parseUrl('/portal/termo') : true)),
+    catchError(() => of(true))
+  );
 };

@@ -1,19 +1,21 @@
-import { DIAS_AVISO_ATESTADO, rotuloAtestado, situacaoAtestado } from '../../models/atestado.model';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { POSICOES_ATLETA, PosicaoAtleta, ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/aluno.model';
+import { ConviteMatricula, POSICOES_ATLETA, PosicaoAtleta, ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/aluno.model';
+import { DIAS_AVISO_ATESTADO, rotuloAtestado, situacaoAtestado } from '../../models/atestado.model';
 import { FichaSaude } from '../../models/ficha-saude.model';
+import { TermoAceite } from '../../models/termo.model';
 import { AlunoService } from '../../services/aluno.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { ResponsavelService } from '../../services/responsavel.service';
 import { SegmentoService } from '../../services/segmento.service';
+import { TermoService } from '../../services/termo.service';
 import { TurmaService } from '../../services/turma.service';
 import { UploadService } from '../../services/upload.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
-import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
+import { formatarDataAbsoluta, formatarDataHoraAbsoluta, hojeIso } from '../../shared/data-utils';
 import { DocumentosSaudeComponent } from '../../shared/documentos-saude/documentos-saude.component';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 import { resolverFotoUrl } from '../../shared/registro-rotina-display';
@@ -41,6 +43,7 @@ export class MatriculaFormularioComponent implements OnInit {
   private readonly uploadService = inject(UploadService);
   private readonly fichaSaudeService = inject(FichaSaudeService);
   private readonly responsavelService = inject(ResponsavelService);
+  private readonly termoService = inject(TermoService);
   private readonly notificacao = inject(NotificacaoService);
   protected readonly segmentoService = inject(SegmentoService);
 
@@ -55,7 +58,16 @@ export class MatriculaFormularioComponent implements OnInit {
   // Posições dos cartões de responsável abertos (só vale com 2+): o primeiro nasce aberto, os demais minimizados.
   readonly responsaveisAbertos = signal<Set<number>>(new Set([0]));
   readonly calendarioNascimentoAberto = signal(false);
-  readonly senhasGeradas = signal<SenhaGeradaResponsavel[]>([]);
+  /** Resultado do e-mail da matrícula (mostrado uma vez, depois de salvar). */
+  readonly convites = signal<ConviteMatricula[]>([]);
+  readonly matriculaPendente = signal(false);
+  readonly matriculaConfirmadaEm = signal<string | null>(null);
+  readonly aceites = signal<TermoAceite[]>([]);
+  readonly aceiteAbertoId = signal<string | null>(null);
+  readonly reenviandoId = signal<string | null>(null);
+  /** Convite reenviado que não saiu por e-mail: o link aparece (uma vez) junto do responsável. */
+  readonly linkReenviado = signal<ConviteMatricula | null>(null);
+  readonly exportando = signal(false);
   readonly redefinindoSenhaId = signal<string | null>(null);
   readonly senhaResponsavelGerada = signal<SenhaGeradaResponsavel | null>(null);
   readonly abaAtiva = signal<Aba>('dados');
@@ -89,6 +101,7 @@ export class MatriculaFormularioComponent implements OnInit {
 
   protected readonly resolverFotoUrl = resolverFotoUrl;
   protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
+  protected readonly formatarDataHoraAbsoluta = formatarDataHoraAbsoluta;
   protected readonly hojeIso = hojeIso;
   protected readonly tiposSanguineos = TIPOS_SANGUINEOS;
   protected readonly posicoes = POSICOES_ATLETA;
@@ -121,6 +134,8 @@ export class MatriculaFormularioComponent implements OnInit {
           this.motivoDesconto = aluno.motivoDesconto ?? '';
           this.fotoUrl.set(aluno.fotoUrl);
           this.responsaveis.set(aluno.responsaveis.length > 0 ? aluno.responsaveis : [novoResponsavelVazio()]);
+          this.matriculaPendente.set(!!aluno.matriculaPendente);
+          this.matriculaConfirmadaEm.set(aluno.matriculaConfirmadaEm ?? null);
           this.carregando.set(false);
         },
         error: () => {
@@ -129,6 +144,7 @@ export class MatriculaFormularioComponent implements OnInit {
         }
       });
       this.carregarFicha(this.alunoId);
+      this.termoService.aceitesDoAluno(this.alunoId).subscribe({ next: (a) => this.aceites.set(a), error: () => undefined });
     } else {
       this.carregando.set(false);
     }
@@ -290,6 +306,54 @@ export class MatriculaFormularioComponent implements OnInit {
     });
   }
 
+  reenviarConvite(responsavel: ResponsavelResumo): void {
+    if (!responsavel.id || !this.alunoId) return;
+
+    this.linkReenviado.set(null);
+    this.reenviandoId.set(responsavel.id);
+    this.alunoService.reenviarConvite(this.alunoId, responsavel.id).subscribe({
+      next: (resultado) => {
+        this.reenviandoId.set(null);
+        if (resultado.entregue) {
+          this.notificacao.sucesso(`E-mail da matrícula enviado para ${resultado.email}.`);
+        } else {
+          this.linkReenviado.set(resultado);
+          this.notificacao.erro(resultado.aviso ?? 'O e-mail não foi entregue.');
+        }
+      },
+      error: (resposta) => {
+        this.reenviandoId.set(null);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível reenviar o e-mail.');
+      }
+    });
+  }
+
+  alternarAceite(id: string): void {
+    this.aceiteAbertoId.set(this.aceiteAbertoId() === id ? null : id);
+  }
+
+  exportarDados(): void {
+    if (!this.alunoId) return;
+
+    this.exportando.set(true);
+    this.alunoService.exportarDados(this.alunoId).subscribe({
+      next: (blob) => {
+        this.exportando.set(false);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `dados-${this.nome.trim().replace(/[^\p{L}\p{N}]+/gu, '-')}-${hojeIso()}.zip`;
+        link.click();
+        URL.revokeObjectURL(url);
+        this.notificacao.sucesso('Arquivo gerado. A exportação ficou registrada no histórico.');
+      },
+      error: () => {
+        this.exportando.set(false);
+        this.notificacao.erro('Não foi possível exportar os dados.');
+      }
+    });
+  }
+
   salvar(): void {
     if (!this.nome.trim()) {
       this.notificacao.erro('Informe o nome do aluno.');
@@ -337,8 +401,8 @@ export class MatriculaFormularioComponent implements OnInit {
 
     requisicao$.subscribe({
       next: (resultado) => {
-        if (resultado.senhasGeradas?.length > 0) {
-          this.senhasGeradas.set(resultado.senhasGeradas);
+        if (resultado.convites?.length > 0) {
+          this.convites.set(resultado.convites);
           this.salvando.set(false);
         } else {
           this.notificacao.sucesso(`${this.segmentoService.rotuloPessoa()} salvo(a) com sucesso.`);

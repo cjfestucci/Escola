@@ -109,10 +109,11 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
     public void ResponsavelNaoEntraEmNadaDaEquipe()
     {
         // Rotas por aluno (ficha, documentos, jogos, frequência…) liberam o Responsável de propósito e checam a posse do filho
-        // dentro da ação; todo o resto que ele alcança tem que ser só o portal.
+        // dentro da ação; todo o resto que ele alcança tem que ser só o portal (/api/portal/*, ex.: o termo de matrícula).
         var alcance = Endpoints.Where(e => !e.Anonimo && e.Permite("Responsavel")).Select(e => e.Rota).ToList();
         var forasDoPortal = alcance.Where(r => !r.StartsWith("/api/alunos/") && !r.StartsWith("/api/responsaveis/")
-            && !r.StartsWith("/api/turmas/") && !r.StartsWith("/api/financeiro/cobrancas/") && !r.StartsWith("/api/logs")).ToList();
+            && !r.StartsWith("/api/turmas/") && !r.StartsWith("/api/financeiro/cobrancas/") && !r.StartsWith("/api/logs")
+            && !r.StartsWith("/api/portal/")).ToList();
         foreach (var r in forasDoPortal) saida.WriteLine(r);
 
         Assert.True(forasDoPortal.Count == 0, "Responsável alcança: " + string.Join("; ", forasDoPortal));

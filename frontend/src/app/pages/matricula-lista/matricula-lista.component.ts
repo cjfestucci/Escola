@@ -17,7 +17,7 @@ interface OpcaoTurma {
   nome: string;
 }
 
-type StatusFiltro = 'todos' | 'ativos' | 'inativos' | 'bloqueados';
+type StatusFiltro = 'todos' | 'ativos' | 'inativos' | 'bloqueados' | 'pendentes';
 type AtestadoFiltro = '' | 'pendente' | 'vencido' | 'vencendo' | 'sem';
 
 @Component({
@@ -66,7 +66,8 @@ export class MatriculaListaComponent implements OnInit {
         status === 'todos' ||
         (status === 'ativos' && aluno.ativo) ||
         (status === 'inativos' && !aluno.ativo) ||
-        (status === 'bloqueados' && !!aluno.bloqueado);
+        (status === 'bloqueados' && !!aluno.bloqueado) ||
+        (status === 'pendentes' && !!aluno.matriculaPendente);
       const situacao = situacaoAtestado(aluno.atestadoValidoAte, hoje);
       const bateAtestado =
         !atestado || (atestado === 'pendente' ? situacao === 'vencido' || situacao === 'vencendo' : situacao === atestado);
@@ -90,7 +91,7 @@ export class MatriculaListaComponent implements OnInit {
   ngOnInit(): void {
     // Atalhos do Dashboard abrem a lista já filtrada (ex.: /matricula?status=bloqueados).
     const status = this.route.snapshot.queryParamMap.get('status');
-    if (status === 'ativos' || status === 'inativos' || status === 'bloqueados') this.filtroStatus.set(status);
+    if (status === 'ativos' || status === 'inativos' || status === 'bloqueados' || status === 'pendentes') this.filtroStatus.set(status);
     const atestado = this.route.snapshot.queryParamMap.get('atestado');
     if (atestado === 'pendente' || atestado === 'vencido' || atestado === 'vencendo' || atestado === 'sem') this.filtroAtestado.set(atestado);
     this.carregar();

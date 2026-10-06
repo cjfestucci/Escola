@@ -16,6 +16,7 @@ using System.Security.Cryptography.X509Certificates;
 using Escola.Infrastructure.Storage;
 using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
@@ -147,6 +148,7 @@ builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
 builder.Services.AddSingleton<LimitadorTentativasLogin>();
 builder.Services.AddScoped<ILinkSenhaService, LinkSenhaService>();
+builder.Services.AddScoped<IConviteMatriculaService, ConviteMatriculaService>();
 builder.Services.AddScoped<IRelogioEscola, RelogioEscola>();
 builder.Services.AddScoped<IBloqueioAlunoService, BloqueioAlunoService>();
 
@@ -208,6 +210,21 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<EscolaDbContext>();
     await DbInitializer.SeedAsync(db);
     await DbInitializer.GarantirAcessosAsync(db);
+}
+
+// Atrás de proxy (HTTPS externo → nginx do site → API) o IP do cliente chega no X-Forwarded-For. Só é lido quando a configuração
+// diz quantos proxies há na frente (App:ProxiesNaFrente) — sem isso qualquer um forjaria o cabeçalho. O IP vai pra prova do aceite do termo.
+var proxiesNaFrente = builder.Configuration.GetValue<int>("App:ProxiesNaFrente");
+if (proxiesNaFrente > 0)
+{
+    var opcoesProxy = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        ForwardLimit = proxiesNaFrente
+    };
+    opcoesProxy.KnownNetworks.Clear(); // os proxies estão na rede do Docker/host, cujo endereço varia por instalação
+    opcoesProxy.KnownProxies.Clear();
+    app.UseForwardedHeaders(opcoesProxy);
 }
 
 app.UseHttpsRedirection();

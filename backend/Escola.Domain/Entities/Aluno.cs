@@ -17,6 +17,10 @@ public class Aluno
     public decimal DescontoMensalidadePercentual { get; set; }
     public string? MotivoDesconto { get; set; }
 
+    /// <summary>Quando um responsável aceitou o termo de matrícula no portal — só a partir daí a matrícula vale. Nulo = aguardando o
+    /// aceite (não entra na geração de mensalidades em lote). As matrículas anteriores ao termo foram marcadas como confirmadas na migration.</summary>
+    public DateTime? MatriculaConfirmadaEm { get; set; }
+
     public Guid TurmaId { get; set; }
     public Turma Turma { get; set; } = null!;
 

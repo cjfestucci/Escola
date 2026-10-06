@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { configuracaoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard } from './services/auth.guards';
+import { configuracaoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard, termoPortalGuard } from './services/auth.guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [redirecionamentoInicialGuard], children: [] },
@@ -290,20 +290,26 @@ export const routes: Routes = [
       import('./pages/movimentacoes-estoque/movimentacoes-estoque.component').then((m) => m.MovimentacoesEstoqueComponent)
   },
   {
-    path: 'portal/filhos',
+    path: 'portal/termo',
     canActivate: [portalGuard],
+    data: { titulo: 'Termo de matrícula' },
+    loadComponent: () => import('./pages/portal-termo/portal-termo.component').then((m) => m.PortalTermoComponent)
+  },
+  {
+    path: 'portal/filhos',
+    canActivate: [portalGuard, termoPortalGuard],
     data: { titulo: 'Meus filhos' },
     loadComponent: () => import('./pages/portal-filhos/portal-filhos.component').then((m) => m.PortalFilhosComponent)
   },
   {
     path: 'portal/alunos/:id',
-    canActivate: [portalGuard],
+    canActivate: [portalGuard, termoPortalGuard],
     data: { titulo: 'Rotina do dia' },
     loadComponent: () => import('./pages/portal-aluno/portal-aluno.component').then((m) => m.PortalAlunoComponent)
   },
   {
     path: 'portal/financeiro',
-    canActivate: [portalGuard],
+    canActivate: [portalGuard, termoPortalGuard],
     data: { titulo: 'Financeiro' },
     loadComponent: () =>
       import('./pages/portal-financeiro/portal-financeiro.component').then((m) => m.PortalFinanceiroComponent)

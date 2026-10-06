@@ -68,6 +68,8 @@ export interface Aluno {
   bloqueado?: boolean;
   /** Validade do atestado médico, da Ficha de Saúde (só vem na listagem). */
   atestadoValidoAte?: string | null;
+  /** Nenhum responsável aceitou o termo de matrícula no portal ainda: a matrícula não está efetivada. */
+  matriculaPendente?: boolean;
 }
 
 export interface ResponsavelResumo {
@@ -76,6 +78,8 @@ export interface ResponsavelResumo {
   email: string;
   telefone: string | null;
   responsavelFinanceiro: boolean;
+  /** Login do portal ainda não ativado (convite enviado, senha não criada). Só vem do servidor. */
+  contaPendente?: boolean;
 }
 
 export interface SenhaGeradaResponsavel {
@@ -84,9 +88,23 @@ export interface SenhaGeradaResponsavel {
   senha: string;
 }
 
+/** O que aconteceu com o e-mail da matrícula de um responsável. */
+export interface ConviteMatricula {
+  responsavelId: string;
+  nome: string;
+  email: string;
+  /** Convite = conta nova (confirma o e-mail e cria a senha); Aviso = já tem conta, só entra no portal e aceita o termo. */
+  tipo: 'Convite' | 'Aviso';
+  entregue: boolean;
+  /** Só quando o convite não saiu por e-mail: a escola repassa ao responsável. É segredo (permite criar a senha da conta). */
+  link: string | null;
+  aviso: string | null;
+}
+
 export interface AlunoDetalhe extends Aluno {
   responsaveis: ResponsavelResumo[];
-  senhasGeradas: SenhaGeradaResponsavel[];
+  convites: ConviteMatricula[];
+  matriculaConfirmadaEm?: string | null;
   descontoMensalidadePercentual: number;
   motivoDesconto: string | null;
 }

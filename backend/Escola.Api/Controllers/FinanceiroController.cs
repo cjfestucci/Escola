@@ -427,6 +427,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             var baseValor = a.Turma.ValorMensalidade ?? 0m;
             var valor = Math.Round(baseValor * (1 - a.DescontoMensalidadePercentual / 100m), 2, MidpointRounding.AwayFromZero);
             var situacao = jaTem.Contains(a.Id) ? SituacaoMensalidade.JaExiste
+                : a.MatriculaConfirmadaEm == null ? SituacaoMensalidade.MatriculaPendente
                 : baseValor <= 0 ? SituacaoMensalidade.SemValor
                 : valor <= 0 ? SituacaoMensalidade.Isento
                 : SituacaoMensalidade.Gerar;
@@ -439,7 +440,8 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             itens.Count(i => i.Situacao == SituacaoMensalidade.JaExiste),
             itens.Count(i => i.Situacao == SituacaoMensalidade.SemValor),
             itens.Count(i => i.Situacao == SituacaoMensalidade.Isento),
-            itens.Where(i => i.Situacao == SituacaoMensalidade.Gerar).Sum(i => i.Valor));
+            itens.Where(i => i.Situacao == SituacaoMensalidade.Gerar).Sum(i => i.Valor),
+            itens.Count(i => i.Situacao == SituacaoMensalidade.MatriculaPendente));
         return (previa, null);
     }
 

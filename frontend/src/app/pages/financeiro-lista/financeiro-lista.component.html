@@ -74,6 +74,9 @@
             @if (p.isentos > 0) {
               <li>{{ p.isentos }} {{ p.isentos === 1 ? 'aluno isento' : 'alunos isentos' }} (desconto de 100%)</li>
             }
+            @if (p.matriculasPendentes) {
+              <li class="aviso-geracao">{{ p.matriculasPendentes }} {{ p.matriculasPendentes === 1 ? 'matrícula aguarda' : 'matrículas aguardam' }} o aceite do responsável (ficam de fora até a confirmação)</li>
+            }
           </ul>
 
           @if (p.aGerar > 0) {

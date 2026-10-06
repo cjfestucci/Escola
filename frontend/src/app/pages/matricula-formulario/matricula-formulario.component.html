@@ -5,15 +5,40 @@
 
   @if (carregando()) {
     <p>Carregando...</p>
-  } @else if (senhasGeradas().length > 0) {
+  } @else if (convites().length > 0) {
     <div class="aviso-senha">
-      <strong>{{ segmentoService.rotuloPessoa() }} cadastrado(a)! Acesso do {{ segmentoService.rotuloPortal() }} criado — anote as senhas, elas só aparecem esta vez:</strong>
-      @for (sg of senhasGeradas(); track sg.email) {
-        <p>{{ sg.nome }} ({{ sg.email }}) — <span class="senha">{{ sg.senha }}</span></p>
+      <strong>{{ segmentoService.rotuloPessoa() }} salvo(a)! A matrícula só é efetivada depois que um responsável aceitar o termo no {{ segmentoService.rotuloPortal() }}.</strong>
+      @for (c of convites(); track c.responsavelId) {
+        <div class="linha-convite">
+          <p>
+            {{ c.nome }} ({{ c.email }}) —
+            @if (c.entregue) {
+              {{ c.tipo === 'Convite' ? '✉️ convite enviado (confirmar e-mail e criar senha)' : '✉️ aviso enviado (já tem acesso ao portal)' }}
+            } @else {
+              <span class="nao-entregue">⚠️ e-mail não entregue</span>
+              @if (c.aviso) {
+                <span class="detalhe-convite">{{ c.aviso }}</span>
+              }
+            }
+          </p>
+          @if (c.link) {
+            <p class="link-convite">
+              Repasse este link ao responsável (vale 7 dias, uso único — não compartilhe com outras pessoas):
+              <span class="link">{{ c.link }}</span>
+            </p>
+          }
+        </div>
       }
       <button type="button" class="botao-primario" (click)="continuar()">Continuar</button>
     </div>
   } @else {
+    @if (ehEdicao && matriculaPendente()) {
+      <div class="aviso-matricula-pendente">
+        <strong>⏳ Matrícula aguardando o aceite do responsável.</strong>
+        <p>Ela só é efetivada depois que um responsável aceitar o termo no {{ segmentoService.rotuloPortal() }}. Se o e-mail não chegou, use "Reenviar e-mail da matrícula" na aba {{ segmentoService.rotuloResponsaveis() }}.</p>
+      </div>
+    }
+
     <div class="abas">
       <button type="button" class="aba" [class.ativa]="abaAtiva() === 'dados'" (click)="abaAtiva.set('dados')">
         Dados do(a) {{ segmentoService.rotuloPessoa().toLowerCase() }}
@@ -175,6 +200,24 @@
             </label>
 
             @if (responsavel.id) {
+              @if (responsavel.contaPendente) {
+                <p class="selo-convite">✉️ Convite pendente: ainda não confirmou o e-mail nem criou a senha.</p>
+              }
+              <button
+                type="button"
+                class="botao-texto"
+                [disabled]="reenviandoId() === responsavel.id"
+                (click)="reenviarConvite(responsavel)"
+              >
+                {{ reenviandoId() === responsavel.id ? 'Enviando...' : 'Reenviar e-mail da matrícula' }}
+              </button>
+              @if (linkReenviado(); as lr) {
+                @if (lr.responsavelId === responsavel.id && lr.link) {
+                  <p class="aviso-senha-inline">
+                    Repasse este link ao responsável (vale 7 dias, uso único): <span class="link">{{ lr.link }}</span>
+                  </p>
+                }
+              }
               <button
                 type="button"
                 class="botao-texto"
@@ -196,6 +239,46 @@
           </div>
         }
       </div>
+
+      @if (ehEdicao) {
+        <div class="painel-formulario">
+          <div class="cabecalho-secao">
+            <span>Termo de matrícula e dados pessoais (LGPD)</span>
+          </div>
+          @if (matriculaConfirmadaEm(); as confirmada) {
+            <p class="dica">✅ Matrícula confirmada em {{ formatarDataHoraAbsoluta(confirmada) }}.</p>
+          } @else {
+            <p class="dica">⏳ Matrícula ainda não confirmada: nenhum responsável aceitou o termo.</p>
+          }
+
+          @if (aceites().length === 0) {
+            <p class="dica">Nenhum aceite do termo registrado.</p>
+          } @else {
+            <ul class="lista-aceites">
+              @for (a of aceites(); track a.id) {
+                <li>
+                  <div class="linha-aceite">
+                    <span>{{ a.responsavelNome }} — {{ formatarDataHoraAbsoluta(a.aceitoEm) }} · versão {{ a.versao }}@if (a.ip) { · IP {{ a.ip }}}</span>
+                    <button type="button" class="botao-texto" (click)="alternarAceite(a.id)">
+                      {{ aceiteAbertoId() === a.id ? 'Ocultar texto' : 'Ver texto aceito' }}
+                    </button>
+                  </div>
+                  @if (aceiteAbertoId() === a.id) {
+                    <pre class="texto-aceito">{{ a.textoAceito }}</pre>
+                  }
+                </li>
+              }
+            </ul>
+          }
+
+          <div class="linha-exportar">
+            <button type="button" class="secundario" [disabled]="exportando()" (click)="exportarDados()">
+              {{ exportando() ? 'Gerando...' : '⬇️ Exportar dados pessoais (LGPD)' }}
+            </button>
+            <span class="dica">ZIP com cadastro, responsáveis, saúde (com os documentos), frequência, rotina, mensalidades, jogos, termos e histórico — para atender um pedido da família.</span>
+          </div>
+        </div>
+      }
     }
 
     @if (abaAtiva() !== 'saude') {

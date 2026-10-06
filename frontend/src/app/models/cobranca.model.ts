@@ -67,7 +67,7 @@ export interface PixCobranca {
   automatico: boolean;
 }
 
-export type SituacaoMensalidade = 'Gerar' | 'JaExiste' | 'SemValor' | 'Isento';
+export type SituacaoMensalidade = 'Gerar' | 'JaExiste' | 'SemValor' | 'Isento' | 'MatriculaPendente';
 
 export interface MensalidadeItem {
   alunoId: string;
@@ -90,6 +90,8 @@ export interface PreviaMensalidades {
   semValor: number;
   isentos: number;
   totalAGerar: number;
+  /** Alunos com matrícula ainda não confirmada pelo responsável (termo não aceito): ficam de fora. */
+  matriculasPendentes?: number;
 }
 
 export interface GeracaoMensalidades {

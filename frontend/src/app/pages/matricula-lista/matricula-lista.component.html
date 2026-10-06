@@ -26,6 +26,7 @@
         <option value="ativos">Ativos</option>
         <option value="inativos">Inativos</option>
         <option value="bloqueados">Bloqueados</option>
+        <option value="pendentes">Aguardando aceite</option>
       </select>
       <select class="campo-filtro" [ngModel]="filtroAtestado()" (ngModelChange)="filtroAtestado.set($event)" aria-label="Atestado médico">
         <option value="">Atestado: todos</option>
@@ -68,6 +69,9 @@
               }
               @if (aluno.bloqueado) {
                 <span class="selo-bloqueado" title="Mensalidade em atraso além do limite de dias configurado">🔒 Bloqueado</span>
+              }
+              @if (aluno.matriculaPendente) {
+                <span class="selo-atestado" title="Nenhum responsável aceitou o termo de matrícula no portal ainda">⏳ Aguardando aceite</span>
               }
               @if (aluno.ativo) {
                 @switch (situacaoAtestado(aluno.atestadoValidoAte)) {

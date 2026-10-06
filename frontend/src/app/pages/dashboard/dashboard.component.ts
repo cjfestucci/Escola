@@ -281,6 +281,15 @@ export class DashboardComponent implements OnInit {
         tom: 'aviso'
       });
     }
+    const aguardandoAceite = this.alunosFiltrados().filter((a) => a.ativo && a.matriculaPendente).length;
+    if (aguardandoAceite > 0) {
+      itens.push({
+        texto: `${aguardandoAceite} ${aguardandoAceite === 1 ? 'matrícula aguarda' : 'matrículas aguardam'} o aceite do responsável`,
+        rota: '/matricula',
+        consulta: { status: 'pendentes' },
+        tom: 'aviso'
+      });
+    }
     // Atestado médico: só conta quem tem data informada (o "sem atestado" fica no filtro da Matrícula — no Dashboard viraria um aviso
     // permanente pra quem não controla atestado).
     const hoje = hojeIso();
