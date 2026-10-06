@@ -10,6 +10,8 @@ public class CobrancaConfiguration : IEntityTypeConfiguration<Cobranca>
     {
         builder.Property(c => c.Descricao).IsRequired().HasMaxLength(200);
         builder.Property(c => c.Valor).HasPrecision(10, 2);
+        builder.Property(c => c.ValorPago).HasPrecision(10, 2);
+        builder.HasIndex(c => new { c.AlunoId, c.Competencia });
 
         builder.HasOne(c => c.Aluno)
             .WithMany(a => a.Cobrancas)

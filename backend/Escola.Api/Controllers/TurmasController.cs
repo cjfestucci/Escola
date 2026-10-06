@@ -44,7 +44,8 @@ public class TurmasController(EscolaDbContext db, IAuditoriaService auditoria) :
             Periodo = request.Periodo,
             HorarioEntrada = request.HorarioEntrada,
             HorarioSaida = request.HorarioSaida,
-            UnidadeId = request.UnidadeId
+            UnidadeId = request.UnidadeId,
+            ValorMensalidade = request.ValorMensalidade
         };
         db.Turmas.Add(turma);
 
@@ -77,6 +78,8 @@ public class TurmasController(EscolaDbContext db, IAuditoriaService auditoria) :
         var professorVinculoAntes = turma.Educadores.FirstOrDefault();
         var professorIdAntes = professorVinculoAntes?.UsuarioId;
         var professorNomeAntes = professorVinculoAntes?.Usuario.Nome ?? "Nenhum";
+        var valorMensalidadeAntes = turma.ValorMensalidade;
+        turma.ValorMensalidade = request.ValorMensalidade;
 
         turma.Nome = request.Nome.Trim();
         turma.Periodo = request.Periodo;
@@ -101,7 +104,8 @@ public class TurmasController(EscolaDbContext db, IAuditoriaService auditoria) :
             ("Horário de entrada", horarioEntradaAntes, turma.HorarioEntrada),
             ("Horário de saída", horarioSaidaAntes, turma.HorarioSaida),
             ("Unidade", unidadeNomeAntes, unidadeNomeDepois),
-            ("Professor", professorNomeAntes, professorNomeDepois));
+            ("Professor", professorNomeAntes, professorNomeDepois),
+            ("Valor da mensalidade", valorMensalidadeAntes, turma.ValorMensalidade));
 
         auditoria.Registrar(nameof(Turma), turma.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
@@ -153,6 +157,9 @@ public class TurmasController(EscolaDbContext db, IAuditoriaService auditoria) :
 
         if (!await db.Unidades.AnyAsync(u => u.Id == request.UnidadeId))
             return "Unidade inválida.";
+
+        if (request.ValorMensalidade is < 0 or > 99999)
+            return "O valor da mensalidade deve estar entre R$ 0,00 e R$ 99.999,00.";
 
         return null;
     }

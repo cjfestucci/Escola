@@ -26,12 +26,28 @@ export class AuthService {
     return papel !== null && PAPEIS_EQUIPE.includes(papel);
   });
   readonly ehResponsavel = computed(() => this.papel() === 'Responsavel');
+  /** Equipe do produto (não do cliente): só configura o ambiente. Não conta como "equipe" nem "gestão" de propósito. */
+  readonly ehSuporte = computed(() => this.papel() === 'Suporte');
   readonly ehGestao = computed(() => this.papel() === 'Admin' || this.papel() === 'Coordenador');
   readonly ehFinanceiro = computed(() => this.ehGestao() || this.papel() === 'Financeiro');
+  /** Telas de Configurações: Gestão do cliente e Suporte. */
+  readonly podeConfigurar = computed(() => this.ehGestao() || this.ehSuporte());
 
-  entrar(email: string, senha: string): Observable<LoginResposta> {
-    return this.http.post<LoginResposta>(`${this.baseUrl}/auth/entrar`, { email, senha }).pipe(
+  /** Pede o link de redefinição por e-mail. A resposta é sempre a mesma, exista a conta ou não. */
+  esqueciSenha(email: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/auth/esqueci-senha`, { email });
+  }
+
+  redefinirSenha(token: string, novaSenha: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/auth/redefinir-senha`, { token, novaSenha });
+  }
+
+  /** Contas com segundo fator (o Suporte) respondem primeiro com <c>requerSegundoFator</c>, sem token: a tela pede o código
+   * do app autenticador e chama de novo com ele. */
+  entrar(email: string, senha: string, codigo?: string): Observable<LoginResposta> {
+    return this.http.post<LoginResposta>(`${this.baseUrl}/auth/entrar`, { email, senha, codigo: codigo || null }).pipe(
       tap((resposta) => {
+        if (resposta.requerSegundoFator) return;
         this._token.set(resposta.token);
         this.gravarStorage(CHAVE_TOKEN, resposta.token);
         this._identidade.set({

@@ -114,3 +114,60 @@ export function resultadoDoJogo(jogo: Pick<Jogo, 'status' | 'golsPro' | 'golsCon
 }
 
 export const ROTULOS_RESULTADO: Record<ResultadoJogo, string> = { V: 'Vitória', E: 'Empate', D: 'Derrota' };
+
+/** Um jogo visto pela família de um atleta (Portal da Família): só traz a situação desse atleta, nunca a de outros. */
+export interface JogoFamilia {
+  id: string;
+  data: string;
+  hora: string;
+  local: string | null;
+  mando: LocalJogo;
+  adversario: string;
+  campeonatoNome: string | null;
+  turmaNome: string;
+  status: StatusJogo;
+  golsPro: number | null;
+  golsContra: number | null;
+  /** A comissão já montou a convocação. Antes disso, "não convocado" seria enganoso. */
+  convocacaoDivulgada: boolean;
+  convocado: boolean;
+  titular: boolean;
+  gols: number;
+  cartoesAmarelos: number;
+  cartaoVermelho: boolean;
+}
+
+export interface JogosDoAluno {
+  proximos: JogoFamilia[];
+  recentes: JogoFamilia[];
+}
+
+export interface CampeonatoFamilia {
+  id: string;
+  nome: string;
+  dataInicio: string;
+  dataFim: string | null;
+  ativo: boolean;
+  /** Jogos do time do atleta no campeonato, sem contar os cancelados. */
+  quantidadeJogos: number;
+}
+
+/** Campanha do time do atleta no campeonato (só jogos realizados da turma dele). Vitória = 3 pontos, empate = 1. */
+export interface ResumoCampanha {
+  jogos: number;
+  vitorias: number;
+  empates: number;
+  derrotas: number;
+  golsPro: number;
+  golsContra: number;
+  pontos: number;
+}
+
+export interface JogosCampeonatoDoAluno {
+  campeonatoId: string;
+  campeonatoNome: string;
+  dataInicio: string;
+  dataFim: string | null;
+  resumo: ResumoCampanha;
+  jogos: JogoFamilia[];
+}

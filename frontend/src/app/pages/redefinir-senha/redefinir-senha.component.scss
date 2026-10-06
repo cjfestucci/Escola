@@ -1,0 +1,152 @@
+.entrar {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 64px 20px;
+  text-align: center;
+}
+
+.marca-icone {
+  font-size: 2.4rem;
+}
+
+h1 {
+  margin: 8px 0 4px;
+  font-size: 1.3rem;
+}
+
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin-bottom: 24px;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+input {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto);
+  width: 100%;
+}
+
+.campo-senha {
+  position: relative;
+
+  input {
+    padding-right: 40px;
+  }
+}
+
+.botao-olho {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  display: flex;
+  color: var(--cor-texto-suave);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.link-esqueci {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--cor-primaria-escura);
+  text-decoration: underline;
+  margin-top: -6px;
+}
+
+.ajuda-senha {
+  margin: -6px 0 0;
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+  background: var(--cor-fundo);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.botao-entrar {
+  background: var(--cor-primaria);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 4px;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  &:active:not(:disabled) {
+    background: var(--cor-primaria-escura);
+  }
+}
+
+
+.confirmacao {
+  background: var(--cor-primaria-clara);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.link-voltar {
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-primaria-escura);
+  text-decoration: underline;
+}
+
+.linha-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+
+  input {
+    width: auto;
+  }
+}
+
+.marca-logo {
+  display: block;
+  margin: 0 auto;
+  max-height: 72px;
+  max-width: 200px;
+  object-fit: contain;
+}

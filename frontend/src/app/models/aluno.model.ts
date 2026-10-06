@@ -12,6 +12,8 @@ export interface Turma {
   unidadeId: string;
   unidadeNome: string;
   ativa: boolean;
+  /** Valor mensal de cada aluno da turma (antes do desconto do aluno); nulo = fora da geração em lote. */
+  valorMensalidade?: number | null;
 }
 
 export interface CriarOuEditarTurma {
@@ -21,6 +23,7 @@ export interface CriarOuEditarTurma {
   horarioSaida: string;
   professorId: string | null;
   unidadeId: string;
+  valorMensalidade: number | null;
 }
 
 export type PosicaoAtleta =
@@ -82,6 +85,8 @@ export interface SenhaGeradaResponsavel {
 export interface AlunoDetalhe extends Aluno {
   responsaveis: ResponsavelResumo[];
   senhasGeradas: SenhaGeradaResponsavel[];
+  descontoMensalidadePercentual: number;
+  motivoDesconto: string | null;
 }
 
 export interface CriarOuEditarAluno {
@@ -91,4 +96,6 @@ export interface CriarOuEditarAluno {
   fotoUrl: string | null;
   responsaveis: ResponsavelResumo[];
   posicao: PosicaoAtleta | null;
+  descontoMensalidadePercentual: number;
+  motivoDesconto: string | null;
 }

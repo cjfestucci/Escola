@@ -11,4 +11,5 @@ public record TurmaDto(
     string? ProfessorNome,
     Guid UnidadeId,
     string UnidadeNome,
-    bool Ativa);
+    bool Ativa,
+    decimal? ValorMensalidade = null);

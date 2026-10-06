@@ -385,3 +385,138 @@
     color: var(--cor-texto-suave);
   }
 }
+
+.lista-presencas {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.88rem;
+  }
+}
+
+.chip-presenca {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+
+  &--presente {
+    color: #1e7e34;
+    background: #eafbea;
+  }
+
+  &--falta {
+    color: #b3261e;
+    background: #fdecea;
+  }
+
+  &--justificada {
+    color: #b3730e;
+    background: #fff4e5;
+  }
+}
+
+.lista-jogos-familia {
+  list-style: none;
+  margin: 8px 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jogo-familia {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.jogo-quando {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--cor-primaria-escura);
+}
+
+.jogo-detalhe-familia {
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.chip-jogo {
+  align-self: flex-start;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  color: var(--cor-texto-suave);
+  background: #f1f1f1;
+  margin-left: 4px;
+
+  &--convocado,
+  &--vitoria {
+    color: #1e7e34;
+    background: #eafbea;
+  }
+
+  &--empate {
+    color: #b3730e;
+    background: #fff4e5;
+  }
+
+  &--derrota,
+  &--cancelado {
+    color: #b3261e;
+    background: #fdecea;
+  }
+}
+
+.contagem-info {
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria-escura);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.bloco-campeonato {
+  border-top: 1px solid var(--cor-borda);
+  padding-top: 12px;
+}
+
+.seletor-campeonato {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  margin-bottom: 10px;
+}
+
+.resumo-campanha {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--cor-primaria-clara);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}

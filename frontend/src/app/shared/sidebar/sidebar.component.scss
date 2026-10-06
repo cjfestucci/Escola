@@ -191,3 +191,15 @@
     background: rgba(255, 255, 255, 0.18);
   }
 }
+
+// Logo do cliente ao lado do nome. Fundo claro pra logos escuras/transparentes não sumirem no azul do menu.
+.marca-logo {
+  height: 32px;
+  max-width: 92px;
+  width: auto;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px;
+  flex-shrink: 0;
+}

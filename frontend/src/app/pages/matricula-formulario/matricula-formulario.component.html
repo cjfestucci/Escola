@@ -78,6 +78,15 @@
           </label>
         }
 
+        <label>Desconto na mensalidade, em % (opcional)
+          <input type="number" [(ngModel)]="descontoMensalidade" min="0" max="100" step="0.01" placeholder="0" />
+        </label>
+        @if (descontoMensalidade) {
+          <label>Motivo do desconto (opcional)
+            <input type="text" [(ngModel)]="motivoDesconto" maxlength="200" placeholder="Ex.: irmãos, bolsa parcial" />
+          </label>
+        }
+
         <label>Foto (opcional)</label>
         @if (fotoUrl()) {
           <div class="preview-foto-wrapper">

@@ -37,8 +37,16 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<DateOnly>("DataNascimento")
                         .HasColumnType("date");
 
+                    b.Property<decimal>("DescontoMensalidadePercentual")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
                     b.Property<string>("FotoUrl")
                         .HasColumnType("text");
+
+                    b.Property<string>("MotivoDesconto")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -142,6 +150,9 @@ namespace Escola.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Segmento")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("Clientes");
@@ -165,6 +176,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("Competencia")
+                        .HasColumnType("date");
+
                     b.Property<string>("Descricao")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -183,6 +197,10 @@ namespace Escola.Infrastructure.Data.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<decimal?>("ValorPago")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.Property<DateOnly>("Vencimento")
                         .HasColumnType("date");
 
@@ -190,9 +208,74 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.HasIndex("ClienteId");
 
+                    b.HasIndex("AlunoId", "Competencia");
+
                     b.HasIndex("AlunoId", "Vencimento");
 
                     b.ToTable("Cobrancas");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.CobrancaPix", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CobrancaId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ConcluidoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EndToEndId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("ExpiraEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PixCopiaECola")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TxId")
+                        .IsRequired()
+                        .HasMaxLength(35)
+                        .HasColumnType("character varying(35)");
+
+                    b.Property<DateTime?>("UltimaVerificacaoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal?>("ValorRecebido")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TxId")
+                        .IsUnique();
+
+                    b.HasIndex("CobrancaId", "Status");
+
+                    b.ToTable("CobrancasPix");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.ConfiguracaoEscola", b =>
@@ -216,6 +299,10 @@ namespace Escola.Infrastructure.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClienteId");
@@ -235,8 +322,19 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("DiaVencimentoMensalidade")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("DiasParaBloqueio")
                         .HasColumnType("integer");
+
+                    b.Property<decimal?>("JurosMensaisPercentual")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<decimal?>("MultaAtrasoPercentual")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
 
                     b.Property<string>("PixChave")
                         .HasMaxLength(200)
@@ -695,7 +793,7 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid?>("TurmaId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("UsuarioId")
+                    b.Property<Guid?>("UsuarioId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -799,6 +897,47 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.ToTable("Produtos");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.RedefinicaoSenha", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Convite")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiraEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UsadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId", "CriadoEm");
+
+                    b.ToTable("RedefinicoesSenha");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.RegistroDiarioClasse", b =>
                 {
                     b.Property<Guid>("Id")
@@ -835,6 +974,47 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.HasIndex("TurmaId", "RegistradoEm");
 
                     b.ToTable("RegistrosDiarioClasse");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.RegistroPresenca", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AlunoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Data")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("RegistradoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TurmaId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("AlunoId", "Data")
+                        .IsUnique();
+
+                    b.HasIndex("TurmaId", "Data");
+
+                    b.ToTable("RegistrosPresenca");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.RegistroRotina", b =>
@@ -939,6 +1119,10 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<Guid>("UnidadeId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal?>("ValorMensalidade")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
 
                     b.HasKey("Id");
 
@@ -1166,6 +1350,23 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Aluno");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.CobrancaPix", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Cobranca", "Cobranca")
+                        .WithMany()
+                        .HasForeignKey("CobrancaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cobranca");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.ConfiguracaoEscola", b =>
                 {
                     b.HasOne("Escola.Domain.Entities.Cliente", null)
@@ -1355,8 +1556,7 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.HasOne("Escola.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Usuario");
                 });
@@ -1402,6 +1602,23 @@ namespace Escola.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.RedefinicaoSenha", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.RegistroDiarioClasse", b =>
                 {
                     b.HasOne("Escola.Domain.Entities.Cliente", null)
@@ -1425,6 +1642,39 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("CriadoPor");
 
                     b.Navigation("Turma");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.RegistroPresenca", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Aluno", "Aluno")
+                        .WithMany()
+                        .HasForeignKey("AlunoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Turma", "Turma")
+                        .WithMany()
+                        .HasForeignKey("TurmaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Aluno");
+
+                    b.Navigation("Turma");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.RegistroRotina", b =>

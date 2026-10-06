@@ -9,6 +9,7 @@ public class TurmaConfiguration : IEntityTypeConfiguration<Turma>
     public void Configure(EntityTypeBuilder<Turma> builder)
     {
         builder.Property(t => t.Nome).IsRequired().HasMaxLength(100);
+        builder.Property(t => t.ValorMensalidade).HasPrecision(10, 2);
 
         builder.HasOne(t => t.Unidade)
             .WithMany(u => u.Turmas)

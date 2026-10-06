@@ -63,7 +63,9 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
             DataNascimento = request.DataNascimento,
             FotoUrl = request.FotoUrl,
             TurmaId = request.TurmaId,
-            Posicao = request.Posicao
+            Posicao = request.Posicao,
+            DescontoMensalidadePercentual = request.DescontoMensalidadePercentual,
+            MotivoDesconto = string.IsNullOrWhiteSpace(request.MotivoDesconto) ? null : request.MotivoDesconto.Trim()
         };
         db.Alunos.Add(aluno);
 
@@ -89,7 +91,11 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
         var turmaIdAntes = aluno.TurmaId;
         var turmaNomeAntes = aluno.Turma.Nome;
         var posicaoAntes = aluno.Posicao?.Rotulo();
+        var descontoAntes = aluno.DescontoMensalidadePercentual;
+        var motivoDescontoAntes = aluno.MotivoDesconto;
 
+        aluno.DescontoMensalidadePercentual = request.DescontoMensalidadePercentual;
+        aluno.MotivoDesconto = string.IsNullOrWhiteSpace(request.MotivoDesconto) ? null : request.MotivoDesconto.Trim();
         aluno.Nome = request.Nome.Trim();
         aluno.DataNascimento = request.DataNascimento;
         aluno.FotoUrl = request.FotoUrl;
@@ -106,7 +112,9 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
             ("Nome", nomeAntes, aluno.Nome),
             ("Data de nascimento", dataNascimentoAntes, aluno.DataNascimento),
             ("Turma", turmaNomeAntes, turmaNomeDepois),
-            ("Posição", posicaoAntes, aluno.Posicao?.Rotulo()));
+            ("Posição", posicaoAntes, aluno.Posicao?.Rotulo()),
+            ("Desconto na mensalidade (%)", descontoAntes, aluno.DescontoMensalidadePercentual),
+            ("Motivo do desconto", motivoDescontoAntes, aluno.MotivoDesconto));
 
         auditoria.Registrar(nameof(Aluno), aluno.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
@@ -160,6 +168,9 @@ public class AlunosController(EscolaDbContext db, IAuditoriaService auditoria, I
 
         if (request.Posicao is { } posicao && !Enum.IsDefined(posicao))
             return "Posição inválida.";
+
+        if (request.DescontoMensalidadePercentual is < 0 or > 100)
+            return "O desconto na mensalidade deve estar entre 0% e 100%.";
 
         if (request.Responsaveis.Count == 0)
             return "Informe ao menos um responsável.";

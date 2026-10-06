@@ -10,4 +10,5 @@ public record CriarOuEditarTurmaRequest(
     TimeOnly HorarioEntrada,
     TimeOnly HorarioSaida,
     Guid? ProfessorId,
-    Guid UnidadeId);
+    Guid UnidadeId,
+    decimal? ValorMensalidade = null);

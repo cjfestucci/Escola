@@ -19,6 +19,9 @@ public static class AlunoMapper
         aluno.Responsaveis
             .Select(ar => new ResponsavelResumoDto(ar.Responsavel.Id, ar.Responsavel.Nome, ar.Responsavel.Email, ar.Responsavel.Telefone, ar.ResponsavelFinanceiro))
             .ToList(),
+        [],
         aluno.Posicao,
-        bloqueado);
+        bloqueado,
+        aluno.DescontoMensalidadePercentual,
+        aluno.MotivoDesconto);
 }

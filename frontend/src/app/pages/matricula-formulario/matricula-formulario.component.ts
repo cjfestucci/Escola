@@ -68,6 +68,8 @@ export class MatriculaFormularioComponent implements OnInit {
   dataNascimento = '';
   turmaId = '';
   posicao: PosicaoAtleta | '' = '';
+  descontoMensalidade: number | null = null;
+  motivoDesconto = '';
 
   tipoSanguineo = '';
   alergias = '';
@@ -109,6 +111,8 @@ export class MatriculaFormularioComponent implements OnInit {
           this.dataNascimento = aluno.dataNascimento.slice(0, 10);
           this.turmaId = aluno.turmaId;
           this.posicao = aluno.posicao ?? '';
+          this.descontoMensalidade = aluno.descontoMensalidadePercentual || null;
+          this.motivoDesconto = aluno.motivoDesconto ?? '';
           this.fotoUrl.set(aluno.fotoUrl);
           this.responsaveis.set(aluno.responsaveis.length > 0 ? aluno.responsaveis : [novoResponsavelVazio()]);
           this.carregando.set(false);
@@ -292,13 +296,20 @@ export class MatriculaFormularioComponent implements OnInit {
       return;
     }
 
+    if (this.descontoMensalidade !== null && (this.descontoMensalidade < 0 || this.descontoMensalidade > 100)) {
+      this.notificacao.erro('O desconto na mensalidade deve estar entre 0% e 100%.');
+      return;
+    }
+
     const payload = {
       nome: this.nome.trim(),
       dataNascimento: this.dataNascimento,
       turmaId: this.turmaId,
       fotoUrl: this.fotoUrl(),
       responsaveis: responsaveisValidos,
-      posicao: this.posicao || null
+      posicao: this.posicao || null,
+      descontoMensalidadePercentual: this.descontoMensalidade ?? 0,
+      motivoDesconto: this.motivoDesconto.trim() || null
     };
 
     this.salvando.set(true);

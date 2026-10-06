@@ -3,6 +3,10 @@ export interface ConfiguracaoEscola {
   fusoHorario: string;
   /** "#RRGGBB"; nulo = cor padrão do produto. */
   corPrincipal: string | null;
+  /** Segmento do cliente (escola infantil ou clube). Somente leitura: definido ao provisionar o cliente. */
+  segmento: 'Escola' | 'Clube';
+  /** Logo do cliente (caminho relativo, ex.: "/uploads/x.png"), definida só pelo Suporte. Nulo = sem logo. */
+  logoUrl?: string | null;
 }
 
 /** Fusos oferecidos na tela de configuração (o backend aceita qualquer fuso IANA válido). */

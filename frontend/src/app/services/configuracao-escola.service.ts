@@ -6,16 +6,18 @@ import { environment } from '../../environments/environment';
 import { ConfiguracaoEscola } from '../models/configuracao-escola.model';
 import { definirFusoEscola } from '../shared/data-utils';
 import { aplicarTema } from '../shared/tema';
+import { SegmentoService } from './segmento.service';
 
 const CHAVE_FUSO = 'escola.fusoHorario';
 const CHAVE_COR = 'escola.corPrincipal';
 
-/** Configuração geral da escola (fuso horário e cor do tema) — carregada uma vez na inicialização do app
+/** Configuração geral da escola (fuso horário, cor do tema e segmento do cliente) — carregada uma vez na inicialização do app
  * (`provideAppInitializer`), antes de qualquer tela calcular "hoje" ou pintar. Guarda uma cópia em
  * localStorage pro app abrir no fuso e na cor certos mesmo sem rede (PWA) e sem piscar a cor padrão. */
 @Injectable({ providedIn: 'root' })
 export class ConfiguracaoEscolaService {
   private readonly http = inject(HttpClient);
+  private readonly segmentoService = inject(SegmentoService);
   private readonly baseUrl = environment.apiUrl;
 
   async inicializar(): Promise<void> {
@@ -42,6 +44,8 @@ export class ConfiguracaoEscolaService {
   private aplicar(config: ConfiguracaoEscola): void {
     definirFusoEscola(config.fusoHorario);
     aplicarTema(config.corPrincipal);
+    this.segmentoService.aplicarDoCliente(config.segmento);
+    this.segmentoService.aplicarLogo(config.logoUrl);
     this.guardar(CHAVE_FUSO, config.fusoHorario);
     this.guardar(CHAVE_COR, config.corPrincipal);
   }

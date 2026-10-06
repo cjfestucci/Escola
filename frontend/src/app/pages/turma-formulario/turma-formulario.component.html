@@ -49,6 +49,11 @@
         </select>
       </label>
 
+      <label>Valor da mensalidade (opcional)
+        <input type="number" [(ngModel)]="valorMensalidade" min="0" step="0.01" placeholder="0,00" />
+      </label>
+      <p class="ajuda">Usado para gerar as mensalidades do mês em lote (Financeiro → Mensalidades). Sem valor, a turma fica de fora da geração.</p>
+
       <div class="botoes">
         <button type="button" class="secundario" (click)="cancelar()">Cancelar</button>
         <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">

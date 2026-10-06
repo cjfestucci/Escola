@@ -38,6 +38,7 @@ export class TurmaFormularioComponent implements OnInit {
   horarioSaida = '12:00';
   professorId = '';
   unidadeId = '';
+  valorMensalidade: number | null = null;
 
   get titulo(): string {
     return this.turmaId ? 'Editar turma' : 'Nova turma';
@@ -61,6 +62,7 @@ export class TurmaFormularioComponent implements OnInit {
           this.horarioSaida = turma.horarioSaida.slice(0, 5);
           this.professorId = turma.professorId ?? '';
           this.unidadeId = turma.unidadeId;
+          this.valorMensalidade = turma.valorMensalidade ?? null;
           this.carregando.set(false);
         },
         error: () => {
@@ -87,13 +89,19 @@ export class TurmaFormularioComponent implements OnInit {
       return;
     }
 
+    if (this.valorMensalidade !== null && this.valorMensalidade < 0) {
+      this.notificacao.erro('O valor da mensalidade não pode ser negativo.');
+      return;
+    }
+
     const payload = {
       nome: this.nome.trim(),
       periodo: this.periodo,
       horarioEntrada: this.horarioEntrada,
       horarioSaida: this.horarioSaida,
       professorId: this.professorId || null,
-      unidadeId: this.unidadeId
+      unidadeId: this.unidadeId,
+      valorMensalidade: this.valorMensalidade || null
     };
 
     this.salvando.set(true);

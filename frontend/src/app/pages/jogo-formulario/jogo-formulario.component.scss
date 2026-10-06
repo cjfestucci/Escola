@@ -290,3 +290,18 @@ h1 {
     }
   }
 }
+
+.selo-treinos {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1e7e34;
+  background: #eafbea;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+
+  &--baixo {
+    color: #b3261e;
+    background: #fdecea;
+  }
+}

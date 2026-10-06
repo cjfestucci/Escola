@@ -16,5 +16,14 @@ public class ConfiguracaoFinanceira
     /// <summary>Quantos dias de atraso numa cobrança em aberto até o aluno ser considerado bloqueado.
     /// Nulo = sem bloqueio por inadimplência.</summary>
     public int? DiasParaBloqueio { get; set; }
+
+    /// <summary>Dia do mês em que vencem as mensalidades geradas em lote (1–31; em mês mais curto vence no último dia).</summary>
+    public int DiaVencimentoMensalidade { get; set; } = 10;
+
+    /// <summary>Multa única sobre o valor, cobrada uma vez quando a cobrança passa do vencimento. Nulo = sem multa.</summary>
+    public decimal? MultaAtrasoPercentual { get; set; }
+
+    /// <summary>Juros por mês de atraso, calculados pro rata por dia (÷30), sobre o valor. Nulo = sem juros.</summary>
+    public decimal? JurosMensaisPercentual { get; set; }
     public DateTime AtualizadoEm { get; set; }
 }

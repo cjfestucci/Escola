@@ -9,7 +9,10 @@ import {
   CriarCobranca,
   EditarCobranca,
   EditarConfiguracaoFinanceira,
+  GeracaoMensalidades,
+  PixAutomaticoStatus,
   PixCobranca,
+  PreviaMensalidades,
 } from '../models/cobranca.model';
 
 @Injectable({ providedIn: 'root' })
@@ -58,6 +61,26 @@ export class FinanceiroService {
 
   enviarEmail(id: string): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/financeiro/cobrancas/${id}/enviar-email`, {});
+  }
+
+  previaMensalidades(ano: number, mes: number, turmaId?: string): Observable<PreviaMensalidades> {
+    return this.http.post<PreviaMensalidades>(`${this.baseUrl}/financeiro/mensalidades/previa`, { ano, mes, turmaId: turmaId || null });
+  }
+
+  gerarMensalidades(ano: number, mes: number, turmaId?: string): Observable<GeracaoMensalidades> {
+    return this.http.post<GeracaoMensalidades>(`${this.baseUrl}/financeiro/mensalidades/gerar`, { ano, mes, turmaId: turmaId || null });
+  }
+
+  statusPixAutomatico(): Observable<PixAutomaticoStatus> {
+    return this.http.get<PixAutomaticoStatus>(`${this.baseUrl}/pix/status`);
+  }
+
+  testarConexaoPix(): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/pix/testar-conexao`, {});
+  }
+
+  registrarWebhookPix(): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/pix/webhook/registrar`, {});
   }
 
   obterConfiguracao(): Observable<ConfiguracaoFinanceira> {

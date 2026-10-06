@@ -12,4 +12,6 @@ public record CriarOuEditarAlunoRequest(
     Guid TurmaId,
     string? FotoUrl,
     List<ResponsavelInput> Responsaveis,
-    PosicaoAtleta? Posicao = null);
+    PosicaoAtleta? Posicao = null,
+    decimal DescontoMensalidadePercentual = 0,
+    string? MotivoDesconto = null);

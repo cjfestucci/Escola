@@ -1,0 +1,31 @@
+<div class="entrar">
+  @if (segmentoService.logoUrl(); as logo) {
+    <img class="marca-logo" [src]="logo" alt="Logo" />
+  } @else {
+    <span class="marca-icone">{{ segmentoService.iconeApp() }}</span>
+  }
+  <h1>Esqueceu a senha?</h1>
+
+  @if (enviado()) {
+    <p class="subtitulo">Pedido recebido.</p>
+    <p class="confirmacao">
+      Se o e-mail informado estiver cadastrado, enviamos um link para criar uma nova senha. Ele vale por 1 hora.
+      Confira também a caixa de spam. Não chegou? Fale com a coordenação da escola.
+    </p>
+    <button type="button" class="botao-entrar" (click)="voltar()">Voltar para o login</button>
+  } @else {
+    <p class="subtitulo">Informe o e-mail da sua conta e enviaremos um link para criar uma nova senha.</p>
+
+    <form class="formulario" (ngSubmit)="enviar()">
+      <label><span class="obrigatorio">E-mail</span>
+        <input type="email" [(ngModel)]="email" name="email" placeholder="voce@escola.dev" autocomplete="username" />
+      </label>
+
+      <button type="submit" class="botao-entrar" [disabled]="enviando()">
+        {{ enviando() ? 'Enviando...' : 'Enviar link' }}
+      </button>
+    </form>
+
+    <button type="button" class="link-voltar" (click)="voltar()">Voltar para o login</button>
+  }
+</div>

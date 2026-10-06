@@ -42,6 +42,7 @@ export class PortalFinanceiroComponent implements OnInit {
   readonly pixAbertoId = signal<string | null>(null);
   readonly pixCarregando = signal(false);
   readonly pixCodigo = signal<string | null>(null);
+  readonly pixAutomatico = signal(false);
   readonly pixQrCode = signal<string | null>(null);
   readonly pixCopiado = signal(false);
 
@@ -128,12 +129,14 @@ export class PortalFinanceiroComponent implements OnInit {
   abrirPix(cobranca: Cobranca): void {
     this.pixAbertoId.set(cobranca.id);
     this.pixCodigo.set(null);
+    this.pixAutomatico.set(false);
     this.pixQrCode.set(null);
     this.pixCopiado.set(false);
     this.pixCarregando.set(true);
     this.financeiroService.obterPix(cobranca.id).subscribe({
       next: (resposta) => {
         this.pixCodigo.set(resposta.codigoCopiaECola);
+        this.pixAutomatico.set(resposta.automatico);
         this.pixCarregando.set(false);
         gerarQrCodePix(resposta.codigoCopiaECola).then((url) => this.pixQrCode.set(url));
       },

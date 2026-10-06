@@ -11,7 +11,9 @@ const TITULOS_CLUBE: Record<string, string> = {
   'Rotina Escola': 'Escola de Futebol',
   'Matrícula': 'Atletas',
   'Novo aluno': 'Novo atleta',
-  'Editar aluno': 'Editar atleta'
+  'Editar aluno': 'Editar atleta',
+  // Página do filho no portal: "Rotina do dia" é da escola infantil.
+  'Rotina do dia': 'Portal da Família'
 };
 
 @Component({

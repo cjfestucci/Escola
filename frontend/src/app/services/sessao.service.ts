@@ -12,6 +12,7 @@ export class SessaoService {
 
   readonly educadorId = computed(() => (this.auth.ehEquipe() ? this.auth.identidade()?.usuarioId ?? null : null));
   readonly educadorNome = computed(() => (this.auth.ehEquipe() ? this.auth.identidade()?.nome ?? null : null));
+  readonly suporteNome = computed(() => (this.auth.ehSuporte() ? this.auth.identidade()?.nome ?? null : null));
   readonly responsavelId = computed(() => this.auth.identidade()?.responsavelId ?? null);
   readonly responsavelNome = computed(() => (this.auth.ehResponsavel() ? this.auth.identidade()?.nome ?? null : null));
 

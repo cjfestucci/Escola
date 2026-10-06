@@ -1,0 +1,211 @@
+<div class="container container--estreito">
+  <div class="cabecalho-pagina">
+    <p class="subtitulo">
+      Área da equipe do produto. O que for alterado vale para este cliente e fica registrado no histórico como feito pelo
+      <strong>Suporte</strong>.
+    </p>
+    @if (cliente()) {
+      <button type="button" class="botao-icone" (click)="abrirHistorico()" aria-label="Ver histórico" title="Ver histórico">🕘</button>
+    }
+  </div>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+   @if (cliente(); as c) {
+    <section class="painel-formulario">
+      <p class="titulo-painel">Cliente</p>
+
+      <label>Nome do cliente
+        <input type="text" [(ngModel)]="nome" maxlength="200" />
+      </label>
+
+      <label>Segmento
+        <select [(ngModel)]="segmento">
+          @for (s of segmentos; track s.valor) {
+            <option [value]="s.valor">{{ s.rotulo }}</option>
+          }
+        </select>
+      </label>
+      @if (segmentoMudou) {
+        <p class="aviso">
+          Trocar o segmento muda o vocabulário e o menu para <strong>todos</strong> os usuários deste cliente (ex.: some a Rotina diária e
+          aparecem as Competições). Os dados já cadastrados não são apagados.
+        </p>
+      }
+
+      <label class="linha-checkbox">
+        <input type="checkbox" [(ngModel)]="acessoLiberado" name="acessoLiberado" />
+        Acesso do cliente liberado
+      </label>
+      @if (!acessoLiberado && c.ativo) {
+        <p class="aviso aviso--perigo">Ao salvar, <strong>ninguém</strong> deste cliente consegue entrar (você, do Suporte, continua entrando).</p>
+      }
+      @if (c.ativo === false) {
+        <p class="aviso aviso--perigo">Este cliente está <strong>suspenso</strong>: os usuários dele não conseguem entrar.</p>
+      }
+
+      @if (confirmandoSuspensao()) {
+        <div class="confirmar">
+          <span>Suspender o acesso de todos os usuários deste cliente?</span>
+          <div class="acoes">
+            <button type="button" class="botao-texto" (click)="cancelarSuspensao()">Voltar</button>
+            <button type="button" class="botao-texto botao-texto--perigo" [disabled]="salvando()" (click)="salvar()">
+              {{ salvando() ? 'Suspendendo...' : 'Suspender acesso' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="botoes">
+          <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
+            {{ salvando() ? 'Salvando...' : 'Salvar' }}
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="painel-formulario">
+      <p class="titulo-painel">Administradores da escola</p>
+      <p class="ajuda">
+        Crie o administrador sem definir senha: ele recebe um e-mail para <strong>confirmar o endereço e cadastrar a própria senha</strong>
+        (o link vale 7 dias). Você nunca vê nem define a senha de ninguém.
+      </p>
+      @if (diagnostico() && !diagnostico()!.smtpConfigurado) {
+        <p class="aviso">O envio de e-mail (SMTP) <strong>não está configurado</strong> neste ambiente: o convite não será entregue
+          (em desenvolvimento o link aparece no log da API).</p>
+      }
+
+      @if (admins().length === 0) {
+        <p class="ajuda">Nenhum administrador cadastrado ainda.</p>
+      } @else {
+        <ul class="lista-admins">
+          @for (admin of admins(); track admin.id) {
+            <li class="item-admin">
+              <div class="info-admin">
+                <strong>{{ admin.nome }}</strong>
+                <span class="email-admin">{{ admin.email }}</span>
+                <span class="status-admin" [class.status-admin--pendente]="admin.pendente && admin.ativo" [class.status-admin--inativo]="!admin.ativo">
+                  {{ !admin.ativo ? 'Desativado' : admin.pendente ? 'Convite pendente' : 'Ativo' }}
+                  @if (admin.ultimoEnvioEm) {
+                    · último envio {{ formatarDataHora(admin.ultimoEnvioEm) }}
+                  }
+                </span>
+              </div>
+
+              @if (admin.ativo) {
+                @if (cancelandoConviteId() === admin.id) {
+                  <div class="confirmar">
+                    <span>Cancelar o convite?</span>
+                    <div class="acoes">
+                      <button type="button" class="botao-texto" (click)="cancelandoConviteId.set(null)">Voltar</button>
+                      <button type="button" class="botao-texto botao-texto--perigo" [disabled]="processandoAdminId() === admin.id" (click)="confirmarCancelamentoConvite(admin)">
+                        Cancelar convite
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="acoes">
+                    <button type="button" class="botao-texto" [disabled]="processandoAdminId() === admin.id" (click)="reenviar(admin)">
+                      {{ processandoAdminId() === admin.id ? 'Enviando...' : admin.pendente ? 'Reenviar convite' : 'Enviar link de nova senha' }}
+                    </button>
+                    @if (admin.pendente) {
+                      <button type="button" class="botao-texto botao-texto--perigo" (click)="cancelandoConviteId.set(admin.id)">Cancelar convite</button>
+                    }
+                  </div>
+                }
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="novo-admin">
+        <p class="subtitulo-painel">Novo administrador</p>
+        <label>Nome
+          <input type="text" [(ngModel)]="novoAdminNome" maxlength="200" placeholder="Ex.: Maria da Silva" />
+        </label>
+        <label>E-mail
+          <input type="text" inputmode="email" [(ngModel)]="novoAdminEmail" maxlength="256" placeholder="maria@suaescola.com.br" autocomplete="off" />
+        </label>
+        <div class="botoes">
+          <button type="button" class="primario" [disabled]="criandoAdmin()" (click)="criarAdmin()">
+            {{ criandoAdmin() ? 'Enviando convite...' : 'Criar e enviar convite' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="painel-formulario">
+      <p class="titulo-painel">Logo da empresa</p>
+      <p class="ajuda">Aparece ao lado do nome do app, no menu e na tela de login. PNG, JPEG ou WEBP, até 2MB. Fundo transparente funciona bem.</p>
+      <div class="area-logo">
+        @if (segmentoService.logoUrl(); as logo) {
+          <img class="previa-logo" [src]="logo" alt="Logo atual" />
+        } @else {
+          <span class="sem-logo">Sem logo — usando o ícone padrão {{ segmentoService.iconeApp() }}</span>
+        }
+      </div>
+      <div class="botoes-linha">
+        <app-seletor-arquivo
+          [rotulo]="segmentoService.logoUrl() ? '🖼️ Trocar logo' : '🖼️ Escolher logo'"
+          aceitar="image/png,image/jpeg,image/webp"
+          [desabilitado]="enviandoLogo()"
+          (arquivoSelecionado)="aoEscolherLogo($event)"
+        />
+        @if (segmentoService.logoUrl()) {
+          <button type="button" class="botao-texto botao-texto--perigo" [disabled]="enviandoLogo()" (click)="removerLogo()">Remover logo</button>
+        }
+      </div>
+      @if (enviandoLogo()) {
+        <p class="ajuda">Enviando...</p>
+      }
+    </section>
+
+    @if (diagnostico(); as d) {
+      <section class="painel-formulario">
+        <p class="titulo-painel">Diagnóstico do ambiente</p>
+        <ul class="lista-diagnostico">
+          <li><span>Ambiente</span><strong>{{ d.ambiente }}</strong></li>
+          <li>
+            <span>E-mail (SMTP)</span>
+            <strong [class.ok]="d.smtpConfigurado" [class.falta]="!d.smtpConfigurado">{{ d.smtpConfigurado ? '✓ configurado' : '✗ não configurado' }}</strong>
+          </li>
+          <li>
+            <span>Endereço do site (links de e-mail)</span>
+            <strong [class.ok]="d.urlBaseConfigurada" [class.falta]="!d.urlBaseConfigurada">{{ d.urlBaseConfigurada ? '✓ configurado' : '✗ não configurado' }}</strong>
+          </li>
+          <li>
+            <span>Pix automático (Banco do Brasil)</span>
+            <strong [class.ok]="d.pixAutomaticoConfigurado" [class.falta]="!d.pixAutomaticoConfigurado">
+              {{ d.pixAutomaticoConfigurado ? '✓ ' + d.pixAutomaticoAmbiente : '✗ desligado' }}
+            </strong>
+          </li>
+          @if (d.pixAutomaticoConfigurado) {
+            <li>
+              <span>— Certificado (mTLS)</span>
+              <strong [class.ok]="d.pixCertificadoConfigurado" [class.falta]="!d.pixCertificadoConfigurado">{{ d.pixCertificadoConfigurado ? '✓ configurado' : '✗ não configurado' }}</strong>
+            </li>
+            <li>
+              <span>— Webhook</span>
+              <strong>{{ d.pixWebhookHabilitado ? 'habilitado' : 'desligado (conciliação por consulta)' }}</strong>
+            </li>
+          }
+        </ul>
+        <p class="ajuda">Credenciais e segredos são configuração do ambiente (deploy), nunca desta tela.</p>
+      </section>
+    }
+
+    <section class="painel-formulario">
+      <p class="titulo-painel">Configurações do cliente</p>
+      <div class="atalhos">
+        <a routerLink="/configuracoes/geral" class="atalho">Gerais (fuso horário e cor)</a>
+        <a routerLink="/configuracoes/financeiro" class="atalho">Financeiras (Pix, mensalidades, Pix automático)</a>
+      </div>
+    </section>
+   }
+  }
+
+  @if (historicoAberto() && cliente(); as c) {
+    <app-logs-modal entidadeTipo="Cliente" [entidadeId]="c.id" titulo="Histórico do cliente" (fechar)="fecharHistorico()" />
+  }
+</div>

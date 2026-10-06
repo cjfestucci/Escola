@@ -24,7 +24,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
     [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<ActionResult<List<UsuarioDto>>> Listar([FromQuery] string? papel)
     {
-        var query = db.Usuarios.Where(u => u.Ativo);
+        var query = db.Usuarios.Where(u => u.Ativo && u.Papel != PapelUsuario.Suporte);
 
         if (papel is not null && Enum.TryParse<PapelUsuario>(papel, ignoreCase: true, out var papelEnum))
             query = query.Where(u => u.Papel == papelEnum);
@@ -43,7 +43,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
     public async Task<ActionResult<List<UsuarioContaDto>>> ListarContas()
     {
         var contas = await db.Usuarios
-            .Where(u => u.Papel != PapelUsuario.Responsavel)
+            .Where(u => u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte)
             .OrderBy(u => u.Nome)
             .Select(u => new UsuarioContaDto(u.Id, u.Nome, u.Email, u.Papel.ToString(), u.Ativo))
             .ToListAsync();
@@ -57,6 +57,9 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
     {
         if (request.Papel == PapelUsuario.Responsavel)
             return BadRequest("Contas de responsável são criadas pela Matrícula, não por aqui.");
+
+        if (request.Papel == PapelUsuario.Suporte || !Enum.IsDefined(request.Papel))
+            return BadRequest("Papel inválido.");
 
         if (string.IsNullOrWhiteSpace(request.Nome) || string.IsNullOrWhiteSpace(request.Email))
             return BadRequest("Nome e e-mail são obrigatórios.");
@@ -85,7 +88,10 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         if (request.Papel == PapelUsuario.Responsavel)
             return BadRequest("Contas de responsável são geridas pela Matrícula, não por aqui.");
 
-        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
+        if (request.Papel == PapelUsuario.Suporte || !Enum.IsDefined(request.Papel))
+            return BadRequest("Papel inválido.");
+
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte);
         if (usuario is null) return NotFound("Conta não encontrada.");
 
         if (string.IsNullOrWhiteSpace(request.Nome) || string.IsNullOrWhiteSpace(request.Email))
@@ -118,7 +124,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
     [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<ActionResult<SenhaGeradaDto>> RedefinirSenha(Guid id)
     {
-        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte);
         if (usuario is null) return NotFound("Conta não encontrada.");
 
         var senha = GeradorSenhaTemporaria.Gerar();
@@ -137,7 +143,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         if (id.ToString() == usuarioLogadoId)
             return BadRequest("Você não pode desativar a própria conta.");
 
-        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte);
         if (usuario is null) return NotFound("Conta não encontrada.");
 
         usuario.Ativo = false;
@@ -151,7 +157,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
     [Authorize(Roles = GruposDePapeis.Gestao)]
     public async Task<ActionResult<UsuarioContaDto>> AtivarConta(Guid id)
     {
-        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel);
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte);
         if (usuario is null) return NotFound("Conta não encontrada.");
 
         usuario.Ativo = true;

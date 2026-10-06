@@ -12,5 +12,9 @@ public class ConfiguracaoEscola
     /// <summary>Cor principal do tema, em "#RRGGBB" maiúsculo. Nulo = cor padrão do produto.</summary>
     public string? CorPrincipal { get; set; }
 
+    /// <summary>Logo da empresa/clube (caminho público, ex.: "/uploads/xyz.png"), mostrada ao lado do nome do app. Só o Suporte define.
+    /// Nulo = sem logo (volta o ícone padrão do segmento).</summary>
+    public string? LogoUrl { get; set; }
+
     public DateTime AtualizadoEm { get; set; }
 }

@@ -1,0 +1,272 @@
+.cabecalho-pagina {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.botao-icone {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  padding: 4px;
+}
+
+.painel-formulario {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  input[type='text'],
+  select {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+  }
+}
+
+.titulo-painel {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.linha-checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  font-weight: 500 !important;
+  color: var(--cor-texto) !important;
+}
+
+.aviso {
+  margin: -6px 0 0;
+  font-size: 0.82rem;
+  color: #b3730e;
+  background: #fff4e5;
+  border-radius: 8px;
+  padding: 9px 12px;
+
+  &--perigo {
+    color: #b3261e;
+    background: #fdecea;
+  }
+}
+
+.confirmar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: #fdecea;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #b3261e;
+
+  .acoes {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.botao-texto {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+  padding: 4px 6px;
+
+  &--perigo {
+    color: #b3261e;
+  }
+}
+
+.botoes {
+  display: flex;
+  justify-content: flex-end;
+
+  .primario {
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    background: var(--cor-primaria);
+    color: #fff;
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}
+
+.lista-diagnostico {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.88rem;
+  }
+
+  .ok {
+    color: #1e7e34;
+  }
+
+  .falta {
+    color: #b3730e;
+  }
+}
+
+.ajuda {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+}
+
+.atalhos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.atalho {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--cor-primaria-escura);
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.area-logo {
+  display: flex;
+  align-items: center;
+  min-height: 72px;
+  padding: 10px 14px;
+  border: 1px dashed var(--cor-borda);
+  border-radius: 10px;
+  background: repeating-conic-gradient(#f1f1f1 0% 25%, #fff 0% 50%) 0 0 / 16px 16px;
+}
+
+.previa-logo {
+  max-height: 64px;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.sem-logo {
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+  background: var(--cor-superficie);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.botoes-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.lista-admins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-admin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+}
+
+.info-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.email-admin {
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+  overflow-wrap: anywhere;
+}
+
+.status-admin {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #1e7e34;
+
+  &--pendente {
+    color: #b3730e;
+  }
+
+  &--inativo {
+    color: var(--cor-texto-suave);
+  }
+}
+
+.item-admin .acoes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.novo-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--cor-borda);
+  padding-top: 14px;
+}
+
+.subtitulo-painel {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.85rem;
+}

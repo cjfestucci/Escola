@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { TipoChavePix } from '../../models/cobranca.model';
+import { PixAutomaticoStatus, TipoChavePix } from '../../models/cobranca.model';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
@@ -75,6 +75,11 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
   // Seções recolhíveis: a primeira abre expandida, as demais minimizadas.
   readonly pixAberto = signal(true);
   readonly bloqueioAberto = signal(false);
+  readonly mensalidadesAberto = signal(false);
+  readonly pixAutomaticoAberto = signal(false);
+  readonly statusPixAutomatico = signal<PixAutomaticoStatus | null>(null);
+  readonly testandoPix = signal(false);
+  readonly registrandoWebhook = signal(false);
   protected readonly tiposChave = TIPOS_CHAVE;
 
   tipoChave: TipoChavePix | '' = '';
@@ -82,12 +87,17 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
   pixNomeRecebedor = '';
   pixCidade = '';
   diasParaBloqueio: number | null = null;
+  diaVencimentoMensalidade: number | null = 10;
+  multaAtrasoPercentual: number | null = null;
+  jurosMensaisPercentual: number | null = null;
 
   get tipoSelecionado(): OpcaoTipoChave | undefined {
     return TIPOS_CHAVE.find((t) => t.valor === this.tipoChave);
   }
 
   ngOnInit(): void {
+    // Complemento informativo: se falhar, o resto da tela segue funcionando.
+    this.financeiroService.statusPixAutomatico().subscribe({ next: (s) => this.statusPixAutomatico.set(s), error: () => undefined });
     this.financeiroService.obterConfiguracao().subscribe({
       next: (config) => {
         this.pixChave = config.pixChave ?? '';
@@ -95,6 +105,9 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
         this.pixNomeRecebedor = config.pixNomeRecebedor ?? '';
         this.pixCidade = config.pixCidade ?? '';
         this.diasParaBloqueio = config.diasParaBloqueio;
+        this.diaVencimentoMensalidade = config.diaVencimentoMensalidade;
+        this.multaAtrasoPercentual = config.multaAtrasoPercentual;
+        this.jurosMensaisPercentual = config.jurosMensaisPercentual;
         this.configuracaoId.set(config.id);
         this.carregando.set(false);
       },
@@ -121,6 +134,27 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
       return;
     }
 
+    // Campos numéricos vazios podem vir como null ou string vazia: tudo que é vazio vira "não cobra".
+    const numero = (valor: number | null): number | null => (valor === null || (valor as unknown) === "" ? null : Number(valor));
+    const dia = numero(this.diaVencimentoMensalidade);
+    const multa = numero(this.multaAtrasoPercentual);
+    const juros = numero(this.jurosMensaisPercentual);
+    if (dia === null || !Number.isInteger(dia) || dia < 1 || dia > 31) {
+      this.mensalidadesAberto.set(true);
+      this.notificacao.erro("Informe o dia de vencimento das mensalidades, um número inteiro entre 1 e 31.");
+      return;
+    }
+    if (multa !== null && (Number.isNaN(multa) || multa < 0 || multa > 20)) {
+      this.mensalidadesAberto.set(true);
+      this.notificacao.erro("A multa por atraso deve estar entre 0% e 20%.");
+      return;
+    }
+    if (juros !== null && (Number.isNaN(juros) || juros < 0 || juros > 10)) {
+      this.mensalidadesAberto.set(true);
+      this.notificacao.erro("Os juros mensais devem estar entre 0% e 10%.");
+      return;
+    }
+
     this.salvando.set(true);
     this.financeiroService
       .editarConfiguracao({
@@ -128,7 +162,10 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
         pixTipoChave: chave && this.tipoChave ? this.tipoChave : null,
         pixNomeRecebedor: this.pixNomeRecebedor.trim() || null,
         pixCidade: this.pixCidade.trim() || null,
-        diasParaBloqueio: dias
+        diasParaBloqueio: dias,
+        diaVencimentoMensalidade: dia,
+        multaAtrasoPercentual: multa,
+        jurosMensaisPercentual: juros
       })
       .subscribe({
         next: (config) => {
@@ -141,11 +178,41 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
         error: (resposta) => {
           this.salvando.set(false);
           // O erro do backend pode ser de qualquer seção (ex.: chave Pix inválida) — abre a que provavelmente o causou.
-          if (typeof resposta.error === 'string' && resposta.error.toLowerCase().includes('dias')) this.bloqueioAberto.set(true);
+          const mensagem = typeof resposta.error === 'string' ? resposta.error.toLowerCase() : '';
+          if (/vencimento|multa|juros/.test(mensagem)) this.mensalidadesAberto.set(true);
+          else if (mensagem.includes('dias')) this.bloqueioAberto.set(true);
           else this.pixAberto.set(true);
           this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a configuração.');
         }
       });
+  }
+
+  testarConexaoPix(): void {
+    this.testandoPix.set(true);
+    this.financeiroService.testarConexaoPix().subscribe({
+      next: () => {
+        this.testandoPix.set(false);
+        this.notificacao.sucesso('Conexão com o Banco do Brasil funcionando.');
+      },
+      error: (resposta) => {
+        this.testandoPix.set(false);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível testar a conexão.');
+      }
+    });
+  }
+
+  registrarWebhookPix(): void {
+    this.registrandoWebhook.set(true);
+    this.financeiroService.registrarWebhookPix().subscribe({
+      next: () => {
+        this.registrandoWebhook.set(false);
+        this.notificacao.sucesso('Webhook registrado no Banco do Brasil.');
+      },
+      error: (resposta) => {
+        this.registrandoWebhook.set(false);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível registrar o webhook.');
+      }
+    });
   }
 
   abrirHistorico(): void {

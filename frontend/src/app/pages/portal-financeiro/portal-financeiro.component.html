@@ -68,6 +68,11 @@
             <span class="detalhe">
               R$ {{ cobranca.valor | number: '1.2-2' }} · Vencimento {{ formatarDataAbsoluta(cobranca.vencimento) }}
             </span>
+            @if (!cobranca.paga && cobranca.multa + cobranca.juros > 0) {
+              <span class="detalhe">
+                Valor atualizado com multa e juros: <strong>R$ {{ cobranca.valorAtualizado | number: '1.2-2' }}</strong>
+              </span>
+            }
           </div>
 
           <div class="acoes">
@@ -99,6 +104,9 @@
                   <div class="codigo-pix-coluna">
                     <p class="detalhe">Código Pix copia e cola:</p>
                     <p class="codigo-pix">{{ pixCodigo() }}</p>
+                    @if (pixAutomatico()) {
+                      <p class="detalhe">✅ Assim que o banco confirmar o pagamento, a mensalidade é baixada automaticamente.</p>
+                    }
                     <button type="button" class="primario" (click)="copiarPix()">
                       {{ pixCopiado() ? 'Copiado!' : 'Copiar código' }}
                     </button>

@@ -13,6 +13,10 @@ public class Aluno
     /// <summary>Só faz sentido no segmento clube (escola de futebol); fica nulo nos demais.</summary>
     public PosicaoAtleta? Posicao { get; set; }
 
+    /// <summary>Desconto fixo (0–100%) aplicado à mensalidade na geração em lote — bolsa, irmãos, etc.</summary>
+    public decimal DescontoMensalidadePercentual { get; set; }
+    public string? MotivoDesconto { get; set; }
+
     public Guid TurmaId { get; set; }
     public Turma Turma { get; set; } = null!;
 

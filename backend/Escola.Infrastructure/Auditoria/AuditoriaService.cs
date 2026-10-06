@@ -19,4 +19,16 @@ public class AuditoriaService(EscolaDbContext db) : IAuditoriaService
             Data = data,
             RegistradoEm = DateTime.UtcNow
         });
+
+    public void RegistrarSistema(string entidadeTipo, Guid entidadeId, AcaoAuditoria acao, string? detalhe = null) =>
+        db.LogsAuditoria.Add(new LogAuditoria
+        {
+            Id = Guid.NewGuid(),
+            EntidadeTipo = entidadeTipo,
+            EntidadeId = entidadeId,
+            Acao = acao,
+            UsuarioId = null,
+            Detalhe = detalhe,
+            RegistradoEm = DateTime.UtcNow
+        });
 }

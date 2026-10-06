@@ -11,6 +11,10 @@ public record ConfiguracaoFinanceiraDto(
     string? PixNomeRecebedor,
     string? PixCidade,
     int? DiasParaBloqueio,
-    bool Configurado);
+    bool Configurado,
+    int DiaVencimentoMensalidade = 10,
+    decimal? MultaAtrasoPercentual = null,
+    decimal? JurosMensaisPercentual = null);
 
-public record PixCobrancaDto(string CodigoCopiaECola);
+/// <param name="Automatico">O código foi criado no banco: o pagamento é confirmado e baixado sozinho. Falso = Pix estático (baixa manual).</param>
+public record PixCobrancaDto(string CodigoCopiaECola, bool Automatico = false);

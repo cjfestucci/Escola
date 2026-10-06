@@ -4,6 +4,7 @@ using Escola.Api.Dtos.Requests;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
 using Escola.Infrastructure.Auditoria;
+using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Tema;
 using Escola.Infrastructure.Tempo;
@@ -16,21 +17,26 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/configuracao/escola")]
 [Authorize]
-public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService auditoria) : ControllerBase
+public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService auditoria, IClienteAtual clienteAtual) : ControllerBase
 {
+    /// <summary>Segmento (escola/clube) do cliente deste deploy. A tabela <c>Clientes</c> não tem filtro por cliente,
+    /// então a linha é buscada pelo id configurado.</summary>
+    private Task<SegmentoCliente> SegmentoAtualAsync() =>
+        db.Clientes.Where(c => c.Id == clienteAtual.Id).Select(c => c.Segmento).FirstOrDefaultAsync();
+
     /// <summary>Anônimo de propósito: o frontend precisa do fuso antes de qualquer tela renderizar
-    /// (inclusive antes do login) pra calcular "hoje", e da cor do tema pra já pintar a tela de login —
-    /// nenhum dos dois é dado sensível.</summary>
+    /// (inclusive antes do login) pra calcular "hoje", da cor do tema pra já pintar a tela de login e do segmento
+    /// (escola/clube) pra já usar o vocabulário certo nela — nenhum dos três é dado sensível.</summary>
     [HttpGet]
     [AllowAnonymous]
     public async Task<ActionResult<ConfiguracaoEscolaDto>> Obter()
     {
         var config = await db.ConfiguracoesEscola.FirstOrDefaultAsync();
-        return Ok(new ConfiguracaoEscolaDto(config?.Id, config?.FusoHorario ?? RelogioEscola.FusoPadrao, config?.CorPrincipal));
+        return Ok(new ConfiguracaoEscolaDto(config?.Id, config?.FusoHorario ?? RelogioEscola.FusoPadrao, config?.CorPrincipal, await SegmentoAtualAsync(), config?.LogoUrl));
     }
 
     [HttpPut]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.GestaoOuSuporte)]
     public async Task<ActionResult<ConfiguracaoEscolaDto>> Editar(EditarConfiguracaoEscolaRequest request)
     {
         var fusoNovo = request.FusoHorario?.Trim();
@@ -66,6 +72,6 @@ public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService 
                 ("Cor principal", corAntes ?? "padrão", config.CorPrincipal ?? "padrão")));
         await db.SaveChangesAsync();
 
-        return Ok(new ConfiguracaoEscolaDto(config.Id, config.FusoHorario, config.CorPrincipal));
+        return Ok(new ConfiguracaoEscolaDto(config.Id, config.FusoHorario, config.CorPrincipal, await SegmentoAtualAsync(), config.LogoUrl));
     }
 }

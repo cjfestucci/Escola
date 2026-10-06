@@ -6,6 +6,8 @@ import { forkJoin } from 'rxjs';
 import { Turma } from '../../models/aluno.model';
 import { AlertaDisciplinar, Campeonato, Jogo, JogoAtleta, LocalJogo, ROTULOS_MANDO, StatusJogo } from '../../models/competicao.model';
 import { AlunoService } from '../../services/aluno.service';
+import { PresencaService } from '../../services/presenca.service';
+import { FALTAS_SEGUIDAS_PARA_ALERTA, FrequenciaAluno } from '../../models/presenca.model';
 import { CampeonatoService } from '../../services/campeonato.service';
 import { JogoService } from '../../services/jogo.service';
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -39,6 +41,7 @@ export class JogoFormularioComponent implements OnInit {
   private readonly turmaService = inject(TurmaService);
   private readonly campeonatoService = inject(CampeonatoService);
   private readonly alunoService = inject(AlunoService);
+  private readonly presencaService = inject(PresencaService);
   private readonly notificacao = inject(NotificacaoService);
 
   private jogoId: string | null = null;
@@ -95,6 +98,14 @@ export class JogoFormularioComponent implements OnInit {
 
   get campeonatosDisponiveis(): Campeonato[] {
     return this.campeonatos().filter((c) => c.ativo || c.id === this.jogo()?.campeonatoId);
+  }
+
+  /** Frequência nos treinos (30 dias) dos atletas da turma — ajuda o técnico a decidir a convocação. Só avisa. */
+  private frequencias = new Map<string, FrequenciaAluno>();
+  protected readonly alertaFaltas = FALTAS_SEGUIDAS_PARA_ALERTA;
+
+  frequenciaDe(alunoId: string): FrequenciaAluno | undefined {
+    return this.frequencias.get(alunoId);
   }
 
   alertaDe(alunoId: string): AlertaDisciplinar | undefined {
@@ -169,6 +180,10 @@ export class JogoFormularioComponent implements OnInit {
 
   /** Candidatos = atletas ativos da turma do jogo + quem já está convocado (mesmo de outra turma, ex.: jogando "por cima"). */
   private carregarCandidatos(jogo: Jogo): void {
+    this.presencaService.frequenciaDaTurma(jogo.turmaId).subscribe({
+      next: (lista) => (this.frequencias = new Map(lista.map((f) => [f.alunoId, f]))),
+      error: () => undefined
+    });
     this.alunoService.listarAlunos(jogo.turmaId).subscribe({
       next: (alunos) => {
         const convocados = new Map((jogo.convocados ?? []).map((c) => [c.alunoId, c]));

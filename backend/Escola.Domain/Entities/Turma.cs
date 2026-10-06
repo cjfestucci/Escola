@@ -11,6 +11,10 @@ public class Turma
     public TimeOnly HorarioSaida { get; set; }
     public bool Ativa { get; set; } = true;
 
+    /// <summary>Valor mensal cobrado de cada aluno da turma (antes do desconto do aluno). Nulo = a turma não entra
+    /// na geração de mensalidades em lote.</summary>
+    public decimal? ValorMensalidade { get; set; }
+
     public Guid UnidadeId { get; set; }
     public Unidade Unidade { get; set; } = null!;
 

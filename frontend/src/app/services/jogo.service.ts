@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { CriarOuEditarJogo, Jogo, JogoAtleta } from '../models/competicao.model';
+import { CampeonatoFamilia, CriarOuEditarJogo, Jogo, JogoAtleta, JogosCampeonatoDoAluno, JogosDoAluno } from '../models/competicao.model';
 
 @Injectable({ providedIn: 'root' })
 export class JogoService {
@@ -15,6 +15,21 @@ export class JogoService {
     if (filtros.campeonatoId) params['campeonatoId'] = filtros.campeonatoId;
     if (filtros.turmaId) params['turmaId'] = filtros.turmaId;
     return this.http.get<Jogo[]>(this.baseUrl, { params });
+  }
+
+  /** Visão da família: jogos da turma do atleta e as convocações dele (Equipe e Responsável do atleta). */
+  listarDoAluno(alunoId: string): Observable<JogosDoAluno> {
+    return this.http.get<JogosDoAluno>(`${environment.apiUrl}/alunos/${alunoId}/jogos`);
+  }
+
+  /** Campeonatos em que o time do atleta joga (visão da família). */
+  listarCampeonatosDoAluno(alunoId: string): Observable<CampeonatoFamilia[]> {
+    return this.http.get<CampeonatoFamilia[]>(`${environment.apiUrl}/alunos/${alunoId}/campeonatos`);
+  }
+
+  /** Calendário completo do time do atleta num campeonato, com a campanha do time. */
+  jogosDoCampeonatoDoAluno(alunoId: string, campeonatoId: string): Observable<JogosCampeonatoDoAluno> {
+    return this.http.get<JogosCampeonatoDoAluno>(`${environment.apiUrl}/alunos/${alunoId}/campeonatos/${campeonatoId}/jogos`);
   }
 
   obterPorId(id: string): Observable<Jogo> {

@@ -18,6 +18,165 @@
     }
   }
 
+  <ng-template #itemJogo let-jogo>
+    <li class="jogo-familia">
+      @if (jogo.status === 'Realizado') {
+        <span class="jogo-quando">{{ formatarDataAbsoluta(jogo.data).slice(0, 5) }}</span>
+        <strong>
+          {{ jogo.turmaNome }} {{ jogo.golsPro }} x {{ jogo.golsContra }} {{ jogo.adversario }}
+          @if (resultadoDoJogo(jogo); as r) {
+            <span class="chip-jogo chip-jogo--{{ r === 'V' ? 'vitoria' : r === 'E' ? 'empate' : 'derrota' }}">{{ rotulosResultado[r] }}</span>
+          }
+        </strong>
+        @if (jogo.convocado) {
+          <span class="jogo-detalhe-familia">
+            {{ jogo.titular ? 'Titular' : 'Reserva' }}
+            @if (jogo.gols > 0) {
+              · ⚽ {{ jogo.gols }} {{ jogo.gols === 1 ? 'gol' : 'gols' }}
+            }
+            @if (jogo.cartoesAmarelos > 0) {
+              · 🟨 {{ jogo.cartoesAmarelos }}
+            }
+            @if (jogo.cartaoVermelho) {
+              · 🟥 expulso
+            }
+          </span>
+        } @else {
+          <span class="jogo-detalhe-familia">Não participou</span>
+        }
+      } @else {
+        <span class="jogo-quando">{{ formatarDataAbsoluta(jogo.data).slice(0, 5) }} · {{ jogo.hora.slice(0, 5) }}</span>
+        <strong>{{ jogo.turmaNome }} x {{ jogo.adversario }}</strong>
+        <span class="jogo-detalhe-familia">
+          {{ rotuloMando(jogo.mando) }}{{ jogo.local ? ' · ' + jogo.local : '' }}{{ jogo.campeonatoNome ? ' · ' + jogo.campeonatoNome : ' · Amistoso' }}
+        </span>
+        @if (jogo.status === 'Cancelado') {
+          <span class="chip-jogo chip-jogo--cancelado">Jogo cancelado</span>
+        } @else if (jogo.convocado) {
+          <span class="chip-jogo chip-jogo--convocado">✅ Convocado{{ jogo.titular ? ' (titular)' : '' }}</span>
+        } @else if (jogo.convocacaoDivulgada) {
+          <span class="chip-jogo">Não convocado para este jogo</span>
+        } @else {
+          <span class="chip-jogo">Convocação ainda não divulgada</span>
+        }
+      }
+    </li>
+  </ng-template>
+
+  @if (jogos(); as j) {
+    @if (j.proximos.length > 0 || j.recentes.length > 0 || campeonatos().length > 0) {
+      <button type="button" class="botao-ficha-saude" (click)="mostrarJogos.set(!mostrarJogos())">
+        ⚽ Jogos
+        @if (j.proximos.length > 0) {
+          <span class="contagem-info">próximo {{ formatarDataAbsoluta(j.proximos[0].data).slice(0, 5) }}</span>
+        }
+        {{ mostrarJogos() ? '▲' : '▼' }}
+      </button>
+
+      @if (mostrarJogos()) {
+        <div class="painel-ficha-saude">
+          @if (j.proximos.length > 0) {
+            <p class="rotulo-ficha">Próximos jogos</p>
+            <ul class="lista-jogos-familia">
+              @for (jogo of j.proximos; track jogo.id) {
+                <ng-container *ngTemplateOutlet="itemJogo; context: { $implicit: jogo }" />
+              }
+            </ul>
+          }
+
+          @if (j.recentes.length > 0) {
+            <p class="rotulo-ficha">Últimos resultados</p>
+            <ul class="lista-jogos-familia">
+              @for (jogo of j.recentes; track jogo.id) {
+                <ng-container *ngTemplateOutlet="itemJogo; context: { $implicit: jogo }" />
+              }
+            </ul>
+          }
+
+          @if (campeonatos().length > 0) {
+            <div class="bloco-campeonato">
+              <p class="rotulo-ficha">Todos os jogos de um campeonato</p>
+              <select
+                class="seletor-campeonato"
+                [value]="campeonatoEscolhidoId()"
+                (change)="escolherCampeonato($any($event.target).value)"
+                aria-label="Escolher campeonato"
+              >
+                <option value="">Escolha um campeonato…</option>
+                @for (c of campeonatos(); track c.id) {
+                  <option [value]="c.id">{{ c.nome }} ({{ c.quantidadeJogos }} {{ c.quantidadeJogos === 1 ? 'jogo' : 'jogos' }})</option>
+                }
+              </select>
+
+              @if (carregandoCampeonato()) {
+                <p class="vazio">Carregando...</p>
+              } @else {
+                @if (jogosDoCampeonato(); as camp) {
+                <div class="resumo-campanha">
+                  <strong>Campanha do time</strong>
+                  @if (camp.resumo.jogos === 0) {
+                    <span>Ainda sem jogos realizados.</span>
+                  } @else {
+                    <span>
+                      {{ camp.resumo.jogos }} {{ camp.resumo.jogos === 1 ? 'jogo' : 'jogos' }} ·
+                      {{ camp.resumo.vitorias }}V {{ camp.resumo.empates }}E {{ camp.resumo.derrotas }}D ·
+                      {{ camp.resumo.pontos }} pts · gols {{ camp.resumo.golsPro }} x {{ camp.resumo.golsContra }}
+                    </span>
+                  }
+                </div>
+                <ul class="lista-jogos-familia">
+                  @for (jogo of camp.jogos; track jogo.id) {
+                    <ng-container *ngTemplateOutlet="itemJogo; context: { $implicit: jogo }" />
+                  }
+                </ul>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+
+  @if (frequencia(); as freq) {
+    @if (temFrequencia()) {
+      <button type="button" class="botao-ficha-saude" (click)="mostrarFrequencia.set(!mostrarFrequencia())">
+        📋 Frequência
+        @if (freq.resumo.percentual !== null) {
+          <span class="contagem-info">{{ freq.resumo.percentual }}%</span>
+        }
+        {{ mostrarFrequencia() ? '▲' : '▼' }}
+      </button>
+
+      @if (mostrarFrequencia()) {
+        <div class="painel-ficha-saude">
+          <app-filtro-periodo (periodoChange)="aoMudarPeriodoFrequencia($event)" />
+          <p>
+            <span class="rotulo-ficha">{{ periodoFrequencia().rotulo.charAt(0).toUpperCase() + periodoFrequencia().rotulo.slice(1) }}:</span>
+            {{ freq.resumo.presencas }} {{ freq.resumo.presencas === 1 ? 'presença' : 'presenças' }},
+            {{ freq.resumo.faltas }} {{ freq.resumo.faltas === 1 ? 'falta' : 'faltas' }}
+            @if (freq.resumo.justificadas > 0) {
+              e {{ freq.resumo.justificadas }} {{ freq.resumo.justificadas === 1 ? 'justificada' : 'justificadas' }}
+            }
+          </p>
+          @if (freq.recentes.length === 0) {
+            <p class="vazio">Nenhuma chamada registrada nesse período.</p>
+          } @else {
+          <p class="rotulo-ficha">Chamadas do período</p>
+          <ul class="lista-presencas">
+            @for (p of freq.recentes; track p.data) {
+              <li>
+                <span>{{ formatarDataAbsoluta(p.data) }}</span>
+                <span class="chip-presenca chip-presenca--{{ p.status.toLowerCase() }}">{{ rotulosPresenca[p.status] }}</span>
+              </li>
+            }
+          </ul>
+          }
+        </div>
+      }
+    }
+  }
+
   @if (fichaSaude(); as f) {
     <button type="button" class="botao-ficha-saude" (click)="mostrarFicha.set(!mostrarFicha())">
       🩺 Ficha de saúde {{ mostrarFicha() ? '▲' : '▼' }}
@@ -79,7 +238,7 @@
               <span class="detalhe-cobranca">Vencimento {{ formatarDataAbsoluta(cobranca.vencimento) }}</span>
             </div>
             <div class="valor-status">
-              <span class="valor">R$ {{ cobranca.valor.toFixed(2) }}</span>
+              <span class="valor">R$ {{ (cobranca.paga ? (cobranca.valorPago ?? cobranca.valor) : cobranca.valorAtualizado).toFixed(2) }}</span>
               @if (cobranca.paga) {
                 <span class="status status--pago">Pago</span>
               } @else if (cobranca.vencimento < hojeIso()) {
@@ -105,6 +264,9 @@
                   <div class="codigo-pix-coluna">
                     <p class="detalhe-cobranca">Código Pix copia e cola:</p>
                     <p class="codigo-pix">{{ pixCodigo() }}</p>
+                    @if (pixAutomatico()) {
+                      <p class="detalhe">✅ Assim que o banco confirmar o pagamento, a mensalidade é baixada automaticamente.</p>
+                    }
                     <button type="button" class="botao-copiar-pix" (click)="copiarPix()">
                       {{ pixCopiado() ? 'Copiado!' : 'Copiar código' }}
                     </button>
@@ -119,108 +281,111 @@
     }
   }
 
-  <div class="navegador-data">
-    <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
+  <!-- Rotina diária e Diário da turma são da escola infantil: no clube não existem (ver SegmentoService). -->
+  @if (segmentoService.mostrarRotinaDiaria()) {
+    <div class="navegador-data">
+      <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
 
-    <div class="ancora-calendario">
-      <button type="button" class="data-atual" (click)="calendarioAberto.set(!calendarioAberto())">
-        <span class="rotulo-dia">{{ rotuloData(dataVisualizada()) }}</span>
-        <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="5" width="16" height="16" rx="2" />
-          <path d="M4 10h16" />
-          <path d="M8 3v4M16 3v4" />
-        </svg>
-      </button>
-
-      @if (calendarioAberto()) {
-        <div class="popover-calendario">
-          <app-calendario [dataSelecionada]="dataVisualizada()" [dataMaxima]="hojeIso()" (escolher)="irParaDia($event)" />
-        </div>
-      }
-    </div>
-
-    <button type="button" class="botao-nav-data" [disabled]="ehHoje()" (click)="diaSeguinte()" aria-label="Próximo dia">›</button>
-  </div>
-
-  @if (calendarioAberto()) {
-    <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
-  }
-
-  @if (!carregando() && registros().length > 0) {
-    <div class="filtro-categorias">
-      <button type="button" class="chip-categoria" [class.ativa]="!filtroCategoria()" (click)="filtroCategoria.set(null)">
-        Todos
-      </button>
-      @for (categoria of categoriasFiltro; track categoria) {
-        <button
-          type="button"
-          class="chip-categoria"
-          [class.ativa]="filtroCategoria() === categoria"
-          (click)="filtroCategoria.set(categoria)"
-        >
-          {{ iconeCategoria(categoria) }} {{ rotuloCategoriaCurto(categoria) }}
+      <div class="ancora-calendario">
+        <button type="button" class="data-atual" (click)="calendarioAberto.set(!calendarioAberto())">
+          <span class="rotulo-dia">{{ rotuloData(dataVisualizada()) }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
         </button>
-      }
+
+        @if (calendarioAberto()) {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="dataVisualizada()" [dataMaxima]="hojeIso()" (escolher)="irParaDia($event)" />
+          </div>
+        }
+      </div>
+
+      <button type="button" class="botao-nav-data" [disabled]="ehHoje()" (click)="diaSeguinte()" aria-label="Próximo dia">›</button>
     </div>
-  }
 
-  @if (carregando()) {
-    <p>Carregando...</p>
-  } @else if (registros().length === 0) {
-    <p class="vazio">Nenhum registro neste dia.</p>
-  } @else if (registrosFiltrados().length === 0) {
-    <p class="vazio">Nenhum registro dessa categoria neste dia.</p>
-  } @else {
-    <ul class="timeline">
-      @for (registro of registrosFiltrados(); track registro.id) {
-        <li class="item-timeline">
-          <span class="icone">{{ iconeCategoria(registro.categoria) }}</span>
-          <div class="conteudo">
-            <div class="linha-topo">
-              <strong>{{ rotuloCategoria(registro) }}</strong>
-              <span class="hora">{{ horaRegistro(registro.registradoEm) }}</span>
-            </div>
-            @if (registro.observacao) {
-              <p class="observacao">{{ registro.observacao }}</p>
-            }
-            @if (registro.fotoUrls.length > 0) {
-              <div class="galeria-fotos">
-                @for (url of resolverFotoUrls(registro.fotoUrls); track url) {
-                  <img class="foto" [src]="url" alt="Foto do registro" />
-                }
-              </div>
-            }
-            <span class="autor">por {{ registro.criadoPorNome }}</span>
-          </div>
-        </li>
-      }
-    </ul>
-  }
+    @if (calendarioAberto()) {
+      <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+    }
 
-  @if (registrosDiario().length > 0) {
-    <h2 class="titulo-timeline">Diário da turma</h2>
-    <ul class="timeline">
-      @for (registro of registrosDiario(); track registro.id) {
-        <li class="item-timeline">
-          <div class="conteudo">
-            <div class="linha-topo">
-              <strong>{{ registro.titulo }}</strong>
-              <span class="hora">{{ horaRegistro(registro.registradoEm) }}</span>
-            </div>
-            @if (registro.descricao) {
-              <p class="observacao">{{ registro.descricao }}</p>
-            }
-            @if (registro.fotoUrls.length > 0) {
-              <div class="galeria-fotos">
-                @for (url of resolverFotoUrls(registro.fotoUrls); track url) {
-                  <img class="foto" [src]="url" alt="Foto do registro" />
-                }
+    @if (!carregando() && registros().length > 0) {
+      <div class="filtro-categorias">
+        <button type="button" class="chip-categoria" [class.ativa]="!filtroCategoria()" (click)="filtroCategoria.set(null)">
+          Todos
+        </button>
+        @for (categoria of categoriasFiltro; track categoria) {
+          <button
+            type="button"
+            class="chip-categoria"
+            [class.ativa]="filtroCategoria() === categoria"
+            (click)="filtroCategoria.set(categoria)"
+          >
+            {{ iconeCategoria(categoria) }} {{ rotuloCategoriaCurto(categoria) }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (carregando()) {
+      <p>Carregando...</p>
+    } @else if (registros().length === 0) {
+      <p class="vazio">Nenhum registro neste dia.</p>
+    } @else if (registrosFiltrados().length === 0) {
+      <p class="vazio">Nenhum registro dessa categoria neste dia.</p>
+    } @else {
+      <ul class="timeline">
+        @for (registro of registrosFiltrados(); track registro.id) {
+          <li class="item-timeline">
+            <span class="icone">{{ iconeCategoria(registro.categoria) }}</span>
+            <div class="conteudo">
+              <div class="linha-topo">
+                <strong>{{ rotuloCategoria(registro) }}</strong>
+                <span class="hora">{{ horaRegistro(registro.registradoEm) }}</span>
               </div>
-            }
-            <span class="autor">por {{ registro.criadoPorNome }}</span>
-          </div>
-        </li>
-      }
-    </ul>
+              @if (registro.observacao) {
+                <p class="observacao">{{ registro.observacao }}</p>
+              }
+              @if (registro.fotoUrls.length > 0) {
+                <div class="galeria-fotos">
+                  @for (url of resolverFotoUrls(registro.fotoUrls); track url) {
+                    <img class="foto" [src]="url" alt="Foto do registro" />
+                  }
+                </div>
+              }
+              <span class="autor">por {{ registro.criadoPorNome }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (registrosDiario().length > 0) {
+      <h2 class="titulo-timeline">Diário da turma</h2>
+      <ul class="timeline">
+        @for (registro of registrosDiario(); track registro.id) {
+          <li class="item-timeline">
+            <div class="conteudo">
+              <div class="linha-topo">
+                <strong>{{ registro.titulo }}</strong>
+                <span class="hora">{{ horaRegistro(registro.registradoEm) }}</span>
+              </div>
+              @if (registro.descricao) {
+                <p class="observacao">{{ registro.descricao }}</p>
+              }
+              @if (registro.fotoUrls.length > 0) {
+                <div class="galeria-fotos">
+                  @for (url of resolverFotoUrls(registro.fotoUrls); track url) {
+                    <img class="foto" [src]="url" alt="Foto do registro" />
+                  }
+                </div>
+              }
+              <span class="autor">por {{ registro.criadoPorNome }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+    }
   }
 </div>

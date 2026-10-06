@@ -1,56 +1,74 @@
 <div class="entrar">
-  <span class="marca-icone">{{ segmentoService.iconeApp() }}</span>
+  @if (segmentoService.logoUrl(); as logo) {
+    <img class="marca-logo" [src]="logo" alt="Logo" />
+  } @else {
+    <span class="marca-icone">{{ segmentoService.iconeApp() }}</span>
+  }
   <h1>{{ segmentoService.nomeApp() }}</h1>
   <p class="subtitulo">Entre com seu e-mail e senha.</p>
 
   <form class="formulario" (ngSubmit)="entrar()">
-    <label><span class="obrigatorio">E-mail</span>
-      <input type="email" [(ngModel)]="email" name="email" placeholder="voce@escola.dev" autocomplete="username" />
-    </label>
-
-    <label><span class="obrigatorio">Senha</span>
-      <div class="campo-senha">
+    @if (etapaCodigo()) {
+      <label><span class="obrigatorio">Código de verificação</span>
         <input
-          [type]="mostrarSenha() ? 'text' : 'password'"
-          [(ngModel)]="senha"
-          name="senha"
-          placeholder="••••••••"
-          autocomplete="current-password"
+          type="text"
+          inputmode="numeric"
+          maxlength="7"
+          [(ngModel)]="codigo"
+          name="codigo"
+          placeholder="000000"
+          autocomplete="one-time-code"
+          class="campo-codigo"
         />
-        <button
-          type="button"
-          class="botao-olho"
-          (click)="mostrarSenha.set(!mostrarSenha())"
-          [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'"
-        >
-          @if (mostrarSenha()) {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 3l18 18" />
-              <path d="M10.6 10.6a2.5 2.5 0 0 0 3.5 3.5" />
-              <path d="M9.4 5.3A10.9 10.9 0 0 1 12 5c5.5 0 9 5 9.9 7-.4.9-1.1 2-2 3M6.3 6.9C4.4 8.1 3 9.9 2.1 12c1 2.3 3.1 6 9.9 7 1.2 0 2.4-.2 3.4-.6" />
-            </svg>
-          } @else {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2.1 12C3 9.9 6.5 5 12 5s9 4.9 9.9 7c-.9 2.1-4.4 7-9.9 7s-9-4.9-9.9-7Z" />
-              <circle cx="12" cy="12" r="2.8" />
-            </svg>
-          }
-        </button>
-      </div>
-    </label>
+      </label>
+      <p class="ajuda-codigo">Abra o app autenticador (Google Authenticator, Microsoft Authenticator…) e digite o código de 6 dígitos desta conta.</p>
+      <button type="submit" class="botao-entrar" [disabled]="entrando()">
+        {{ entrando() ? 'Verificando...' : 'Verificar' }}
+      </button>
+      <button type="button" class="link-esqueci" (click)="voltarDaEtapaCodigo()">Voltar</button>
+    } @else {
+      <label><span class="obrigatorio">E-mail</span>
+        <input type="email" [(ngModel)]="email" name="email" placeholder="voce@escola.dev" autocomplete="username" />
+      </label>
 
-    <button type="button" class="link-esqueci" (click)="mostrarAjudaSenha.set(!mostrarAjudaSenha())">
-      Esqueceu a senha?
-    </button>
+      <label><span class="obrigatorio">Senha</span>
+        <div class="campo-senha">
+          <input
+            [type]="mostrarSenha() ? 'text' : 'password'"
+            [(ngModel)]="senha"
+            name="senha"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="botao-olho"
+            (click)="mostrarSenha.set(!mostrarSenha())"
+            [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'"
+          >
+            @if (mostrarSenha()) {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3l18 18" />
+                <path d="M10.6 10.6a2.5 2.5 0 0 0 3.5 3.5" />
+                <path d="M9.4 5.3A10.9 10.9 0 0 1 12 5c5.5 0 9 5 9.9 7-.4.9-1.1 2-2 3M6.3 6.9C4.4 8.1 3 9.9 2.1 12c1 2.3 3.1 6 9.9 7 1.2 0 2.4-.2 3.4-.6" />
+              </svg>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.1 12C3 9.9 6.5 5 12 5s9 4.9 9.9 7c-.9 2.1-4.4 7-9.9 7s-9-4.9-9.9-7Z" />
+                <circle cx="12" cy="12" r="2.8" />
+              </svg>
+            }
+          </button>
+        </div>
+      </label>
 
-    @if (mostrarAjudaSenha()) {
-      <p class="ajuda-senha">
-        Fale com a coordenação ou o admin da escola para redefinir sua senha.
-      </p>
+      <button type="button" class="link-esqueci" (click)="esqueceuSenha()">
+        Esqueceu a senha?
+      </button>
+
+      <button type="submit" class="botao-entrar" [disabled]="entrando()">
+        {{ entrando() ? 'Entrando...' : 'Entrar' }}
+      </button>
     }
-
-    <button type="submit" class="botao-entrar" [disabled]="entrando()">
-      {{ entrando() ? 'Entrando...' : 'Entrar' }}
-    </button>
   </form>
 </div>

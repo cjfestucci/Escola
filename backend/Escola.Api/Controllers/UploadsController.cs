@@ -11,11 +11,6 @@ namespace Escola.Api.Controllers;
 [Authorize(Roles = GruposDePapeis.Equipe)]
 public class UploadsController(IFotoStorage fotoStorage) : ControllerBase
 {
-    private static readonly HashSet<string> TiposPermitidos = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "image/jpeg", "image/png", "image/webp", "image/gif"
-    };
-
     private const long TamanhoMaximoBytes = 8 * 1024 * 1024;
 
     [HttpPost]
@@ -25,15 +20,18 @@ public class UploadsController(IFotoStorage fotoStorage) : ControllerBase
         if (arquivo is null || arquivo.Length == 0)
             return BadRequest("Nenhum arquivo enviado.");
 
-        if (!TiposPermitidos.Contains(arquivo.ContentType))
-            return BadRequest("Formato de imagem não suportado. Use JPEG, PNG, WEBP ou GIF.");
-
         if (arquivo.Length > TamanhoMaximoBytes)
             return BadRequest("Arquivo maior que o limite de 8MB.");
 
         await using var stream = arquivo.OpenReadStream();
-        var url = await fotoStorage.SalvarAsync(stream, arquivo.FileName, arquivo.ContentType, ct);
 
+        // O tipo vem do CONTEÚDO, não do Content-Type nem da extensão do nome (os dois são livres pra quem envia): senão um .html
+        // declarado como imagem seria servido como página do site. A extensão gravada é sempre a do tipo detectado.
+        var tipo = await DetectorImagem.DetectarAsync(stream, ct);
+        if (tipo is null)
+            return BadRequest("Formato de imagem não suportado. Use JPEG, PNG, WEBP ou GIF.");
+
+        var url = await fotoStorage.SalvarAsync(stream, $"imagem{tipo.Value.Extensao}", tipo.Value.ContentType, ct);
         return Ok(new UploadResultDto(url));
     }
 }

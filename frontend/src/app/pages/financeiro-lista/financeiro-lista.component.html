@@ -2,6 +2,7 @@
   <div class="cabecalho-pagina">
     <p class="subtitulo">Mensalidades e cobranças por aluno.</p>
     <div class="acoes-cabecalho">
+      <button type="button" class="botao-secundario" (click)="abrirGeracao()">📅 Gerar mensalidades</button>
       <button type="button" class="botao-primario" (click)="abrirNova()">+ Nova cobrança</button>
     </div>
   </div>
@@ -22,6 +23,89 @@
         <span class="stat-valor">{{ resumo().totalPendente | number: '1.2-2' }}</span>
         <span class="stat-rotulo">Total em aberto (R$)</span>
         <span class="stat-valor-secundario">{{ resumo().totalAberto }} {{ resumo().totalAberto === 1 ? 'mensalidade' : 'mensalidades' }}</span>
+      </div>
+    </div>
+  }
+
+  @if (geracaoAberta()) {
+    <div class="painel-formulario painel-geracao">
+      <p class="titulo-geracao">📅 Gerar mensalidades do mês</p>
+      <p class="ajuda">
+        Cria a mensalidade de cada aluno ativo, com o valor da turma menos o desconto do aluno. Quem já tem a
+        mensalidade do mês é ignorado, então dá para repetir sem duplicar.
+      </p>
+
+      <div class="linha-geracao">
+        <label>Mês
+          <select [(ngModel)]="geracaoMes" (ngModelChange)="aoMudarGeracao()">
+            @for (mes of meses; track mes.valor) {
+              <option [value]="mes.valor">{{ mes.rotulo }}</option>
+            }
+          </select>
+        </label>
+        <label>Ano
+          <select [(ngModel)]="geracaoAno" (ngModelChange)="aoMudarGeracao()">
+            @for (ano of anosGeracao; track ano) {
+              <option [value]="ano">{{ ano }}</option>
+            }
+          </select>
+        </label>
+        <label>Turma
+          <select [(ngModel)]="geracaoTurmaId" (ngModelChange)="aoMudarGeracao()">
+            <option value="">Todas as turmas</option>
+            @for (turma of turmas(); track turma.id) {
+              <option [value]="turma.id">{{ turma.nome }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      @if (previa(); as p) {
+        <div class="resumo-geracao">
+          <strong>{{ p.descricao }}</strong> · vencimento {{ formatarDataAbsoluta(p.vencimento) }}
+          <ul>
+            <li><strong>{{ p.aGerar }}</strong> {{ p.aGerar === 1 ? 'mensalidade a gerar' : 'mensalidades a gerar' }} — R$ {{ p.totalAGerar | number: '1.2-2' }}</li>
+            @if (p.jaExistem > 0) {
+              <li>{{ p.jaExistem }} {{ p.jaExistem === 1 ? 'aluno já tem' : 'alunos já têm' }} a mensalidade deste mês (ignorados)</li>
+            }
+            @if (p.semValor > 0) {
+              <li class="aviso-geracao">{{ p.semValor }} {{ p.semValor === 1 ? 'aluno está' : 'alunos estão' }} em turma sem valor de mensalidade — defina o valor em Turmas</li>
+            }
+            @if (p.isentos > 0) {
+              <li>{{ p.isentos }} {{ p.isentos === 1 ? 'aluno isento' : 'alunos isentos' }} (desconto de 100%)</li>
+            }
+          </ul>
+
+          @if (p.aGerar > 0) {
+            <ul class="itens-geracao">
+              @for (item of p.itens; track item.alunoId) {
+                @if (item.situacao === 'Gerar') {
+                  <li>
+                    <span class="item-nome">{{ item.alunoNome }} <span class="item-turma">{{ item.turmaNome }}</span></span>
+                    @if (item.descontoPercentual > 0) {
+                      <span class="item-desconto">−{{ item.descontoPercentual | number: '1.0-2' }}%</span>
+                    }
+                    <span class="item-valor">R$ {{ item.valor | number: '1.2-2' }}</span>
+                  </li>
+                }
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      <div class="botoes">
+        <button type="button" class="secundario" (click)="fecharGeracao()">Cancelar</button>
+        <button type="button" class="secundario" [disabled]="previaCarregando() || gerando()" (click)="visualizarGeracao()">
+          {{ previaCarregando() ? 'Calculando...' : 'Pré-visualizar' }}
+        </button>
+        @if (previa(); as p) {
+          @if (p.aGerar > 0) {
+            <button type="button" class="primario" [disabled]="gerando()" (click)="confirmarGeracao()">
+              {{ gerando() ? 'Gerando...' : 'Gerar ' + p.aGerar + (p.aGerar === 1 ? ' mensalidade' : ' mensalidades') }}
+            </button>
+          }
+        }
       </div>
     </div>
   }
@@ -130,6 +214,9 @@
             <span class="detalhe">{{ cobranca.turmaNome }} · {{ cobranca.descricao }}</span>
             <span class="detalhe">
               R$ {{ cobranca.valor | number: '1.2-2' }} · Vencimento {{ formatarDataAbsoluta(cobranca.vencimento) }}
+              @if (cobranca.paga && cobranca.valorPago !== null && cobranca.valorPago !== cobranca.valor) {
+                · Recebido R$ {{ cobranca.valorPago | number: '1.2-2' }}
+              }
               @if (cobranca.cancelada) {
                 <span class="status status--cancelada">Cancelada</span>
               } @else if (cobranca.paga) {
@@ -140,6 +227,12 @@
                 <span class="status status--pendente">Pendente</span>
               }
             </span>
+            @if (cobranca.multa + cobranca.juros > 0) {
+              <span class="detalhe detalhe--encargos">
+                Valor atualizado: <strong>R$ {{ cobranca.valorAtualizado | number: '1.2-2' }}</strong>
+                ({{ cobranca.diasAtraso }} {{ cobranca.diasAtraso === 1 ? 'dia' : 'dias' }} de atraso: multa R$ {{ cobranca.multa | number: '1.2-2' }} + juros R$ {{ cobranca.juros | number: '1.2-2' }})
+              </span>
+            }
           </div>
 
           @if (confirmandoCancelamentoId() === cobranca.id) {
@@ -202,6 +295,9 @@
               } @else if (pixCodigo()) {
                 <p class="detalhe">Código Pix copia e cola:</p>
                 <p class="codigo-pix">{{ pixCodigo() }}</p>
+                @if (pixAutomatico()) {
+                  <p class="detalhe">✅ Assim que o banco confirmar o pagamento, a mensalidade é baixada automaticamente.</p>
+                }
                 <button type="button" class="primario" (click)="copiarPix()">
                   {{ pixCopiado() ? 'Copiado!' : 'Copiar código' }}
                 </button>

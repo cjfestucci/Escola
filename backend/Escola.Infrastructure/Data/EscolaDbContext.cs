@@ -35,6 +35,9 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options, ICliente
     public DbSet<JogoAtleta> JogoAtletas => Set<JogoAtleta>();
     public DbSet<Produto> Produtos => Set<Produto>();
     public DbSet<MovimentacaoEstoque> MovimentacoesEstoque => Set<MovimentacaoEstoque>();
+    public DbSet<RegistroPresenca> RegistrosPresenca => Set<RegistroPresenca>();
+    public DbSet<RedefinicaoSenha> RedefinicoesSenha => Set<RedefinicaoSenha>();
+    public DbSet<CobrancaPix> CobrancasPix => Set<CobrancaPix>();
     public DbSet<ConfiguracaoFinanceira> ConfiguracoesFinanceiras => Set<ConfiguracaoFinanceira>();
     public DbSet<ConfiguracaoEscola> ConfiguracoesEscola => Set<ConfiguracaoEscola>();
     public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();

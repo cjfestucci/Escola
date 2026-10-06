@@ -1,0 +1,138 @@
+<div class="container">
+  <p class="subtitulo">
+    Presença da turma, dia a dia. A frequência de cada um considera o período escolhido — faltas justificadas não pesam.
+  </p>
+
+  @if (!carregandoTurmas() && sessao.turmas().length > 1) {
+    <div class="seletor-turmas">
+      @for (turma of sessao.turmas(); track turma.id) {
+        <button
+          type="button"
+          class="pilula-turma"
+          [class.ativa]="sessao.turmaAtivaId() === turma.id"
+          (click)="selecionarTurma(turma.id)"
+        >
+          {{ turma.nome }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (!carregandoTurmas() && sessao.turmas().length === 0) {
+    <p class="vazio">Nenhuma turma cadastrada ainda.</p>
+  } @else if (!carregandoTurmas()) {
+    <div class="navegador-data">
+      <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>
+
+      <div class="ancora-calendario">
+        <button type="button" class="data-atual" (click)="calendarioAberto.set(!calendarioAberto())">
+          <span class="rotulo-dia">{{ rotuloData(dataVisualizada()) }}</span>
+          <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="2" />
+            <path d="M4 10h16" />
+            <path d="M8 3v4M16 3v4" />
+          </svg>
+        </button>
+
+        @if (calendarioAberto()) {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="dataVisualizada()" [dataMaxima]="hojeIso()" (escolher)="irParaDia($event)" />
+          </div>
+        }
+      </div>
+
+      <button type="button" class="botao-nav-data" [disabled]="ehHoje()" (click)="diaSeguinte()" aria-label="Próximo dia">›</button>
+    </div>
+
+    @if (calendarioAberto()) {
+      <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+    }
+
+    @if (registrada()) {
+      <div class="linha-historico-dia">
+        <button type="button" class="botao-texto" (click)="abrirHistorico()">🕘 Histórico do dia</button>
+      </div>
+    }
+
+    @if (carregando()) {
+      <p>Carregando...</p>
+    } @else if (itens().length === 0) {
+      <p class="vazio">Esta turma não tem {{ segmentoService.rotuloPessoaPlural().toLowerCase() }} ativos.</p>
+    } @else {
+      <div class="bloco-periodo">
+        <span class="rotulo-periodo">Frequência: <strong>{{ periodo().rotulo }}</strong></span>
+        <app-filtro-periodo (periodoChange)="aoMudarPeriodo($event)" />
+      </div>
+
+      <div class="resumo-chamada">
+        <span class="contador contador--presente">{{ contagem().presentes }} {{ contagem().presentes === 1 ? 'presente' : 'presentes' }}</span>
+        <span class="contador contador--falta">{{ contagem().faltas }} {{ contagem().faltas === 1 ? 'falta' : 'faltas' }}</span>
+        <span class="contador contador--justificada">{{ contagem().justificadas }} {{ contagem().justificadas === 1 ? 'justificada' : 'justificadas' }}</span>
+        @if (contagem().semMarca > 0) {
+          <span class="contador">{{ contagem().semMarca }} sem marcar</span>
+        }
+        <span class="espaco"></span>
+        <button type="button" class="botao-secundario" (click)="marcarTodosPresentes()">✓ Todos presentes</button>
+      </div>
+
+      @if (registrada() && !alterada()) {
+        <p class="aviso-registrada">Chamada já registrada neste dia — altere o que for preciso e salve de novo.</p>
+      }
+
+      <ul class="lista-chamada">
+        @for (item of itens(); track item.alunoId) {
+          <li class="linha-aluno" [class.linha-aluno--sem-marca]="item.status === null">
+            <span class="avatar-aluno">
+              @if (item.fotoUrl) {
+                <img [src]="resolverFotoUrl(item.fotoUrl)" [alt]="item.alunoNome" />
+              } @else {
+                {{ item.alunoNome.charAt(0) }}
+              }
+            </span>
+
+            <div class="info-aluno">
+              <strong>{{ item.alunoNome }}</strong>
+              @if (frequenciaDe(item.alunoId); as freq) {
+                <span class="frequencia">
+                  @if (freq.percentual !== null) {
+                    <span class="selo-frequencia selo-frequencia--{{ classeFrequencia(freq.percentual) }}">{{ freq.percentual }}%</span>
+                    {{ freq.presencas }} {{ freq.presencas === 1 ? 'presença' : 'presenças' }} · {{ freq.faltas }} {{ freq.faltas === 1 ? 'falta' : 'faltas' }}
+                  } @else {
+                    Sem chamadas no período
+                  }
+                  @if (freq.faltasSeguidas >= alertaFaltas) {
+                    <span class="selo-faltoso">🔴 {{ freq.faltasSeguidas }} faltas seguidas</span>
+                  }
+                </span>
+              }
+            </div>
+
+            <div class="opcoes-status" role="group" [attr.aria-label]="'Presença de ' + item.alunoNome">
+              @for (opcao of opcoes; track opcao.valor) {
+                <button
+                  type="button"
+                  class="opcao-status opcao-status--{{ opcao.classe }}"
+                  [class.ativa]="item.status === opcao.valor"
+                  [attr.aria-pressed]="item.status === opcao.valor"
+                  (click)="marcar(item.alunoId, opcao.valor)"
+                >
+                  {{ opcao.rotulo }}
+                </button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+
+      <div class="barra-salvar">
+        <button type="button" class="botao-primario" [disabled]="salvando() || (registrada() && !alterada())" (click)="salvar()">
+          {{ salvando() ? 'Salvando...' : registrada() ? 'Salvar alterações' : 'Salvar chamada' }}
+        </button>
+      </div>
+    }
+  }
+
+  @if (historicoAberto() && sessao.turmaAtivaId(); as turmaId) {
+    <app-logs-modal [turmaId]="turmaId" [data]="dataVisualizada()" titulo="Histórico do dia" (fechar)="fecharHistorico()" />
+  }
+</div>

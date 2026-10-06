@@ -15,7 +15,7 @@ interface SubItemNav {
 interface ItemNav {
   rotulo: string;
   rota?: string;
-  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes' | 'estoque' | 'competicoes';
+  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes' | 'estoque' | 'competicoes' | 'chamada' | 'plataforma';
   subitens?: SubItemNav[];
 }
 
@@ -23,6 +23,7 @@ const ITEM_DASHBOARD: ItemNav = { rotulo: 'Dashboard', rota: '/dashboard', icone
 const ITEM_UNIDADES: ItemNav = { rotulo: 'Unidades', rota: '/unidades', icone: 'unidades' };
 const ITEM_TURMA_ROTINA: ItemNav = { rotulo: 'Turma', rota: '/alunos', icone: 'users' };
 const ITEM_DIARIO: ItemNav = { rotulo: 'Diário de Classe', rota: '/diario', icone: 'book' };
+const ITEM_CHAMADA: ItemNav = { rotulo: 'Chamada', rota: '/chamada', icone: 'chamada' };
 const ITEM_TURMAS_CADASTRO: ItemNav = { rotulo: 'Turmas (cadastro)', rota: '/turmas', icone: 'turmas' };
 const ITEM_FINANCEIRO: ItemNav = {
   rotulo: 'Financeiro',
@@ -50,6 +51,7 @@ const ITEM_ESTOQUE: ItemNav = {
     { rotulo: 'Movimentações', rota: '/estoque/movimentacoes' }
   ]
 };
+const ITEM_PLATAFORMA: ItemNav = { rotulo: 'Plataforma', rota: '/plataforma', icone: 'plataforma' };
 const ITEM_USUARIOS: ItemNav = { rotulo: 'Usuários', rota: '/usuarios', icone: 'usuarios' };
 const ITEM_CONFIGURACOES: ItemNav = {
   rotulo: 'Configurações',
@@ -91,10 +93,13 @@ export class SidebarComponent {
 
   protected itensPrincipais(): ItemNav[] {
     if (this.contextoService.contexto() === 'portal') return ITENS_PORTAL;
+    // Suporte (equipe do produto): só a Plataforma e as Configurações — nada de dado de aluno, saúde ou financeiro do cliente.
+    if (this.contextoService.contexto() === 'suporte') return [ITEM_PLATAFORMA, ITEM_CONFIGURACOES];
 
     const itens: ItemNav[] = [ITEM_DASHBOARD, ITEM_UNIDADES];
     if (this.segmentoService.mostrarRotinaDiaria()) itens.push(ITEM_TURMA_ROTINA);
     if (this.segmentoService.mostrarDiarioClasse()) itens.push(ITEM_DIARIO);
+    itens.push(ITEM_CHAMADA);
     itens.push(ITEM_TURMAS_CADASTRO, { rotulo: this.segmentoService.rotuloCadastro(), rota: '/matricula', icone: 'matricula' });
     if (this.segmentoService.mostrarCompeticoes()) itens.push(ITEM_COMPETICOES);
     if (this.auth.ehFinanceiro()) itens.push(ITEM_FORNECEDORES, ITEM_FINANCEIRO, ITEM_ESTOQUE);

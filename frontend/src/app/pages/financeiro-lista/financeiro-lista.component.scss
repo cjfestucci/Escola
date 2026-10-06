@@ -400,3 +400,97 @@
   padding: 8px 10px;
   margin: 0;
 }
+
+// ----- Geração de mensalidades em lote -----
+
+.titulo-geracao {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.painel-geracao .ajuda {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+}
+
+.linha-geracao {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.resumo-geracao {
+  background: var(--cor-primaria-clara);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+
+  > ul {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+
+.aviso-geracao {
+  color: #b3730e;
+  font-weight: 600;
+}
+
+.itens-geracao {
+  list-style: none;
+  padding: 0 !important;
+  margin: 10px 0 0 !important;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--cor-borda);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.item-nome {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-turma {
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+}
+
+.item-desconto {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #1e7e34;
+  background: #eafbea;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.item-valor {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.detalhe--encargos {
+  color: #b3261e;
+}

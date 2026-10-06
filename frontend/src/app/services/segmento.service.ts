@@ -1,24 +1,44 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import { environment } from '../../environments/environment';
+import { resolverFotoUrl } from '../shared/registro-rotina-display';
 
 export type Segmento = 'escola' | 'clube';
 
-const CHAVE_STORAGE = 'rotinaEscola.segmento';
+/** Segmento vindo do cliente (banco), guardado pro app abrir no vocabulário certo mesmo sem rede (PWA). */
+const CHAVE_CACHE = 'escola.segmento';
+/** Sobreposição manual, só pra comparar as duas experiências no mesmo ambiente de dev sem recompilar. */
+const CHAVE_OVERRIDE = 'rotinaEscola.segmento';
+/** Logo do cliente guardada pro app abrir já com ela (PWA offline, sem piscar o ícone padrão). */
+const CHAVE_LOGO = 'escola.logoUrl';
+
+function normalizar(valor: string | null | undefined): Segmento | null {
+  const texto = valor?.toLowerCase();
+  return texto === 'clube' || texto === 'escola' ? texto : null;
+}
 
 /**
- * Um mesmo código-base atende dois tipos de cliente (escola infantil e clube/academia) —
- * cada implantação é isolada (banco e deploy próprios), então isso é só uma troca de
- * vocabulário/visibilidade de tela, não multi-tenant de verdade. Padrão vem de
- * `environment.segmento`; a sobreposição via localStorage existe só pra comparar as duas
- * experiências no mesmo ambiente de dev sem precisar recompilar.
+ * Um mesmo código-base atende dois tipos de cliente (escola infantil e clube/academia). Quem define qual é
+ * é o **cliente no banco** (`Clientes.Segmento`), entregue por `GET /api/configuracao/escola` e aplicado na
+ * inicialização do app por `ConfiguracaoEscolaService` (antes de qualquer tela renderizar). Isso aqui só troca
+ * vocabulário e visibilidade de tela. `environment.segmento` é apenas o último recurso (API fora do ar e nada
+ * em cache); o override do localStorage vence tudo, e só existe pra dev.
  */
 @Injectable({ providedIn: 'root' })
 export class SegmentoService {
-  private readonly _segmento = signal<Segmento>(this.lerInicial());
-  readonly segmento = this._segmento.asReadonly();
+  private readonly doCliente = signal<Segmento>(this.lerCache() ?? this.padraoDoAmbiente());
+  private readonly override = signal<Segmento | null>(this.lerOverride());
 
-  readonly ehClube = computed(() => this._segmento() === 'clube');
+  readonly segmento = computed<Segmento>(() => this.override() ?? this.doCliente());
+
+  private readonly _logoUrl = signal<string | null>(this.lerLogo());
+  /** URL completa da logo do cliente (ao lado do nome do app), ou nulo — aí vale o ícone padrão do segmento. */
+  readonly logoUrl = computed(() => {
+    const caminho = this._logoUrl();
+    return caminho ? resolverFotoUrl(caminho) : null;
+  });
+
+  readonly ehClube = computed(() => this.segmento() === 'clube');
 
   readonly rotuloPessoa = computed(() => (this.ehClube() ? 'Atleta' : 'Aluno'));
   readonly rotuloPessoaPlural = computed(() => (this.ehClube() ? 'Atletas' : 'Alunos'));
@@ -32,22 +52,65 @@ export class SegmentoService {
   readonly mostrarDiarioClasse = computed(() => !this.ehClube());
   readonly mostrarCompeticoes = computed(() => this.ehClube());
 
-  definir(segmento: Segmento): void {
-    this._segmento.set(segmento);
+  /** Aplica o segmento do cliente (vindo da API) e guarda em cache. Não mexe no override de dev. */
+  aplicarDoCliente(valor: string | null | undefined): void {
+    const segmento = normalizar(valor);
+    if (!segmento) return;
+    this.doCliente.set(segmento);
     try {
-      localStorage.setItem(CHAVE_STORAGE, segmento);
+      localStorage.setItem(CHAVE_CACHE, segmento);
     } catch {
       // localStorage indisponível — segue só em memória
     }
   }
 
-  private lerInicial(): Segmento {
+  /** Aplica a logo do cliente (vinda da API) e guarda em cache. */
+  aplicarLogo(caminho: string | null | undefined): void {
+    this._logoUrl.set(caminho || null);
     try {
-      const guardado = localStorage.getItem(CHAVE_STORAGE);
-      if (guardado === 'clube' || guardado === 'escola') return guardado;
+      if (caminho) localStorage.setItem(CHAVE_LOGO, caminho);
+      else localStorage.removeItem(CHAVE_LOGO);
     } catch {
-      // localStorage indisponível — segue com o padrão do ambiente
+      // localStorage indisponível — segue só em memória
     }
-    return (environment as { segmento?: Segmento }).segmento ?? 'escola';
+  }
+
+  /** Override de dev (persiste no localStorage até ser limpo com `definir(null)`). */
+  definir(segmento: Segmento | null): void {
+    this.override.set(segmento);
+    try {
+      if (segmento) localStorage.setItem(CHAVE_OVERRIDE, segmento);
+      else localStorage.removeItem(CHAVE_OVERRIDE);
+    } catch {
+      // localStorage indisponível — segue só em memória
+    }
+  }
+
+  private lerCache(): Segmento | null {
+    try {
+      return normalizar(localStorage.getItem(CHAVE_CACHE));
+    } catch {
+      return null;
+    }
+  }
+
+  private lerLogo(): string | null {
+    try {
+      return localStorage.getItem(CHAVE_LOGO);
+    } catch {
+      return null;
+    }
+  }
+
+  private lerOverride(): Segmento | null {
+    try {
+      return normalizar(localStorage.getItem(CHAVE_OVERRIDE));
+    } catch {
+      return null;
+    }
+  }
+
+  private padraoDoAmbiente(): Segmento {
+    return normalizar((environment as { segmento?: string }).segmento) ?? 'escola';
   }
 }

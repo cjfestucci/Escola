@@ -7,6 +7,7 @@ import { Cobranca } from '../../models/cobranca.model';
 import { Jogo, ROTULOS_MANDO } from '../../models/competicao.model';
 import { ContaPagar } from '../../models/conta-pagar.model';
 import { ContaReceber } from '../../models/conta-receber.model';
+import { FALTAS_SEGUIDAS_PARA_ALERTA, Faltoso } from '../../models/presenca.model';
 import { Produto } from '../../models/produto.model';
 import { Unidade } from '../../models/unidade.model';
 import { AlunoService } from '../../services/aluno.service';
@@ -15,6 +16,7 @@ import { ContaPagarService } from '../../services/conta-pagar.service';
 import { ContaReceberService } from '../../services/conta-receber.service';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { JogoService } from '../../services/jogo.service';
+import { PresencaService } from '../../services/presenca.service';
 import { ProdutoService } from '../../services/produto.service';
 import { SegmentoService } from '../../services/segmento.service';
 import { UnidadeService } from '../../services/unidade.service';
@@ -59,6 +61,7 @@ export class DashboardComponent implements OnInit {
   private readonly contaReceberService = inject(ContaReceberService);
   private readonly produtoService = inject(ProdutoService);
   private readonly jogoService = inject(JogoService);
+  private readonly presencaService = inject(PresencaService);
   protected readonly auth = inject(AuthService);
   protected readonly segmentoService = inject(SegmentoService);
 
@@ -70,6 +73,7 @@ export class DashboardComponent implements OnInit {
   readonly contasReceber = signal<ContaReceber[]>([]);
   readonly produtos = signal<Produto[]>([]);
   readonly jogos = signal<Jogo[]>([]);
+  readonly faltosos = signal<Faltoso[]>([]);
   readonly carregando = signal(true);
 
   protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
@@ -141,7 +145,7 @@ export class DashboardComponent implements OnInit {
     for (const c of this.cobrancasFiltradas()) {
       if (!c.paga || !c.pagoEm) continue;
       const chave = c.pagoEm.slice(0, 7);
-      mapa.set(chave, (mapa.get(chave) ?? 0) + c.valor);
+      mapa.set(chave, (mapa.get(chave) ?? 0) + (c.valorPago ?? c.valor));
     }
     return mapa;
   });
@@ -198,7 +202,7 @@ export class DashboardComponent implements OnInit {
     const chave = hojeIso().slice(0, 7);
     const mensalidades = this.cobrancas()
       .filter((c) => c.paga && !c.cancelada && c.pagoEm?.slice(0, 7) === chave)
-      .reduce((soma, c) => soma + c.valor, 0);
+      .reduce((soma, c) => soma + (c.valorPago ?? c.valor), 0);
     const outras = this.contasReceber()
       .filter((c) => c.recebida && !c.cancelada && c.recebidoEm?.slice(0, 7) === chave)
       .reduce((soma, c) => soma + c.valor, 0);
@@ -230,6 +234,14 @@ export class DashboardComponent implements OnInit {
   readonly produtosEstoqueBaixo = computed(() => this.produtos().filter((p) => p.ativo && p.estoqueBaixo).length);
   readonly produtosSemEstoque = computed(() => this.produtos().filter((p) => p.ativo && p.saldoAtual <= 0).length);
 
+  /** Faltosos (3+ faltas seguidas) das turmas da Unidade selecionada. */
+  readonly faltososFiltrados = computed(() => {
+    const unidadeId = this.unidadeSelecionadaId();
+    if (!unidadeId) return this.faltosos();
+    const porTurma = this.mapaTurmaParaUnidade();
+    return this.faltosos().filter((f) => porTurma.get(f.turmaId) === unidadeId);
+  });
+
   readonly proximosJogos = computed(() => {
     const hoje = hojeIso();
     const unidadeId = this.unidadeSelecionadaId();
@@ -252,6 +264,20 @@ export class DashboardComponent implements OnInit {
         rota: '/matricula',
         consulta: { status: 'bloqueados' },
         tom: 'erro'
+      });
+    }
+    const faltosos = this.faltososFiltrados();
+    if (faltosos.length > 0) {
+      // Leva pra chamada da turma com mais faltosos (o caso comum é um só time com o problema).
+      const porTurma = new Map<string, number>();
+      for (const f of faltosos) porTurma.set(f.turmaId, (porTurma.get(f.turmaId) ?? 0) + 1);
+      const turmaId = [...porTurma.entries()].sort((a, b) => b[1] - a[1])[0][0];
+      const pessoas = this.segmentoService.rotuloPessoaPlural().toLowerCase();
+      itens.push({
+        texto: faltosos.length + ' ' + (faltosos.length === 1 ? this.segmentoService.rotuloPessoa().toLowerCase() : pessoas) + ' com ' + FALTAS_SEGUIDAS_PARA_ALERTA + '+ faltas seguidas',
+        rota: '/chamada',
+        consulta: { turmaId },
+        tom: 'aviso'
       });
     }
     const atrasadasPagar = this.contasPagarAtrasadas().length;
@@ -308,6 +334,8 @@ export class DashboardComponent implements OnInit {
     } else {
       this.carregando.set(false);
     }
+
+    this.presencaService.faltosos().subscribe({ next: (faltosos) => this.faltosos.set(faltosos), error: () => undefined });
 
     if (this.segmentoService.mostrarCompeticoes()) {
       this.jogoService.listar().subscribe({ next: (jogos) => this.jogos.set(jogos), error: () => undefined });

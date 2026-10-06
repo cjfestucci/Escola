@@ -5,6 +5,10 @@ namespace Escola.Infrastructure.Auth;
 /// <summary>Hash de senha com PBKDF2 (salt aleatório por senha, sem dependências externas).</summary>
 public static class SenhaHasher
 {
+    /// <summary>Valor guardado no lugar do hash enquanto a conta foi criada por convite e a pessoa ainda não cadastrou a senha. Não é um
+    /// hash válido (sem ".", fora do formato salt.hash), então <see cref="Verificar"/> nunca aceita nenhuma senha pra ela.</summary>
+    public const string ConvitePendente = "!convite-pendente";
+
     private const int TamanhoSalt = 16;
     private const int TamanhoHash = 32;
     private const int Iteracoes = 100_000;

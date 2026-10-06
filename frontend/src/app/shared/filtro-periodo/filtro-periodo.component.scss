@@ -1,0 +1,70 @@
+.filtro-periodo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.atalho {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+
+  &.ativo {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+  }
+}
+
+.datas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.ancora-calendario {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rotulo-data {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+.campo-data {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.popover-calendario {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+}
+
+.backdrop-calendario {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}

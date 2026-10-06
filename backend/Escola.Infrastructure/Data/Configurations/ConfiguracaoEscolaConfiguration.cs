@@ -10,5 +10,6 @@ public class ConfiguracaoEscolaConfiguration : IEntityTypeConfiguration<Configur
     {
         builder.Property(c => c.FusoHorario).HasMaxLength(64).IsRequired();
         builder.Property(c => c.CorPrincipal).HasMaxLength(7);
+        builder.Property(c => c.LogoUrl).HasMaxLength(300);
     }
 }

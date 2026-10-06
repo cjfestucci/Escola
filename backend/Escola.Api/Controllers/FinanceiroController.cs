@@ -7,6 +7,7 @@ using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Tempo;
 using Escola.Infrastructure.Email;
+using Escola.Infrastructure.Financeiro;
 using Escola.Infrastructure.Pagamentos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/financeiro")]
 [Authorize]
-public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, IAuditoriaService auditoria, IRelogioEscola relogio) : ControllerBase
+public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, IAuditoriaService auditoria, IRelogioEscola relogio, IPixAutomaticoService pixAutomatico) : ControllerBase
 {
     /// <summary>Visão administrativa: todas as cobranças da escola, com filtros opcionais.</summary>
     [HttpGet("cobrancas")]
@@ -32,7 +33,8 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         if (paga is { } p) query = query.Where(c => c.Paga == p);
 
         var cobrancas = await query.OrderBy(c => c.Vencimento).ToListAsync();
-        return Ok(cobrancas.Select(c => c.ToDto()));
+        var (politica, hoje) = await ContextoEncargosAsync();
+        return Ok(cobrancas.Select(c => c.ToDto(politica, hoje)));
     }
 
     [HttpPost("cobrancas")]
@@ -58,8 +60,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(), cobranca.Descricao);
         await db.SaveChangesAsync();
 
-        var criada = await ComIncludes().FirstAsync(c => c.Id == cobranca.Id);
-        return CreatedAtAction(nameof(Listar), criada.ToDto());
+        return CreatedAtAction(nameof(Listar), await ComoDtoAsync(cobranca.Id));
     }
 
     [HttpPut("cobrancas/{id:guid}")]
@@ -91,8 +92,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
 
-        var editada = await ComIncludes().FirstAsync(c => c.Id == id);
-        return Ok(editada.ToDto());
+        return Ok(await ComoDtoAsync(id));
     }
 
     [HttpPost("cobrancas/{id:guid}/marcar-paga")]
@@ -105,13 +105,19 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         if (cobranca.Cancelada)
             return BadRequest("Não é possível marcar como paga uma cobrança cancelada.");
 
+        // O valor recebido já inclui multa/juros do dia: depois de paga, o encargo para de crescer e fica registrado.
+        var (politica, hoje) = await ContextoEncargosAsync();
+        var encargos = EncargosCobranca.Calcular(cobranca.Valor, cobranca.Vencimento, hoje, paga: false, cancelada: false, politica);
         cobranca.Paga = true;
-        cobranca.PagoEm = await relogio.HojeAsync();
-        auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Marcada como paga: {cobranca.Descricao}");
+        cobranca.PagoEm = hoje;
+        cobranca.ValorPago = cobranca.Valor + encargos.Total;
+        var detalhePagamento = encargos.Total > 0
+            ? $"Marcada como paga: {cobranca.Descricao} (R$ {cobranca.ValorPago:N2}, com R$ {encargos.Total:N2} de multa/juros)"
+            : $"Marcada como paga: {cobranca.Descricao}";
+        auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhePagamento);
         await db.SaveChangesAsync();
 
-        var atualizada = await ComIncludes().FirstAsync(c => c.Id == id);
-        return Ok(atualizada.ToDto());
+        return Ok(await ComoDtoAsync(id));
     }
 
     [HttpPost("cobrancas/{id:guid}/desmarcar-paga")]
@@ -123,11 +129,11 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
 
         cobranca.Paga = false;
         cobranca.PagoEm = null;
+        cobranca.ValorPago = null;
         auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Marcada como pendente: {cobranca.Descricao}");
         await db.SaveChangesAsync();
 
-        var atualizada = await ComIncludes().FirstAsync(c => c.Id == id);
-        return Ok(atualizada.ToDto());
+        return Ok(await ComoDtoAsync(id));
     }
 
     /// <summary>Em vez de excluir (perderia o rastro de quem cancelou e o próprio registro do valor que
@@ -148,8 +154,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Cancelada: {cobranca.Descricao}");
         await db.SaveChangesAsync();
 
-        var atualizada = await ComIncludes().FirstAsync(c => c.Id == id);
-        return Ok(atualizada.ToDto());
+        return Ok(await ComoDtoAsync(id));
     }
 
     [HttpPost("cobrancas/{id:guid}/reabrir")]
@@ -164,8 +169,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Reaberta: {cobranca.Descricao}");
         await db.SaveChangesAsync();
 
-        var atualizada = await ComIncludes().FirstAsync(c => c.Id == id);
-        return Ok(atualizada.ToDto());
+        return Ok(await ComoDtoAsync(id));
     }
 
     /// <summary>Código Pix "copia e cola" pra pagar uma cobrança específica — gerado localmente
@@ -189,8 +193,10 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         if (config is null || string.IsNullOrWhiteSpace(config.PixChave) || string.IsNullOrWhiteSpace(config.PixNomeRecebedor) || string.IsNullOrWhiteSpace(config.PixCidade))
             return BadRequest("A chave Pix da escola ainda não foi configurada.");
 
-        var codigo = PixBrCode.Gerar(config.PixChave, config.PixNomeRecebedor, config.PixCidade, cobranca.Valor, cobranca.Id.ToString("N"));
-        return Ok(new PixCobrancaDto(codigo));
+        // Cobra o valor atualizado (com multa/juros, se a escola configurou e a cobrança está atrasada).
+        var valor = cobranca.Valor + EncargosCobranca.Calcular(cobranca.Valor, cobranca.Vencimento, await relogio.HojeAsync(), cobranca.Paga, cobranca.Cancelada, config.ToPolitica()).Total;
+        var (codigo, automatico) = await GerarCodigoPixAsync(cobranca, config, valor);
+        return Ok(new PixCobrancaDto(codigo, automatico));
     }
 
     /// <summary>Envia por e-mail, ao(s) responsável(is) do aluno, os detalhes da cobrança e o código Pix pra pagamento.</summary>
@@ -214,11 +220,13 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             return BadRequest("Nenhum responsável com e-mail cadastrado para esse aluno.");
 
         var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
+        var encargos = EncargosCobranca.Calcular(cobranca.Valor, cobranca.Vencimento, await relogio.HojeAsync(), cobranca.Paga, cobranca.Cancelada, config.ToPolitica());
+        var valorAtualizado = cobranca.Valor + encargos.Total;
         string? codigoPix = null;
         if (config is not null && !string.IsNullOrWhiteSpace(config.PixChave) && !string.IsNullOrWhiteSpace(config.PixNomeRecebedor) && !string.IsNullOrWhiteSpace(config.PixCidade))
-            codigoPix = PixBrCode.Gerar(config.PixChave, config.PixNomeRecebedor, config.PixCidade, cobranca.Valor, cobranca.Id.ToString("N"));
+            codigoPix = (await GerarCodigoPixAsync(cobranca, config, valorAtualizado)).Codigo;
 
-        var corpo = MontarCorpoEmail(cobranca, codigoPix);
+        var corpo = MontarCorpoEmail(cobranca, codigoPix, valorAtualizado, encargos.Total);
 
         foreach (var responsavel in destinatarios)
             await emailSender.EnviarAsync(responsavel.Email, responsavel.Nome, $"Cobrança — {cobranca.Descricao}", corpo);
@@ -230,7 +238,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     /// GET liberado pra Financeiro (precisa do Pix pra gerar os códigos), PUT restrito à Gestão
     /// (é identidade financeira e política da escola, não é operacional do dia a dia).</summary>
     [HttpGet("configuracao")]
-    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    [Authorize(Roles = GruposDePapeis.FinanceiroOuSuporte)]
     public async Task<ActionResult<ConfiguracaoFinanceiraDto>> ObterConfiguracao()
     {
         var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
@@ -238,7 +246,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     }
 
     [HttpPut("configuracao")]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.GestaoOuSuporte)]
     public async Task<ActionResult<ConfiguracaoFinanceiraDto>> EditarConfiguracao(EditarConfiguracaoFinanceiraRequest request)
     {
         string? chave = null;
@@ -256,6 +264,13 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         if (request.DiasParaBloqueio is < 1 or > 365)
             return BadRequest("A quantidade de dias para bloqueio deve estar entre 1 e 365 (ou fique em branco para não bloquear).");
 
+        if (request.DiaVencimentoMensalidade is < 1 or > 31)
+            return BadRequest("O dia de vencimento das mensalidades deve estar entre 1 e 31.");
+        if (request.MultaAtrasoPercentual is < 0 or > 20)
+            return BadRequest("A multa por atraso deve estar entre 0% e 20%.");
+        if (request.JurosMensaisPercentual is < 0 or > 10)
+            return BadRequest("Os juros mensais devem estar entre 0% e 10%.");
+
         var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
         var criando = config is null;
         if (config is null)
@@ -269,12 +284,19 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         var nomeAntes = config.PixNomeRecebedor;
         var cidadeAntes = config.PixCidade;
         var diasBloqueioAntes = config.DiasParaBloqueio;
+        var diaVencimentoAntes = config.DiaVencimentoMensalidade;
+        var multaAntes = config.MultaAtrasoPercentual;
+        var jurosAntes = config.JurosMensaisPercentual;
 
         config.PixChave = chave;
         config.PixTipoChave = tipo;
         config.PixNomeRecebedor = string.IsNullOrWhiteSpace(request.PixNomeRecebedor) ? null : request.PixNomeRecebedor.Trim();
         config.PixCidade = string.IsNullOrWhiteSpace(request.PixCidade) ? null : request.PixCidade.Trim();
         config.DiasParaBloqueio = request.DiasParaBloqueio;
+        // Zero e vazio significam a mesma coisa ("não cobra"): guarda nulo pra não haver dois jeitos de dizer isso.
+        config.DiaVencimentoMensalidade = request.DiaVencimentoMensalidade ?? config.DiaVencimentoMensalidade;
+        config.MultaAtrasoPercentual = request.MultaAtrasoPercentual is > 0 ? request.MultaAtrasoPercentual : null;
+        config.JurosMensaisPercentual = request.JurosMensaisPercentual is > 0 ? request.JurosMensaisPercentual : null;
         config.AtualizadoEm = DateTime.UtcNow;
 
         var detalhe = AuditoriaDetalhe.MontarAlteracoes(
@@ -282,7 +304,10 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             ("Chave Pix", chaveAntes, config.PixChave),
             ("Nome do recebedor", nomeAntes, config.PixNomeRecebedor),
             ("Cidade", cidadeAntes, config.PixCidade),
-            ("Dias para bloqueio", diasBloqueioAntes, config.DiasParaBloqueio));
+            ("Dias para bloqueio", diasBloqueioAntes, config.DiasParaBloqueio),
+            ("Dia de vencimento das mensalidades", diaVencimentoAntes, config.DiaVencimentoMensalidade),
+            ("Multa por atraso (%)", multaAntes, config.MultaAtrasoPercentual),
+            ("Juros mensais por atraso (%)", jurosAntes, config.JurosMensaisPercentual));
 
         // Salvar sem mudar nada não vira entrada de histórico (só poluiria a trilha).
         if (criando || detalhe is not null)
@@ -313,7 +338,135 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             .OrderByDescending(c => c.Vencimento)
             .ToListAsync();
 
-        return Ok(cobrancas.Select(c => c.ToDto()));
+        var (politica, hoje) = await ContextoEncargosAsync();
+        return Ok(cobrancas.Select(c => c.ToDto(politica, hoje)));
+    }
+
+    // ----- Mensalidades em lote -----
+
+    private static readonly string[] NomesMeses =
+        ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+    /// <summary>Mostra o que seria gerado, sem gravar nada — pra conferir antes de confirmar.</summary>
+    [HttpPost("mensalidades/previa")]
+    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    public async Task<ActionResult<PreviaMensalidadesDto>> PreviaMensalidades(GerarMensalidadesRequest request)
+    {
+        var (previa, erro) = await MontarPreviaAsync(request);
+        return erro is not null ? BadRequest(erro) : Ok(previa);
+    }
+
+    /// <summary>Gera as mensalidades do mês pra todo aluno ativo (de turma ativa e com valor definido) que ainda não tem
+    /// a daquele mês — rodar duas vezes não duplica nada. Valor = mensalidade da turma menos o desconto do aluno.</summary>
+    [HttpPost("mensalidades/gerar")]
+    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    public async Task<ActionResult<GeracaoMensalidadesDto>> GerarMensalidades(GerarMensalidadesRequest request)
+    {
+        var (previa, erro) = await MontarPreviaAsync(request);
+        if (erro is not null) return BadRequest(erro);
+
+        var usuarioId = this.UsuarioIdAtual();
+        var competencia = new DateOnly(request.Ano, request.Mes, 1);
+        var geradas = 0;
+        decimal total = 0;
+
+        foreach (var item in previa!.Itens.Where(i => i.Situacao == SituacaoMensalidade.Gerar))
+        {
+            var cobranca = new Cobranca
+            {
+                Id = Guid.NewGuid(),
+                AlunoId = item.AlunoId,
+                Descricao = previa.Descricao,
+                Valor = item.Valor,
+                Vencimento = previa.Vencimento,
+                Competencia = competencia,
+                RegistradoEm = DateTime.UtcNow
+            };
+            db.Cobrancas.Add(cobranca);
+
+            var desconto = item.DescontoPercentual > 0 ? $" (desconto de {item.DescontoPercentual:0.##}%)" : string.Empty;
+            auditoria.Registrar(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Criado, usuarioId, $"Gerada em lote: {cobranca.Descricao}{desconto}");
+            geradas++;
+            total += item.Valor;
+        }
+
+        await db.SaveChangesAsync();
+        return Ok(new GeracaoMensalidadesDto(geradas, previa.JaExistem, previa.SemValor, previa.Isentos, total));
+    }
+
+    private async Task<(PreviaMensalidadesDto? Previa, string? Erro)> MontarPreviaAsync(GerarMensalidadesRequest request)
+    {
+        if (request.Mes is < 1 or > 12 || request.Ano is < 2000 or > 2100)
+            return (null, "Informe um mês e um ano válidos.");
+
+        var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
+        var diaConfigurado = config?.DiaVencimentoMensalidade ?? 10;
+        var competencia = new DateOnly(request.Ano, request.Mes, 1);
+        var ultimoDia = DateTime.DaysInMonth(request.Ano, request.Mes);
+        var fimDoMes = new DateOnly(request.Ano, request.Mes, ultimoDia);
+        var vencimento = new DateOnly(request.Ano, request.Mes, Math.Min(diaConfigurado, ultimoDia));
+        var descricao = $"Mensalidade - {NomesMeses[request.Mes - 1]}/{request.Ano}";
+
+        var alunosQuery = db.Alunos.Include(a => a.Turma).Where(a => a.Ativo && a.Turma.Ativa);
+        if (request.TurmaId is { } turmaId) alunosQuery = alunosQuery.Where(a => a.TurmaId == turmaId);
+        var alunos = await alunosQuery.OrderBy(a => a.Turma.Nome).ThenBy(a => a.Nome).ToListAsync();
+
+        // "Já existe" também enxerga mensalidades lançadas à mão antes desta função (sem Competencia): mesma
+        // descrição de mensalidade com vencimento dentro do mês.
+        var ids = alunos.Select(a => a.Id).ToList();
+        var jaTem = (await db.Cobrancas
+            .Where(c => !c.Cancelada && ids.Contains(c.AlunoId)
+                && (c.Competencia == competencia
+                    || (c.Competencia == null && c.Descricao.StartsWith("Mensalidade") && c.Vencimento >= competencia && c.Vencimento <= fimDoMes)))
+            .Select(c => c.AlunoId)
+            .Distinct()
+            .ToListAsync()).ToHashSet();
+
+        var itens = alunos.Select(a =>
+        {
+            var baseValor = a.Turma.ValorMensalidade ?? 0m;
+            var valor = Math.Round(baseValor * (1 - a.DescontoMensalidadePercentual / 100m), 2, MidpointRounding.AwayFromZero);
+            var situacao = jaTem.Contains(a.Id) ? SituacaoMensalidade.JaExiste
+                : baseValor <= 0 ? SituacaoMensalidade.SemValor
+                : valor <= 0 ? SituacaoMensalidade.Isento
+                : SituacaoMensalidade.Gerar;
+            return new MensalidadeItemDto(a.Id, a.Nome, a.Turma.Nome, baseValor, a.DescontoMensalidadePercentual, valor, situacao);
+        }).ToList();
+
+        var previa = new PreviaMensalidadesDto(
+            request.Ano, request.Mes, descricao, vencimento, itens,
+            itens.Count(i => i.Situacao == SituacaoMensalidade.Gerar),
+            itens.Count(i => i.Situacao == SituacaoMensalidade.JaExiste),
+            itens.Count(i => i.Situacao == SituacaoMensalidade.SemValor),
+            itens.Count(i => i.Situacao == SituacaoMensalidade.Isento),
+            itens.Where(i => i.Situacao == SituacaoMensalidade.Gerar).Sum(i => i.Valor));
+        return (previa, null);
+    }
+
+    /// <summary>Pix dinâmico do banco (com baixa automática) quando a integração está ligada e a cobrança ainda está em aberto;
+    /// caso contrário — integração desligada, cobrança já paga/cancelada ou banco fora do ar — o Pix estático de sempre.</summary>
+    private async Task<(string Codigo, bool Automatico)> GerarCodigoPixAsync(Cobranca cobranca, ConfiguracaoFinanceira config, decimal valor)
+    {
+        if (!cobranca.Paga && !cobranca.Cancelada)
+        {
+            var dinamico = await pixAutomatico.ObterCopiaEColaAsync(cobranca, valor, config.PixChave!);
+            if (dinamico is not null) return (dinamico, true);
+        }
+
+        return (PixBrCode.Gerar(config.PixChave!, config.PixNomeRecebedor!, config.PixCidade!, valor, cobranca.Id.ToString("N")), false);
+    }
+
+    private async Task<(EncargosCobranca.Politica Politica, DateOnly Hoje)> ContextoEncargosAsync()
+    {
+        var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
+        return (config.ToPolitica(), await relogio.HojeAsync());
+    }
+
+    private async Task<CobrancaDto> ComoDtoAsync(Guid id)
+    {
+        var cobranca = await ComIncludes().FirstAsync(c => c.Id == id);
+        var (politica, hoje) = await ContextoEncargosAsync();
+        return cobranca.ToDto(politica, hoje);
     }
 
     private static string? Validar(string descricao, decimal valor)
@@ -330,8 +483,12 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     private IQueryable<Cobranca> ComIncludes() =>
         db.Cobrancas.Include(c => c.Aluno).ThenInclude(a => a.Turma);
 
-    private static string MontarCorpoEmail(Cobranca cobranca, string? codigoPix)
+    private static string MontarCorpoEmail(Cobranca cobranca, string? codigoPix, decimal valorAtualizado, decimal encargos)
     {
+        var encargosHtml = encargos > 0
+            ? $"<br/>Em atraso — valor atualizado com multa/juros: <strong>R$ {valorAtualizado:N2}</strong>"
+            : string.Empty;
+
         var pixHtml = codigoPix is null
             ? "<p>Entre em contato com a escola para combinar o pagamento.</p>"
             : $"""
@@ -343,7 +500,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
                 <p>Olá,</p>
                 <p>Você tem uma cobrança referente a <strong>{cobranca.Descricao}</strong>, aluno(a) <strong>{cobranca.Aluno.Nome}</strong>.</p>
                 <p>Valor: <strong>R$ {cobranca.Valor:F2}</strong><br/>
-                Vencimento: <strong>{cobranca.Vencimento:dd/MM/yyyy}</strong></p>
+                Vencimento: <strong>{cobranca.Vencimento:dd/MM/yyyy}</strong>{encargosHtml}</p>
                 {pixHtml}
                 """;
     }

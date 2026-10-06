@@ -23,8 +23,9 @@ public class LogAuditoria
     /// (isso já é RegistradoEm), é o dia do RegistroDiarioClasse/RegistroRotina sendo auditado.</summary>
     public DateOnly? Data { get; set; }
 
-    public Guid UsuarioId { get; set; }
-    public Usuario Usuario { get; set; } = null!;
+    /// <summary>Nulo quando a ação foi do próprio sistema (ex.: baixa automática de Pix) — não há pessoa responsável.</summary>
+    public Guid? UsuarioId { get; set; }
+    public Usuario? Usuario { get; set; }
 
     public string? Detalhe { get; set; }
     public DateTime RegistradoEm { get; set; }

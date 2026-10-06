@@ -110,3 +110,23 @@ input {
   }
 }
 
+
+.campo-codigo {
+  text-align: center;
+  font-size: 1.4rem;
+  letter-spacing: 0.3em;
+}
+
+.ajuda-codigo {
+  margin: -6px 0 0;
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+}
+
+.marca-logo {
+  display: block;
+  margin: 0 auto;
+  max-height: 72px;
+  max-width: 200px;
+  object-fit: contain;
+}

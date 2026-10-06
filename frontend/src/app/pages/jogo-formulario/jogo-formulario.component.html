@@ -163,6 +163,16 @@
                 <label class="linha-checkbox">
                   <input type="checkbox" [(ngModel)]="linha.convocado" [disabled]="cancelado" />
                   <span class="nome-atleta">{{ linha.nome }}</span>
+                  @if (frequenciaDe(linha.alunoId); as freq) {
+                    @if (freq.percentual !== null) {
+                      <span class="selo-treinos" [class.selo-treinos--baixo]="freq.percentual < 70" title="Frequência nos treinos dos últimos 30 dias">
+                        🏃 {{ freq.percentual }}%
+                      </span>
+                    }
+                    @if (freq.faltasSeguidas >= alertaFaltas) {
+                      <span class="selo-suspenso">{{ freq.faltasSeguidas }} faltas seguidas</span>
+                    }
+                  }
                   @if (alertaDe(linha.alunoId); as alerta) {
                     <span [class]="alerta.tipo === 'Suspenso' ? 'selo-suspenso' : 'selo-pendurado'">{{ alerta.tipo === 'Suspenso' ? '🟥 Suspenso' : '🟨 Pendurado' }}</span>
                   }

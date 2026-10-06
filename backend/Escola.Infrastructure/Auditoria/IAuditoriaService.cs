@@ -10,5 +10,8 @@ public interface IAuditoriaService
     /// <param name="turmaId">Turma dona do registro auditado, só quando a entidade pertence a uma turma
     /// (ex.: RegistroDiarioClasse) — habilita consultar o histórico por turma+dia mesmo após exclusão.</param>
     /// <param name="data">Dia (fuso da escola) a que o registro auditado se refere, pareado com <paramref name="turmaId"/>.</param>
+    /// <summary>Mesma coisa, mas pra ações do próprio sistema (sem usuário logado), ex.: baixa automática de um pagamento Pix.</summary>
+    void RegistrarSistema(string entidadeTipo, Guid entidadeId, AcaoAuditoria acao, string? detalhe = null);
+
     void Registrar(string entidadeTipo, Guid entidadeId, AcaoAuditoria acao, Guid usuarioId, string? detalhe = null, Guid? turmaId = null, DateOnly? data = null);
 }

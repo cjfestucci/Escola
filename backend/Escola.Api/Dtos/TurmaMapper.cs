@@ -19,6 +19,7 @@ public static class TurmaMapper
             vinculo?.Usuario.Nome,
             turma.UnidadeId,
             turma.Unidade.Nome,
-            turma.Ativa);
+            turma.Ativa,
+            turma.ValorMensalidade);
     }
 }

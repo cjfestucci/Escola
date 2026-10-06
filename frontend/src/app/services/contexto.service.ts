@@ -2,7 +2,7 @@ import { Injectable, computed, inject } from '@angular/core';
 
 import { AuthService } from './auth.service';
 
-export type Contexto = 'educador' | 'portal' | null;
+export type Contexto = 'educador' | 'portal' | 'suporte' | null;
 
 /** Deriva se a identidade logada é da equipe ou do Portal dos Pais, pro shell (sidebar/topbar) se adaptar. */
 @Injectable({ providedIn: 'root' })
@@ -11,6 +11,7 @@ export class ContextoService {
 
   readonly contexto = computed<Contexto>(() => {
     if (this.auth.ehResponsavel()) return 'portal';
+    if (this.auth.ehSuporte()) return 'suporte';
     if (this.auth.ehEquipe()) return 'educador';
     return null;
   });

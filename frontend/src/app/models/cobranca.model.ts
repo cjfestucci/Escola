@@ -10,6 +10,16 @@ export interface Cobranca {
   pagoEm: string | null;
   cancelada: boolean;
   canceladaEm: string | null;
+  /** Multa/juros por atraso calculados agora (zero se não está atrasada ou a escola não cobra). */
+  multa: number;
+  juros: number;
+  /** valor + multa + juros: é o que o Pix cobra e o que fica gravado como valorPago ao marcar como paga. */
+  valorAtualizado: number;
+  diasAtraso: number;
+  /** Quanto foi recebido de fato (nulo se não paga). */
+  valorPago: number | null;
+  /** Primeiro dia do mês da mensalidade (só nas geradas em lote). */
+  competencia: string | null;
 }
 
 export interface CriarCobranca {
@@ -35,6 +45,9 @@ export interface ConfiguracaoFinanceira {
   pixCidade: string | null;
   diasParaBloqueio: number | null;
   configurado: boolean;
+  diaVencimentoMensalidade: number;
+  multaAtrasoPercentual: number | null;
+  jurosMensaisPercentual: number | null;
 }
 
 export interface EditarConfiguracaoFinanceira {
@@ -43,8 +56,59 @@ export interface EditarConfiguracaoFinanceira {
   pixNomeRecebedor: string | null;
   pixCidade: string | null;
   diasParaBloqueio: number | null;
+  diaVencimentoMensalidade: number;
+  multaAtrasoPercentual: number | null;
+  jurosMensaisPercentual: number | null;
 }
 
 export interface PixCobranca {
   codigoCopiaECola: string;
+  /** O código foi criado no banco: o pagamento é confirmado e baixado sozinho. Falso = Pix estático (baixa manual). */
+  automatico: boolean;
+}
+
+export type SituacaoMensalidade = 'Gerar' | 'JaExiste' | 'SemValor' | 'Isento';
+
+export interface MensalidadeItem {
+  alunoId: string;
+  alunoNome: string;
+  turmaNome: string;
+  valorBase: number;
+  descontoPercentual: number;
+  valor: number;
+  situacao: SituacaoMensalidade;
+}
+
+export interface PreviaMensalidades {
+  ano: number;
+  mes: number;
+  descricao: string;
+  vencimento: string;
+  itens: MensalidadeItem[];
+  aGerar: number;
+  jaExistem: number;
+  semValor: number;
+  isentos: number;
+  totalAGerar: number;
+}
+
+export interface GeracaoMensalidades {
+  geradas: number;
+  jaExistiam: number;
+  semValor: number;
+  isentos: number;
+  total: number;
+}
+
+/** Situação da integração com a API Pix do banco (baixa automática). Ligada por configuração do ambiente, não por esta tela. */
+export interface PixAutomaticoStatus {
+  configurado: boolean;
+  ambiente: string;
+  chavePixConfigurada: boolean;
+  certificadoConfigurado: boolean;
+  webhookHabilitado: boolean;
+  webhookUrlBaseConfigurada: boolean;
+  intervaloConciliacaoSegundos: number;
+  cobrancasAguardando: number;
+  pagasAutomaticamente: number;
 }

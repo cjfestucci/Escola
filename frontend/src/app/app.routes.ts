@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard } from './services/auth.guards';
+import { configuracaoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard } from './services/auth.guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [redirecionamentoInicialGuard], children: [] },
@@ -9,6 +9,16 @@ export const routes: Routes = [
     path: 'entrar',
     data: { titulo: 'Rotina Escola' },
     loadComponent: () => import('./pages/entrar/entrar.component').then((m) => m.EntrarComponent)
+  },
+  {
+    path: 'esqueci-senha',
+    data: { titulo: 'Rotina Escola' },
+    loadComponent: () => import('./pages/esqueci-senha/esqueci-senha.component').then((m) => m.EsqueciSenhaComponent)
+  },
+  {
+    path: 'redefinir-senha',
+    data: { titulo: 'Rotina Escola' },
+    loadComponent: () => import('./pages/redefinir-senha/redefinir-senha.component').then((m) => m.RedefinirSenhaComponent)
   },
   {
     path: 'dashboard',
@@ -100,6 +110,13 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/usuarios-lista/usuarios-lista.component').then((m) => m.UsuariosListaComponent)
   },
   {
+    path: 'plataforma',
+    pathMatch: 'full',
+    canActivate: [suporteGuard],
+    data: { titulo: 'Plataforma' },
+    loadComponent: () => import('./pages/plataforma/plataforma.component').then((m) => m.PlataformaComponent)
+  },
+  {
     path: 'configuracoes',
     pathMatch: 'full',
     redirectTo: 'configuracoes/geral'
@@ -107,7 +124,7 @@ export const routes: Routes = [
   {
     path: 'configuracoes/geral',
     pathMatch: 'full',
-    canActivate: [gestaoGuard],
+    canActivate: [configuracaoGuard],
     data: { titulo: 'Configurações gerais' },
     loadComponent: () =>
       import('./pages/configuracao-geral/configuracao-geral.component').then((m) => m.ConfiguracaoGeralComponent)
@@ -115,7 +132,7 @@ export const routes: Routes = [
   {
     path: 'configuracoes/financeiro',
     pathMatch: 'full',
-    canActivate: [gestaoGuard],
+    canActivate: [configuracaoGuard],
     data: { titulo: 'Configurações financeiras' },
     loadComponent: () =>
       import('./pages/configuracao-financeira/configuracao-financeira.component').then((m) => m.ConfiguracaoFinanceiraComponent)
@@ -124,6 +141,13 @@ export const routes: Routes = [
     path: 'configuracoes/pix',
     pathMatch: 'full',
     redirectTo: 'configuracoes/financeiro'
+  },
+  {
+    path: 'chamada',
+    pathMatch: 'full',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Chamada' },
+    loadComponent: () => import('./pages/chamada/chamada.component').then((m) => m.ChamadaComponent)
   },
   {
     path: 'diario',

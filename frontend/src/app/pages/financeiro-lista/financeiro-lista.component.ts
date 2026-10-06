@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { Aluno, Turma } from '../../models/aluno.model';
-import { Cobranca } from '../../models/cobranca.model';
+import { Cobranca, PreviaMensalidades } from '../../models/cobranca.model';
 import { AlunoService } from '../../services/aluno.service';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -48,10 +48,20 @@ export class FinanceiroListaComponent implements OnInit {
   readonly confirmandoCancelamentoId = signal<string | null>(null);
   readonly historicoAbertoId = signal<string | null>(null);
 
+  // Geração de mensalidades em lote: escolhe mês/turma, vê a prévia e só então confirma.
+  readonly geracaoAberta = signal(false);
+  readonly previa = signal<PreviaMensalidades | null>(null);
+  readonly previaCarregando = signal(false);
+  readonly gerando = signal(false);
+  geracaoMes = "";
+  geracaoAno = "";
+  geracaoTurmaId = "";
+
 
   readonly pixAbertoId = signal<string | null>(null);
   readonly pixCarregando = signal(false);
   readonly pixCodigo = signal<string | null>(null);
+  readonly pixAutomatico = signal(false);
   readonly pixCopiado = signal(false);
 
   readonly enviandoEmailId = signal<string | null>(null);
@@ -104,6 +114,64 @@ export class FinanceiroListaComponent implements OnInit {
     };
   });
 
+  /** Meses oferecidos na geração: do ano passado ao próximo. */
+  readonly anosGeracao = (() => {
+    const ano = Number(hojeIso().slice(0, 4));
+    return [ano - 1, ano, ano + 1].map(String);
+  })();
+
+  abrirGeracao(): void {
+    // Padrão: o mês que vem — o caso comum é gerar as mensalidades com antecedência.
+    const [ano, mes] = hojeIso().split("-").map(Number);
+    const proximo = mes === 12 ? { ano: ano + 1, mes: 1 } : { ano, mes: mes + 1 };
+    this.geracaoAno = String(proximo.ano);
+    this.geracaoMes = String(proximo.mes).padStart(2, "0");
+    this.geracaoTurmaId = "";
+    this.previa.set(null);
+    this.formularioAberto.set(false);
+    this.geracaoAberta.set(true);
+  }
+
+  fecharGeracao(): void {
+    this.geracaoAberta.set(false);
+    this.previa.set(null);
+  }
+
+  /** Qualquer mudança nos filtros invalida a prévia mostrada (ela não vale mais pro que está selecionado). */
+  aoMudarGeracao(): void {
+    this.previa.set(null);
+  }
+
+  visualizarGeracao(): void {
+    this.previaCarregando.set(true);
+    this.financeiroService.previaMensalidades(Number(this.geracaoAno), Number(this.geracaoMes), this.geracaoTurmaId || undefined).subscribe({
+      next: (previa) => {
+        this.previa.set(previa);
+        this.previaCarregando.set(false);
+      },
+      error: (resposta) => {
+        this.previaCarregando.set(false);
+        this.notificacao.erro(typeof resposta.error === "string" ? resposta.error : "Não foi possível montar a prévia das mensalidades.");
+      }
+    });
+  }
+
+  confirmarGeracao(): void {
+    this.gerando.set(true);
+    this.financeiroService.gerarMensalidades(Number(this.geracaoAno), Number(this.geracaoMes), this.geracaoTurmaId || undefined).subscribe({
+      next: (resultado) => {
+        this.gerando.set(false);
+        this.notificacao.sucesso(resultado.geradas === 1 ? "1 mensalidade gerada." : resultado.geradas + " mensalidades geradas.");
+        this.fecharGeracao();
+        this.carregar();
+      },
+      error: (resposta) => {
+        this.gerando.set(false);
+        this.notificacao.erro(typeof resposta.error === "string" ? resposta.error : "Não foi possível gerar as mensalidades.");
+      }
+    });
+  }
+
   ngOnInit(): void {
     // Atalhos do Dashboard abrem a lista já filtrada (ex.: /financeiro/mensalidades?status=atrasado).
     const status = this.route.snapshot.queryParamMap.get('status');
@@ -153,6 +221,7 @@ export class FinanceiroListaComponent implements OnInit {
     this.descricao = '';
     this.valor = null;
     this.vencimento = '';
+    this.geracaoAberta.set(false);
     this.formularioAberto.set(true);
   }
 
@@ -286,11 +355,13 @@ export class FinanceiroListaComponent implements OnInit {
   abrirPix(cobranca: Cobranca): void {
     this.pixAbertoId.set(cobranca.id);
     this.pixCodigo.set(null);
+    this.pixAutomatico.set(false);
     this.pixCopiado.set(false);
     this.pixCarregando.set(true);
     this.financeiroService.obterPix(cobranca.id).subscribe({
       next: (resposta) => {
         this.pixCodigo.set(resposta.codigoCopiaECola);
+        this.pixAutomatico.set(resposta.automatico);
         this.pixCarregando.set(false);
       },
       error: (resposta) => {

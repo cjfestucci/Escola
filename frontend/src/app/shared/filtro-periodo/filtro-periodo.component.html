@@ -1,0 +1,41 @@
+<div class="filtro-periodo">
+  <div class="atalhos" role="group" aria-label="Período">
+    @for (a of atalhos; track a.valor) {
+      <button type="button" class="atalho" [class.ativo]="atalhoAtivo() === a.valor" (click)="escolher(a.valor)">
+        {{ a.rotulo }}
+      </button>
+    }
+  </div>
+
+  @if (personalizado()) {
+    <div class="datas">
+      <div class="ancora-calendario">
+        <span class="rotulo-data">De</span>
+        <button type="button" class="campo-data" (click)="calendarioAberto.set(calendarioAberto() === 'de' ? null : 'de')">
+          {{ formatarDataAbsoluta(de()) }}
+        </button>
+        @if (calendarioAberto() === 'de') {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="de()" [dataMaxima]="hojeIso()" (escolher)="escolherData('de', $event)" />
+          </div>
+        }
+      </div>
+
+      <div class="ancora-calendario">
+        <span class="rotulo-data">Até</span>
+        <button type="button" class="campo-data" (click)="calendarioAberto.set(calendarioAberto() === 'ate' ? null : 'ate')">
+          {{ formatarDataAbsoluta(ate()) }}
+        </button>
+        @if (calendarioAberto() === 'ate') {
+          <div class="popover-calendario">
+            <app-calendario [dataSelecionada]="ate()" [dataMaxima]="hojeIso()" (escolher)="escolherData('ate', $event)" />
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (calendarioAberto()) {
+      <div class="backdrop-calendario" (click)="calendarioAberto.set(null)"></div>
+    }
+  }
+</div>
