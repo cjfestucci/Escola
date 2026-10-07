@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Escola.Infrastructure.Clientes;
 
 namespace Escola.Infrastructure.Pagamentos;
 
@@ -12,11 +13,13 @@ namespace Escola.Infrastructure.Pagamentos;
 /// <i>client credentials</i>; em produção o BB exige certificado de cliente (mTLS), configurado no <see cref="HttpClient"/> (ver Program.cs).
 /// <b>Atenção:</b> endereços, escopos e nome do parâmetro da chave de aplicação seguem o que o BB documenta, mas por serem de
 /// terceiro estão todos em <see cref="OpcoesPixBb"/> e devem ser conferidos na homologação do BB antes de ir pra produção.</summary>
-public sealed class BbPixClient(HttpClient http, IOptions<OpcoesPixBb> opcoes, CacheTokenBb cache, ILogger<BbPixClient> logger) : IProvedorPix
+public sealed class BbPixClient(HttpClient http, IOptions<OpcoesPixBb> opcoes, CacheTokenBb cache, IClienteAtual clienteAtual, ILogger<BbPixClient> logger) : IProvedorPix
 {
     private readonly OpcoesPixBb _o = opcoes.Value;
 
-    public bool Configurado => _o.Configurado;
+    /// <summary>Configurado E é o cliente dono das credenciais (ver <see cref="OpcoesPixBb.ClienteId"/>): pros demais clientes, a
+    /// integração simplesmente não existe e eles seguem com o Pix estático.</summary>
+    public bool Configurado => _o.Configurado && clienteAtual.Definido && clienteAtual.Id == _o.ClienteId;
 
     public async Task<CobrancaPixCriada> CriarCobrancaAsync(string txid, string chavePix, decimal valor, int expiracaoSegundos, string? solicitacaoPagador, CancellationToken ct = default)
     {

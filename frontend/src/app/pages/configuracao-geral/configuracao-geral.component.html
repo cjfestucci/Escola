@@ -9,6 +9,63 @@
   @if (carregando()) {
     <p>Carregando...</p>
   } @else {
+    @if (auth.podeEditarIdentidade()) {
+      <div class="painel-formulario">
+        <p class="titulo-secao">Dados da escola</p>
+        <label>Nome da escola
+          <input type="text" [(ngModel)]="nomeEscola" maxlength="200" placeholder="Ex.: Escola de Futebol Craque do Amanhã" />
+        </label>
+        <p class="ajuda">Aparece nos e-mails, no termo de matrícula e na escolha de escola do login.</p>
+
+        <label>Fuso horário
+          <select [(ngModel)]="fusoHorario">
+            @for (fuso of fusos; track fuso.valor) {
+              <option [value]="fuso.valor">{{ fuso.rotulo }}</option>
+            }
+          </select>
+        </label>
+        <p class="ajuda">
+          Define quando o dia vira no app: o que aparece como "Hoje" na chamada e na rotina, a data de pagamento e quando uma
+          cobrança passa a ser atrasada.
+        </p>
+        @if (fusoMudou) {
+          <p class="ajuda ajuda--aviso">Trocar o fuso muda o "hoje" de todos os usuários desta escola a partir do próximo acesso.</p>
+        }
+
+        <div class="botoes">
+          <button type="button" class="primario" [disabled]="salvandoDados() || !dadosMudaram" (click)="salvarDados()">
+            {{ salvandoDados() ? 'Salvando...' : 'Salvar dados da escola' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="painel-formulario">
+        <p class="titulo-secao">Logo da escola</p>
+        <p class="ajuda">Aparece ao lado do nome, no menu. PNG, JPEG ou WEBP, até 2MB. Fundo transparente funciona bem.</p>
+        <div class="area-logo">
+          @if (segmentoService.logoUrl(); as logo) {
+            <img class="previa-logo" [src]="logo" alt="Logo atual" />
+          } @else {
+            <span class="sem-logo">Sem logo — usando o ícone padrão {{ segmentoService.iconeApp() }}</span>
+          }
+        </div>
+        <div class="botoes-linha">
+          <app-seletor-arquivo
+            [rotulo]="segmentoService.logoUrl() ? '🖼️ Trocar logo' : '🖼️ Escolher logo'"
+            aceitar="image/png,image/jpeg,image/webp"
+            [desabilitado]="enviandoLogo()"
+            (arquivoSelecionado)="aoEscolherLogo($event)"
+          />
+          @if (segmentoService.logoUrl()) {
+            <button type="button" class="botao-texto botao-texto--perigo" [disabled]="enviandoLogo()" (click)="removerLogo()">Remover logo</button>
+          }
+        </div>
+        @if (enviandoLogo()) {
+          <p class="ajuda">Enviando...</p>
+        }
+      </div>
+    }
+
     <div class="painel-formulario">
       <div class="campo-cor">
         <span class="rotulo-campo" id="rotulo-cor">Cor principal</span>

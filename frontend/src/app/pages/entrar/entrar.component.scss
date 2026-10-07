@@ -130,3 +130,30 @@ input {
   max-width: 200px;
   object-fit: contain;
 }
+
+/* Escolha da escola: a senha confere em mais de uma (todas usam a mesma tela de login). */
+.lista-escolas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.botao-escola {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--cor-texto);
+  text-align: left;
+
+  &:hover:not(:disabled) {
+    border-color: var(--cor-primaria);
+    background: var(--cor-primaria-clara);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}

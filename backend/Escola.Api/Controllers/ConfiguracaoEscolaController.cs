@@ -1,6 +1,7 @@
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
+using Escola.Api.Servicos;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
 using Escola.Infrastructure.Auditoria;
@@ -17,22 +18,45 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/configuracao/escola")]
 [Authorize]
-public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService auditoria, IClienteAtual clienteAtual) : ControllerBase
+public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService auditoria, IClienteAtual clienteAtual, IdentidadeEscolaService identidade) : ControllerBase
 {
-    /// <summary>Segmento (escola/clube) do cliente deste deploy. A tabela <c>Clientes</c> não tem filtro por cliente,
-    /// então a linha é buscada pelo id configurado.</summary>
-    private Task<SegmentoCliente> SegmentoAtualAsync() =>
-        db.Clientes.Where(c => c.Id == clienteAtual.Id).Select(c => c.Segmento).FirstOrDefaultAsync();
-
-    /// <summary>Anônimo de propósito: o frontend precisa do fuso antes de qualquer tela renderizar
-    /// (inclusive antes do login) pra calcular "hoje", da cor do tema pra já pintar a tela de login e do segmento
-    /// (escola/clube) pra já usar o vocabulário certo nela — nenhum dos três é dado sensível.</summary>
+    /// <summary>Anônimo de propósito: o frontend carrega isto antes de qualquer tela. <b>Logado</b>, devolve a configuração da escola do
+    /// token (fuso, cor, segmento, logo). <b>Sem login</b> não há escola (a tela de login é a mesma pra todas, desde 2026-10-07): devolve o
+    /// padrão do produto — fuso de Brasília, cor e marca padrão. Nada aqui é dado sensível.</summary>
     [HttpGet]
     [AllowAnonymous]
     public async Task<ActionResult<ConfiguracaoEscolaDto>> Obter()
     {
         var config = await db.ConfiguracoesEscola.FirstOrDefaultAsync();
-        return Ok(new ConfiguracaoEscolaDto(config?.Id, config?.FusoHorario ?? RelogioEscola.FusoPadrao, config?.CorPrincipal, await SegmentoAtualAsync(), config?.LogoUrl));
+        var cliente = clienteAtual.Definido ? await db.Clientes.FirstOrDefaultAsync(c => c.Id == clienteAtual.Id) : null;
+        return Ok(IdentidadeEscolaService.ParaDto(config, cliente));
+    }
+
+    /// <summary>Nome e fuso horário da escola — <b>só o Admin</b> (identidade da empresa; o Coordenador mexe só na cor) e o Suporte.
+    /// Trocar o fuso muda o "hoje" de todos os usuários: a tela avisa antes.</summary>
+    [HttpPut("dados")]
+    [Authorize(Roles = GruposDePapeis.AdminOuSuporte)]
+    public async Task<ActionResult<ConfiguracaoEscolaDto>> EditarDados(EditarDadosEscolaRequest request)
+    {
+        var (config, erro) = await identidade.DefinirDadosAsync(request.NomeEscola, request.FusoHorario, this.UsuarioIdAtual());
+        return erro is not null ? BadRequest(erro) : Ok(config);
+    }
+
+    [HttpPut("logo")]
+    [Authorize(Roles = GruposDePapeis.AdminOuSuporte)]
+    [RequestSizeLimit(IdentidadeEscolaService.TamanhoMaximoLogoBytes + 64 * 1024)]
+    public async Task<ActionResult<LogoDto>> EnviarLogo(IFormFile arquivo, CancellationToken ct)
+    {
+        var (url, erro) = await identidade.SalvarLogoAsync(arquivo, this.UsuarioIdAtual(), ct);
+        return erro is not null ? BadRequest(erro) : Ok(new LogoDto(url));
+    }
+
+    [HttpDelete("logo")]
+    [Authorize(Roles = GruposDePapeis.AdminOuSuporte)]
+    public async Task<ActionResult<LogoDto>> RemoverLogo()
+    {
+        await identidade.RemoverLogoAsync(this.UsuarioIdAtual());
+        return Ok(new LogoDto(null));
     }
 
     [HttpPut]
@@ -65,6 +89,6 @@ public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService 
             AuditoriaDetalhe.MontarAlteracoes(("Cor principal", corAntes ?? "padrão", config.CorPrincipal ?? "padrão")));
         await db.SaveChangesAsync();
 
-        return Ok(new ConfiguracaoEscolaDto(config.Id, config.FusoHorario, config.CorPrincipal, await SegmentoAtualAsync(), config.LogoUrl));
+        return Ok(IdentidadeEscolaService.ParaDto(config, await db.Clientes.FirstOrDefaultAsync(c => c.Id == clienteAtual.Id)));
     }
 }

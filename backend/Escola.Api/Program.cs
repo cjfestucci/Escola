@@ -64,8 +64,9 @@ builder.Services.AddControllers()
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Cliente (tenant) desta instalação: cada cliente tem o próprio site/login, e o banco é compartilhado. Vem da
-// configuração do deploy (Cliente:Id); se não vier, usa o cliente padrão que herdou os dados anteriores ao multi-cliente.
+// Todos os clientes compartilham este site e a tela de login (desde 2026-10-07): o cliente de cada requisição vem do token
+// (ClienteAtual, um por escopo). Cliente:Id/Nome/Segmento passaram a significar só o "cliente inicial", criado na primeira subida
+// se ainda não existir (é como instalações antigas continuam funcionando sem configurar nada).
 var clienteId = builder.Configuration.GetValue<Guid?>("Cliente:Id") ?? ClientePadrao.Id;
 var clienteNome = builder.Configuration["Cliente:Nome"] ?? "Cliente padrão";
 // Só vale ao CRIAR a linha do cliente; depois o segmento é o que está no banco (Clientes.Segmento).
@@ -76,7 +77,8 @@ if (!Enum.TryParse<SegmentoCliente>(clienteSegmentoTexto, ignoreCase: true, out 
         throw new InvalidOperationException($"Cliente:Segmento inválido: '{clienteSegmentoTexto}'. Use 'Escola' ou 'Clube'.");
     clienteSegmento = SegmentoCliente.Escola;
 }
-builder.Services.AddSingleton<IClienteAtual>(new ClienteAtual(clienteId));
+builder.Services.AddScoped<ClienteAtual>();
+builder.Services.AddScoped<IClienteAtual>(sp => sp.GetRequiredService<ClienteAtual>());
 
 builder.Services.AddDbContext<EscolaDbContext>(options => options
     .UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -105,18 +107,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnTokenValidated = async contexto =>
             {
-                // Um token emitido pelo site de outro cliente (mesmo com a mesma chave Jwt) não vale aqui.
-                var doToken = contexto.Principal?.FindFirst("clienteId")?.Value;
-                if (doToken != clienteId.ToString())
+                // O cliente da requisição é o do token. Daqui pra frente o filtro global do banco só enxerga os dados dele.
+                if (!Guid.TryParse(contexto.Principal?.FindFirst("clienteId")?.Value, out var clienteDoToken) || clienteDoToken == Guid.Empty)
                 {
-                    contexto.Fail("Token de outro cliente.");
+                    contexto.Fail("Token sem cliente.");
                     return;
                 }
+                contexto.HttpContext.RequestServices.GetRequiredService<ClienteAtual>().Definir(clienteDoToken);
 
-                // O JWT dura dias e não dá pra "desemitir": a cada requisição confere no banco se a conta ainda existe, está ativa e não teve as
-                // sessões revogadas depois da emissão deste token (desativar conta, trocar senha, "encerrar sessões"), e se o cliente não foi suspenso.
+                // O JWT dura dias e não dá pra "desemitir": a cada requisição confere no banco se a conta ainda existe NESTE cliente (um token
+                // forjado com outro clienteId não acha a conta), está ativa, não teve as sessões revogadas depois da emissão deste token
+                // (desativar conta, trocar senha, "encerrar sessões"), e se o cliente não foi suspenso.
                 var db = contexto.HttpContext.RequestServices.GetRequiredService<EscolaDbContext>();
-                var motivo = await Autenticacao.MotivoDeRecusaAsync(db, contexto.Principal!, clienteId);
+                var motivo = await Autenticacao.MotivoDeRecusaAsync(db, contexto.Principal!, clienteDoToken);
                 if (motivo is not null) contexto.Fail(motivo);
             }
         };
@@ -149,13 +152,16 @@ builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
 builder.Services.AddSingleton<LimitadorTentativasLogin>();
 builder.Services.AddScoped<ILinkSenhaService, LinkSenhaService>();
 builder.Services.AddScoped<IConviteMatriculaService, ConviteMatriculaService>();
+builder.Services.AddScoped<IdentidadeEscolaService>();
 builder.Services.AddScoped<IRelogioEscola, RelogioEscola>();
 builder.Services.AddScoped<IBloqueioAlunoService, BloqueioAlunoService>();
 
 // Baixa automática de Pix (API Pix do Banco do Brasil). Sem Pix:Bb:ClientId/ClientSecret/ChaveAplicacao fica desligada e o app
 // segue gerando o Pix estático, com baixa manual — nada muda pra quem não configurar.
 builder.Services.Configure<OpcoesPixBb>(builder.Configuration.GetSection(OpcoesPixBb.Secao));
+builder.Services.PostConfigure<OpcoesPixBb>(o => o.ClienteId ??= clienteId);
 var pixBb = builder.Configuration.GetSection(OpcoesPixBb.Secao).Get<OpcoesPixBb>() ?? new OpcoesPixBb();
+pixBb.ClienteId ??= clienteId;
 builder.Services.AddSingleton<CacheTokenBb>();
 builder.Services.AddHttpClient<IProvedorPix, BbPixClient>(cliente => cliente.Timeout = TimeSpan.FromSeconds(20))
     .ConfigurePrimaryHttpMessageHandler(() =>
@@ -193,9 +199,15 @@ using (var escopoCliente = app.Services.CreateScope())
     }
 }
 
-// Conta de Suporte (equipe do produto) deste cliente: vem da configuração do deploy; sem ela, fica desativada.
-using (var escopoSuporte = app.Services.CreateScope())
+// Conta de Suporte (equipe do produto): vem da configuração do deploy e existe em CADA cliente (mesmo e-mail, senha e 2FA) — no login,
+// quem tem conta em mais de um cliente escolhe a escola. Sem a configuração, fica desativada em todos. Um escopo por cliente.
+List<Guid> todosOsClientes;
+using (var escopoLista = app.Services.CreateScope())
+    todosOsClientes = await escopoLista.ServiceProvider.GetRequiredService<EscolaDbContext>().Clientes.Select(c => c.Id).ToListAsync();
+foreach (var idCliente in todosOsClientes)
 {
+    using var escopoSuporte = app.Services.CreateScope();
+    escopoSuporte.ServiceProvider.GetRequiredService<ClienteAtual>().Definir(idCliente);
     var dbSuporte = escopoSuporte.ServiceProvider.GetRequiredService<EscolaDbContext>();
     await SuporteProvisionador.GarantirAsync(dbSuporte, builder.Configuration["Suporte:Email"], builder.Configuration["Suporte:Nome"],
         builder.Configuration["Suporte:SenhaHash"], builder.Configuration["Suporte:TotpSegredo"], app.Services.GetRequiredService<ILogger<Program>>());
@@ -206,7 +218,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 
+    // Dados de exemplo só no cliente inicial.
     using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<ClienteAtual>().Definir(clienteId);
     var db = scope.ServiceProvider.GetRequiredService<EscolaDbContext>();
     await DbInitializer.SeedAsync(db);
     await DbInitializer.GarantirAcessosAsync(db);

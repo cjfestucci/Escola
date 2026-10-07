@@ -29,6 +29,8 @@ export class AuthService {
   /** Equipe do produto (não do cliente): só configura o ambiente. Não conta como "equipe" nem "gestão" de propósito. */
   readonly ehSuporte = computed(() => this.papel() === 'Suporte');
   readonly ehGestao = computed(() => this.papel() === 'Admin' || this.papel() === 'Coordenador');
+  /** Identidade da escola (nome, logo, fuso): só o Admin — o dono da conta — e o Suporte. O Coordenador mexe só na cor. */
+  readonly podeEditarIdentidade = computed(() => this.papel() === 'Admin' || this.papel() === 'Suporte');
   readonly ehFinanceiro = computed(() => this.ehGestao() || this.papel() === 'Financeiro');
   /** Telas de Configurações: Gestão do cliente e Suporte. */
   readonly podeConfigurar = computed(() => this.ehGestao() || this.ehSuporte());
@@ -44,18 +46,16 @@ export class AuthService {
 
   /** Contas com segundo fator (o Suporte) respondem primeiro com <c>requerSegundoFator</c>, sem token: a tela pede o código
    * do app autenticador e chama de novo com ele. */
-  entrar(email: string, senha: string, codigo?: string): Observable<LoginResposta> {
-    return this.http.post<LoginResposta>(`${this.baseUrl}/auth/entrar`, { email, senha, codigo: codigo || null }).pipe(
+  entrar(email: string, senha: string, codigo?: string, clienteId?: string): Observable<LoginResposta> {
+    return this.http
+      .post<LoginResposta>(`${this.baseUrl}/auth/entrar`, { email, senha, codigo: codigo || null, clienteId: clienteId || null })
+      .pipe(
       tap((resposta) => {
-        if (resposta.requerSegundoFator) return;
+        // Etapas intermediárias (escolher a escola, código do autenticador) ainda não trazem token.
+        if (resposta.requerSegundoFator || resposta.escolherCliente?.length) return;
         this._token.set(resposta.token);
         this.gravarStorage(CHAVE_TOKEN, resposta.token);
-        this._identidade.set({
-          usuarioId: resposta.usuarioId,
-          nome: resposta.nome,
-          papel: resposta.papel,
-          responsavelId: resposta.responsavelId
-        });
+        this._identidade.set(this.decodificar(resposta.token));
       })
     );
   }
@@ -88,7 +88,8 @@ export class AuthService {
         usuarioId: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
         nome: payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
         papel: payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
-        responsavelId: payload['responsavelId'] ?? null
+        responsavelId: payload['responsavelId'] ?? null,
+        clienteId: payload['clienteId'] ?? null
       };
     } catch {
       return null;

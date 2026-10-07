@@ -11,6 +11,8 @@ const CHAVE_CACHE = 'escola.segmento';
 const CHAVE_OVERRIDE = 'rotinaEscola.segmento';
 /** Logo do cliente guardada pro app abrir já com ela (PWA offline, sem piscar o ícone padrão). */
 const CHAVE_LOGO = 'escola.logoUrl';
+/** Nome da escola da sessão, guardado pro menu abrir já com ele (sem piscar o nome genérico). */
+const CHAVE_NOME = 'escola.nome';
 
 function normalizar(valor: string | null | undefined): Segmento | null {
   const texto = valor?.toLowerCase();
@@ -45,7 +47,9 @@ export class SegmentoService {
   readonly rotuloCadastro = computed(() => (this.ehClube() ? 'Atletas' : 'Matrícula'));
   readonly rotuloResponsaveis = computed(() => (this.ehClube() ? 'Contatos' : 'Responsáveis'));
   readonly rotuloPortal = computed(() => (this.ehClube() ? 'Portal da Família' : 'Portal dos Pais'));
-  readonly nomeApp = computed(() => (this.ehClube() ? 'Escola de Futebol' : 'Rotina Escola'));
+  private readonly _nomeEscola = signal<string | null>(this.lerNomeEscola());
+  /** Nome no topo do menu: o da escola da sessão; sem login (tela de login de todas as escolas), a marca do produto. */
+  readonly nomeApp = computed(() => this._nomeEscola() ?? (this.ehClube() ? 'Escola de Futebol' : 'Rotina Escola'));
   readonly iconeApp = computed(() => (this.ehClube() ? '⚽' : '🏫'));
 
   readonly mostrarRotinaDiaria = computed(() => !this.ehClube());
@@ -65,6 +69,26 @@ export class SegmentoService {
   }
 
   /** Aplica a logo do cliente (vinda da API) e guarda em cache. */
+  /** Nome da escola vindo da configuração (nulo sem login). */
+  aplicarNomeEscola(nome: string | null | undefined): void {
+    const valor = nome?.trim() || null;
+    this._nomeEscola.set(valor);
+    try {
+      if (valor) localStorage.setItem(CHAVE_NOME, valor);
+      else localStorage.removeItem(CHAVE_NOME);
+    } catch {
+      // localStorage indisponível — segue só em memória
+    }
+  }
+
+  private lerNomeEscola(): string | null {
+    try {
+      return localStorage.getItem(CHAVE_NOME);
+    } catch {
+      return null;
+    }
+  }
+
   aplicarLogo(caminho: string | null | undefined): void {
     this._logoUrl.set(caminho || null);
     try {

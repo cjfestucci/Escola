@@ -8,7 +8,15 @@
   <p class="subtitulo">Entre com seu e-mail e senha.</p>
 
   <form class="formulario" (ngSubmit)="entrar()">
-    @if (etapaCodigo()) {
+    @if (escolas().length > 0) {
+      <p class="ajuda-codigo">Você tem acesso a mais de uma escola. Em qual quer entrar?</p>
+      <div class="lista-escolas">
+        @for (escola of escolas(); track escola.id) {
+          <button type="button" class="botao-escola" [disabled]="entrando()" (click)="escolherEscola(escola)">{{ escola.nome }}</button>
+        }
+      </div>
+      <button type="button" class="link-esqueci" (click)="voltarDaEscolha()">Voltar</button>
+    } @else if (etapaCodigo()) {
       <label><span class="obrigatorio">Código de verificação</span>
         <input
           type="text"

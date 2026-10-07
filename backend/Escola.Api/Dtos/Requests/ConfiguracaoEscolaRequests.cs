@@ -5,3 +5,6 @@ namespace Escola.Api.Dtos.Requests;
 public record EditarConfiguracaoEscolaRequest(string? CorPrincipal);
 
 public record EditarFusoHorarioRequest(string FusoHorario);
+
+/// <summary>Configurações → Geral, seção do Admin: nome e fuso da escola (a logo tem endpoint próprio, é upload).</summary>
+public record EditarDadosEscolaRequest(string NomeEscola, string FusoHorario);

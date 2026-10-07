@@ -5,7 +5,7 @@
     } @else {
       <span class="marca-icone">{{ segmentoService.iconeApp() }}</span>
     }
-    <span class="marca-texto">{{ segmentoService.nomeApp() }}</span>
+    <span class="marca-texto" [title]="segmentoService.nomeApp()">{{ segmentoService.nomeApp() }}</span>
   </div>
 
   <p class="secao-titulo">Menu</p>

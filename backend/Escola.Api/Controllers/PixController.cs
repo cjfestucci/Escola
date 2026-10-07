@@ -1,3 +1,4 @@
+using Escola.Infrastructure.Clientes;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -33,6 +34,7 @@ public class PixController(
     IProvedorPix provedor,
     IPixAutomaticoService pixAutomatico,
     IOptions<OpcoesPixBb> opcoes,
+    ClienteAtual clienteAtual,
     ILogger<PixController> logger) : ControllerBase
 {
     [HttpGet("status")]
@@ -42,7 +44,7 @@ public class PixController(
         var o = opcoes.Value;
         var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
         return Ok(new PixAutomaticoStatusDto(
-            o.Configurado,
+            provedor.Configurado, // só verdadeiro pro cliente dono das credenciais do BB
             o.Producao ? "Produção" : "Homologação",
             !string.IsNullOrWhiteSpace(config?.PixChave),
             !string.IsNullOrWhiteSpace(o.CertificadoPfxCaminho),
@@ -109,6 +111,9 @@ public class PixController(
         var o = opcoes.Value;
         if (!o.WebhookHabilitado || !SegredoConfere(segredo, o.WebhookSegredo!))
             return NotFound();
+
+        // Aviso sem login: o cliente é o dono das credenciais do BB (OpcoesPixBb.ClienteId) — só ele tem cobranças no banco.
+        clienteAtual.Definir(o.ClienteId!.Value);
 
         if (corpo.ValueKind == JsonValueKind.Object && corpo.TryGetProperty("pix", out var lista) && lista.ValueKind == JsonValueKind.Array)
         {

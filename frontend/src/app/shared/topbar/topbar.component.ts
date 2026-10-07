@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
@@ -31,11 +31,18 @@ export class TopbarComponent {
 
   readonly abrirMenu = output<void>();
 
-  protected readonly titulo = signal(this.tituloAtual());
+  /** Título fixo da rota (data.titulo), lido a cada navegação. */
+  private readonly tituloDaRota = signal<string | null>(this.lerTituloDaRota());
+
+  /** Reage também ao segmento: ele muda sem navegação quando a escola da sessão muda (login/saída na mesma tela). */
+  protected readonly titulo = computed(() => {
+    const titulo = this.tituloDaRota() ?? this.segmentoService.nomeApp();
+    return this.segmentoService.ehClube() ? (TITULOS_CLUBE[titulo] ?? titulo) : titulo;
+  });
 
   constructor() {
     this.router.events.pipe(filter((evento) => evento instanceof NavigationEnd)).subscribe(() => {
-      this.titulo.set(this.tituloAtual());
+      this.tituloDaRota.set(this.lerTituloDaRota());
     });
   }
 
@@ -45,10 +52,9 @@ export class TopbarComponent {
     this.router.navigateByUrl('/entrar');
   }
 
-  private tituloAtual(): string {
+  private lerTituloDaRota(): string | null {
     let rota = this.router.routerState.snapshot.root;
     while (rota.firstChild) rota = rota.firstChild;
-    const titulo = (rota.data['titulo'] as string) ?? this.segmentoService.nomeApp();
-    return this.segmentoService.ehClube() ? (TITULOS_CLUBE[titulo] ?? titulo) : titulo;
+    return (rota.data['titulo'] as string | undefined) ?? null;
   }
 }

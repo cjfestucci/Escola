@@ -1,3 +1,4 @@
+using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Pagamentos;
 using Microsoft.Extensions.Options;
 
@@ -21,6 +22,8 @@ public sealed class ConciliacaoPixWorker(IServiceScopeFactory escopos, IOptions<
                 try
                 {
                     await using var escopo = escopos.CreateAsyncScope();
+                    // As credenciais do BB pertencem a um cliente só (OpcoesPixBb.ClienteId): a conciliação roda no escopo dele.
+                    escopo.ServiceProvider.GetRequiredService<ClienteAtual>().Definir(opcoes.Value.ClienteId!.Value);
                     var servico = escopo.ServiceProvider.GetRequiredService<IPixAutomaticoService>();
                     var baixas = await servico.ConciliarPendentesAsync(parada);
                     if (baixas > 0) logger.LogInformation("Conciliação de Pix: {Baixas} cobrança(s) paga(s) e baixada(s).", baixas);

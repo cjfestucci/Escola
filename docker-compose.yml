@@ -14,7 +14,7 @@ services:
       Database__MigrarAoIniciar: ${MIGRAR_AO_INICIAR:-true}
       Jwt__Chave: ${JWT_CHAVE:?Informe JWT_CHAVE no .env (32+ caracteres aleatórios)}
       Jwt__Emissor: RotinaEscola
-      Cliente__Id: ${CLIENTE_ID:?Informe CLIENTE_ID no .env (um GUID por cliente)}
+      Cliente__Id: ${CLIENTE_ID:?Informe CLIENTE_ID no .env (GUID do cliente inicial)}
       Cliente__Nome: ${CLIENTE_NOME:?Informe CLIENTE_NOME no .env}
       Cliente__Segmento: ${CLIENTE_SEGMENTO:-Escola}
       App__UrlBase: ${APP_URL_BASE:?Informe APP_URL_BASE no .env (endereço público do site, com https)}

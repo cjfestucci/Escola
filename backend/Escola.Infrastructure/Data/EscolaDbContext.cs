@@ -7,7 +7,8 @@ namespace Escola.Infrastructure.Data;
 
 public class EscolaDbContext(DbContextOptions<EscolaDbContext> options, IClienteAtual clienteAtual) : DbContext(options)
 {
-    private const string ColunaCliente = "ClienteId";
+    /// <summary>Nome da coluna/propriedade-sombra do cliente em toda tabela de dados (pra consultas que precisam dela, ex.: login).</summary>
+    public const string ColunaCliente = "ClienteId";
 
     /// <summary>Lido pelo filtro de consulta de toda entidade (EF o reavalia por instância de contexto).</summary>
     public Guid ClienteIdAtual => clienteAtual.Id;

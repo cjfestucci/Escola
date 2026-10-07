@@ -39,6 +39,17 @@
   font-size: 1.3rem;
 }
 
+/* Nome da escola pode ser longo: até 2 linhas, depois reticências. */
+.marca-texto {
+  min-width: 0;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
 .secao-titulo {
   font-size: 0.72rem;
   font-weight: 700;

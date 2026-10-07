@@ -117,19 +117,4 @@ public class LoginHttpTests : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.OK, suporte.StatusCode);
         Assert.True((await suporte.Content.ReadFromJsonAsync<ApiFactory.LoginResposta>())!.RequerSegundoFator);
     }
-
-    [Fact]
-    public async Task ContaDeOutroClienteComMesmoEmailNaoEntraAqui()
-    {
-        var email = Email("viajante");
-        var outroCliente = Guid.Parse("00000000-0000-0000-0000-0000000000c2");
-        using (var db = _api.Contexto(ApiFactory.ClienteId))
-        {
-            db.Clientes.Add(new Escola.Domain.Entities.Cliente { Id = outroCliente, Nome = "Outro", CriadoEm = DateTime.UtcNow });
-            await db.SaveChangesAsync();
-        }
-        _api.CriarUsuario(PapelUsuario.Admin, email, clienteId: outroCliente);
-
-        Assert.Equal(HttpStatusCode.Unauthorized, (await _api.EntrarAsync(_http, email, "Senha-de-Teste-1")).StatusCode);
-    }
 }

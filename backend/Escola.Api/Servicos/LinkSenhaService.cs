@@ -91,7 +91,7 @@ public sealed class LinkSenhaService(
             {
                 TipoLinkSenha.ConviteMatricula => MontarConviteMatricula(usuario.Nome, nomeCliente, nomesAlunos ?? [], link),
                 TipoLinkSenha.Convite => MontarConvite(usuario.Nome, nomeCliente, link),
-                _ => MontarRedefinicao(usuario.Nome, link)
+                _ => MontarRedefinicao(usuario.Nome, nomeCliente, link)
             };
             await emailSender.EnviarAsync(usuario.Email, usuario.Nome, assunto, corpo);
             return new ResultadoLinkSenha(true, true, null, link);
@@ -106,13 +106,15 @@ public sealed class LinkSenhaService(
     public static string HashDoToken(string token) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token))).ToLowerInvariant();
 
-    private static (string Assunto, string Corpo) MontarRedefinicao(string nome, string link)
+    private static (string Assunto, string Corpo) MontarRedefinicao(string nome, string? nomeCliente, string link)
     {
         var nomeSeguro = WebUtility.HtmlEncode(nome);
         var linkSeguro = WebUtility.HtmlEncode(link);
-        return ("Redefinição de senha", $"""
+        // O mesmo e-mail pode ter conta em mais de uma escola (cada uma recebe o próprio link): o nome da escola diz qual é qual.
+        var daEscola = string.IsNullOrWhiteSpace(nomeCliente) ? string.Empty : $" em <strong>{WebUtility.HtmlEncode(nomeCliente)}</strong>";
+        return (string.IsNullOrWhiteSpace(nomeCliente) ? "Redefinição de senha" : $"Redefinição de senha — {nomeCliente}", $"""
                 <p>Olá, {nomeSeguro}!</p>
-                <p>Recebemos um pedido para redefinir a senha da sua conta. Para criar uma nova senha, clique no link abaixo:</p>
+                <p>Recebemos um pedido para redefinir a senha da sua conta{daEscola}. Para criar uma nova senha, clique no link abaixo:</p>
                 <p><a href="{linkSeguro}">Criar nova senha</a></p>
                 <p>O link vale por 1 hora e só pode ser usado uma vez. Se você não pediu isso, pode ignorar este e-mail — sua senha continua a mesma.</p>
                 """);

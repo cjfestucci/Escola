@@ -57,15 +57,9 @@ public class PlataformaController(
     IHostEnvironment ambiente,
     IEmailSender emailSender,
     IOptions<OpcoesPixBb> pixBb,
-    IFotoStorage fotoStorage,
-    ILinkSenhaService linkSenha) : ControllerBase
+    ILinkSenhaService linkSenha,
+    IdentidadeEscolaService identidade) : ControllerBase
 {
-    /// <summary>Logo é mostrada na tela de login e no menu: precisa ser leve. (GIF e SVG ficam de fora: animação não combina com
-    /// logo, e SVG é XML que pode carregar script.)</summary>
-    private const long TamanhoMaximoLogoBytes = 2 * 1024 * 1024;
-
-    private static readonly HashSet<string> TiposLogo = new() { "image/png", "image/jpeg", "image/webp" };
-
     [HttpGet("cliente")]
     public async Task<ActionResult<ClientePlataformaDto>> ObterCliente()
     {
@@ -102,77 +96,28 @@ public class PlataformaController(
         return Ok(ParaDto(cliente));
     }
 
-    /// <summary>Define a logo do cliente (aparece ao lado do nome do app, inclusive na tela de login). Substitui a anterior.</summary>
+    /// <summary>Define a logo do cliente (aparece ao lado do nome do app). Mesma regra do Admin em Configurações → Geral.</summary>
     [HttpPut("logo")]
-    [RequestSizeLimit(TamanhoMaximoLogoBytes + 64 * 1024)]
+    [RequestSizeLimit(IdentidadeEscolaService.TamanhoMaximoLogoBytes + 64 * 1024)]
     public async Task<ActionResult<LogoDto>> EnviarLogo(IFormFile arquivo, CancellationToken ct)
     {
-        if (arquivo is null || arquivo.Length == 0) return BadRequest("Nenhum arquivo enviado.");
-        if (arquivo.Length > TamanhoMaximoLogoBytes) return BadRequest("A logo pode ter no máximo 2MB.");
-
-        await using var stream = arquivo.OpenReadStream();
-        // Tipo pelo conteúdo, não pelo que o cliente declara (ver DetectorImagem).
-        var tipo = await DetectorImagem.DetectarAsync(stream, ct);
-        if (tipo is null || !TiposLogo.Contains(tipo.Value.ContentType))
-            return BadRequest("Formato não suportado. Use uma imagem PNG, JPEG ou WEBP.");
-
-        var url = await fotoStorage.SalvarAsync(stream, $"logo{tipo.Value.Extensao}", tipo.Value.ContentType, ct);
-        await DefinirLogoAsync(url, "Logo da empresa alterada");
-        return Ok(new LogoDto(url));
+        var (url, erro) = await identidade.SalvarLogoAsync(arquivo, this.UsuarioIdAtual(), ct);
+        return erro is not null ? BadRequest(erro) : Ok(new LogoDto(url));
     }
 
     [HttpDelete("logo")]
     public async Task<ActionResult<LogoDto>> RemoverLogo()
     {
-        await DefinirLogoAsync(null, "Logo da empresa removida");
+        await identidade.RemoverLogoAsync(this.UsuarioIdAtual());
         return Ok(new LogoDto(null));
     }
 
-    private async Task DefinirLogoAsync(string? url, string detalhe)
-    {
-        var config = await db.ConfiguracoesEscola.FirstOrDefaultAsync();
-        var criando = config is null;
-        if (config is null)
-        {
-            config = new ConfiguracaoEscola { Id = Guid.NewGuid(), FusoHorario = RelogioEscola.FusoPadrao };
-            db.ConfiguracoesEscola.Add(config);
-        }
-
-        config.LogoUrl = url;
-        config.AtualizadoEm = DateTime.UtcNow;
-        auditoria.Registrar(nameof(ConfiguracaoEscola), config.Id, criando ? AcaoAuditoria.Criado : AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
-        await db.SaveChangesAsync();
-    }
-
-    /// <summary>Fuso horário da escola: define quando o dia vira no app inteiro (o "hoje" da rotina, da chamada, atrasos, vencimentos).
-    /// Só o Suporte muda (saiu de Configurações → Geral em 2026-10-06: trocar o fuso no meio da vida mexe em datas de tudo). Fica no
-    /// histórico da Configuração Geral.</summary>
+    /// <summary>Fuso horário da escola. Desde 2026-10-07 o Admin também muda (Configurações → Geral); mesma regra e mesmo histórico.</summary>
     [HttpPut("fuso")]
     public async Task<ActionResult<ConfiguracaoEscolaDto>> EditarFuso(EditarFusoHorarioRequest request)
     {
-        var fusoNovo = request.FusoHorario?.Trim();
-        if (!RelogioEscola.FusoValido(fusoNovo))
-            return BadRequest("Fuso horário inválido.");
-
-        var config = await db.ConfiguracoesEscola.FirstOrDefaultAsync();
-        var criando = config is null;
-        if (config is null)
-        {
-            config = new ConfiguracaoEscola { Id = Guid.NewGuid(), FusoHorario = RelogioEscola.FusoPadrao };
-            db.ConfiguracoesEscola.Add(config);
-        }
-
-        var fusoAntes = config.FusoHorario;
-        config.FusoHorario = fusoNovo!;
-        config.AtualizadoEm = DateTime.UtcNow;
-
-        var detalhe = AuditoriaDetalhe.MontarAlteracoes(("Fuso horário", fusoAntes, config.FusoHorario));
-        if (criando || detalhe is not null)
-            auditoria.Registrar(nameof(ConfiguracaoEscola), config.Id, criando ? AcaoAuditoria.Criado : AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
-        await db.SaveChangesAsync();
-
-        var segmento = await db.Clientes.Where(c => c.Id == clienteAtual.Id).Select(c => c.Segmento).FirstOrDefaultAsync();
-        return Ok(new ConfiguracaoEscolaDto(config.Id, config.FusoHorario, config.CorPrincipal, segmento, config.LogoUrl));
+        var (config, erro) = await identidade.DefinirFusoAsync(request.FusoHorario, this.UsuarioIdAtual());
+        return erro is not null ? BadRequest(erro) : Ok(config);
     }
 
     // ----- Administradores da escola (convite por e-mail) -----
@@ -278,7 +223,7 @@ public class PlataformaController(
             ambiente.EnvironmentName,
             emailSender.Configurado,
             !string.IsNullOrWhiteSpace(config["App:UrlBase"]),
-            pix.Configurado,
+            pix.Configurado && pix.ClienteId == clienteAtual.Id, // as credenciais do BB são de um cliente só
             pix.Producao ? "Produção" : "Homologação",
             !string.IsNullOrWhiteSpace(pix.CertificadoPfxCaminho),
             pix.WebhookHabilitado));

@@ -39,6 +39,11 @@ public class OpcoesPixBb
     /// <summary>De quanto em quanto tempo o app pergunta ao banco se as cobranças pendentes foram pagas.</summary>
     public int IntervaloConciliacaoSegundos { get; set; } = 120;
 
+    /// <summary>Cliente (escola) dono destas credenciais. Desde que todos os clientes compartilham o mesmo deploy (2026-10-07), as
+    /// credenciais do BB ainda vêm da configuração do deploy — então a integração só vale pra UM cliente. Sem valor, é o cliente
+    /// inicial (<c>Cliente:Id</c>). Próximo passo: credenciais por cliente no banco, criptografadas.</summary>
+    public Guid? ClienteId { get; set; }
+
     public bool Configurado =>
         !string.IsNullOrWhiteSpace(ClientId) && !string.IsNullOrWhiteSpace(ClientSecret) && !string.IsNullOrWhiteSpace(ChaveAplicacao);
 

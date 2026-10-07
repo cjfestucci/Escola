@@ -5,8 +5,10 @@ export interface ConfiguracaoEscola {
   corPrincipal: string | null;
   /** Segmento do cliente (escola infantil ou clube). Somente leitura: definido ao provisionar o cliente. */
   segmento: 'Escola' | 'Clube';
-  /** Logo do cliente (caminho relativo, ex.: "/uploads/x.png"), definida só pelo Suporte. Nulo = sem logo. */
+  /** Logo do cliente (caminho relativo, ex.: "/uploads/x.png"), definida pelo Admin ou pelo Suporte. Nulo = sem logo. */
   logoUrl?: string | null;
+  /** Nome da escola (do cliente). Nulo sem login: a tela de login é a mesma pra todas as escolas. */
+  nomeEscola?: string | null;
 }
 
 /** Fusos oferecidos na tela de configuração (o backend aceita qualquer fuso IANA válido). */

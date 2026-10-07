@@ -1,8 +1,17 @@
 # Publicando o Rotina Escola
 
-Cada cliente (escola/clube) tem **o próprio site, o próprio login e o próprio `Cliente__Id`**; todos usam **o mesmo banco PostgreSQL**
-(os dados são separados por `ClienteId`). Então publicar um cliente novo = subir **mais uma cópia** do `docker-compose.yml`
-com outro `.env`.
+**Um site só atende todos os clientes** (escolas): mesma tela de login, e é a **conta que entra** que define a escola (desde 2026-10-07).
+Todos usam o mesmo banco PostgreSQL (os dados são separados por `ClienteId`). Então **um** `docker-compose.yml` com **um** `.env` serve
+pra todos — `CLIENTE_ID`/`CLIENTE_NOME` só dizem qual é o cliente criado na primeira subida.
+
+## Cliente (escola) novo
+
+Ainda não há tela de cadastro (vem com a assinatura pelo site). Por enquanto:
+
+1. Inserir a escola: `INSERT INTO "Clientes" ("Id","Nome","Ativo","CriadoEm","Segmento") VALUES (gen_random_uuid(), 'Nome da Escola', true, now(), 1);`
+   (`Segmento`: 0 = escola, 1 = clube).
+2. **Reiniciar a API**: a conta de Suporte é criada em todos os clientes a cada subida.
+3. Entrar com o Suporte (ele escolhe a escola no login), abrir **Plataforma → Administradores da escola** e convidar o Admin.
 
 ## O que o CI garante (a cada push/PR — `.github/workflows/ci.yml`)
 
@@ -19,8 +28,8 @@ Rodar local: `dotnet test backend/Escola.Tests` e `cd frontend && npm run test:c
 ## Primeira vez
 
 1. **Banco**: um PostgreSQL 14+ com um banco e um usuário só da aplicação (não o `postgres`).
-2. `cp .env.example .env` e preencha. Obrigatórios: `DB_CONNECTION`, `JWT_CHAVE` (32+ caracteres, **única por cliente**),
-   `CLIENTE_ID` (GUID **novo** por cliente), `CLIENTE_NOME`, `APP_URL_BASE`.
+2. `cp .env.example .env` e preencha. Obrigatórios: `DB_CONNECTION`, `JWT_CHAVE` (32+ caracteres aleatórios),
+   `CLIENTE_ID` (GUID do primeiro cliente), `CLIENTE_NOME`, `APP_URL_BASE`.
 3. `docker compose up -d --build`. A API aplica as migrations, cria a linha do cliente em `Clientes` e passa a responder em `/healthz`.
 4. Coloque um **proxy com HTTPS** na frente da porta `PORTA_SITE` (Caddy, Traefik, nginx do host…). O app não termina TLS.
 5. **Criar o primeiro Admin da escola**: configure a conta de Suporte (abaixo), entre em `/entrar` com ela, abra **Plataforma →
@@ -50,7 +59,7 @@ migra; as outras só encontram o banco já atualizado.
 
 ## Checklist de segurança antes de ir pro ar
 
-- [ ] `JWT_CHAVE` única por cliente, longa e aleatória (não a de teste).
+- [ ] `JWT_CHAVE` longa e aleatória (não a de teste).
 - [ ] HTTPS no proxy; `APP_URL_BASE` com `https://`.
 - [ ] `PROXIES_NA_FRENTE` certo (2 com proxy HTTPS na frente do site; 1 sem) — é o que grava o IP real no aceite do termo de matrícula.
 - [ ] **Texto do termo de matrícula revisado** pela parte jurídica da escola (`backend/Escola.Api/Servicos/TermoMatricula.cs`; mudou o texto → mude a `Versao`).

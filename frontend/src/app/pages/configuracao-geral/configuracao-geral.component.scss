@@ -22,7 +22,8 @@
     color: var(--cor-texto-suave);
   }
 
-  select {
+  select,
+  input[type='text'] {
     font-family: inherit;
     font-size: 1rem;
     padding: 9px 10px;
@@ -71,6 +72,10 @@
 
   &--erro {
     color: #b3261e;
+  }
+
+  &--aviso {
+    color: #8a4b08;
   }
 }
 
@@ -133,4 +138,45 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--cor-primaria-escura);
+}
+
+.titulo-secao {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.botao-texto--perigo {
+  color: #b3261e;
+}
+
+.area-logo {
+  display: flex;
+  align-items: center;
+  min-height: 72px;
+  padding: 10px 14px;
+  border: 1px dashed var(--cor-borda);
+  border-radius: 10px;
+  background: repeating-conic-gradient(#f1f1f1 0% 25%, #fff 0% 50%) 0 0 / 16px 16px;
+}
+
+.previa-logo {
+  max-height: 64px;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.sem-logo {
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+  background: var(--cor-superficie);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.botoes-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }

@@ -11,6 +11,8 @@ public static class GruposDePapeis
     /// <summary>Equipe do produto. <b>Fora</b> de Equipe/Gestao/Financeiro de propósito: o suporte configura o ambiente, mas não vê
     /// dado de aluno, saúde nem financeiro — cada endpoint de configuração o libera explicitamente com um dos grupos abaixo.</summary>
     public const string Suporte = "Suporte";
+    /// <summary>Identidade da escola (nome, logo, fuso): o dono da conta — o Admin — e o Suporte. Nem o Coordenador.</summary>
+    public const string AdminOuSuporte = "Admin,Suporte";
     public const string GestaoOuSuporte = "Admin,Coordenador,Suporte";
     public const string FinanceiroOuSuporte = "Admin,Coordenador,Financeiro,Suporte";
     public const string EquipeOuSuporte = "Admin,Coordenador,Educador,Financeiro,Suporte";
