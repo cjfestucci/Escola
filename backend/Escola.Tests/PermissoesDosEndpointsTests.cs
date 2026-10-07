@@ -24,6 +24,7 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
             "POST /api/auth/entrar",
             "POST /api/auth/esqueci-senha",
             "POST /api/auth/redefinir-senha",
+            "POST /api/pagamentos/asaas/webhook",
             "POST /api/pix/webhook/{segredo}",
             "POST /api/pix/webhook/{segredo}/pix",
         ], anonimos);
@@ -73,7 +74,7 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
 
         var foraDaConfiguracao = doSuporte.Where(t =>
             !t.Contains("/api/plataforma") && !t.Contains("/api/configuracao/escola") && !t.Contains("/api/financeiro/configuracao")
-            && !t.Contains("/api/pix/") && !t.Contains("/api/logs")).ToList();
+            && !t.Contains("/api/pix/") && !t.Contains("/api/pagamentos/conta") && !t.Contains("/api/logs")).ToList();
 
         Assert.True(foraDaConfiguracao.Count == 0, "O Suporte alcança dado do cliente: " + string.Join("; ", foraDaConfiguracao));
     }

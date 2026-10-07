@@ -45,6 +45,23 @@ dotnet run --project backend/Escola.Api -- --gerar-segredo-totp   # → SUPORTE_
 
 Guarde senha e segredo num cofre. Sem `SUPORTE_*` completos a conta fica desativada neste ambiente (é assim que se revoga o acesso).
 
+## Pagamento automático (gateway Asaas)
+
+A plataforma tem **uma conta Asaas (a conta raiz)** e abre, pela tela, **uma subconta por escola** (Configurações → Financeiro →
+"Pagamento automático", feito pelo Admin da escola ou pelo Suporte). As mensalidades pagas por Pix na subconta são baixadas sozinhas.
+
+1. Crie a conta raiz no Asaas (comece pelo **sandbox**: https://sandbox.asaas.com) e gere a chave de API (Integrações → Chave de API).
+   A abertura de subcontas precisa estar liberada na conta raiz (no sandbox já vem; em produção, peça ao gerente do Asaas).
+2. `ASAAS_API_KEY` = essa chave, `ASAAS_AMBIENTE` = `Sandbox` ou `Producao` (a chave tem que ser do mesmo ambiente).
+3. `SEGREDOS_CHAVE` = `openssl rand -base64 32`. Ela criptografa a chave de API de cada subconta no banco. **Guarde no cofre e nunca
+   troque** depois de conectar escolas: com outra chave as subcontas salvas ficam ilegíveis (seria preciso reconectar uma a uma). A mesma
+   chave em todas as cópias que usam o mesmo banco.
+4. Webhook (opcional, só acelera — a conferência periódica já dá a baixa): `ASAAS_WEBHOOK_TOKEN` (valor longo e aleatório) e
+   `ASAAS_WEBHOOK_URL_BASE` (endereço público da API). É gravado em cada subconta **no momento em que ela é criada**; subconta aberta
+   antes de configurar o webhook segue só com a conferência periódica.
+
+Sem `ASAAS_API_KEY` a seção nem aparece e tudo segue como antes (Pix estático com baixa manual, ou o BB pra quem tem).
+
 ## Atualizar
 
 `git pull && docker compose up -d --build`. As migrations rodam sozinhas ao subir (`MIGRAR_AO_INICIAR=true`).
@@ -67,7 +84,8 @@ migra; as outras só encontram o banco já atualizado.
 - [ ] `Suporte__*` configurado só onde o suporte precisa atuar; segredo 2FA no cofre.
 - [ ] SMTP funcionando (teste o "Esqueceu a senha?" com um e-mail real).
 - [ ] Backup do banco e dos volumes agendado **e restaurado uma vez** como teste.
-- [ ] Pix automático: validado na **homologação do Banco do Brasil** antes de `PIX_BB_AMBIENTE=Producao` (hoje só foi testado contra um simulador).
+- [ ] Asaas: fluxo completo validado no **sandbox** (abrir subconta, gerar Pix, pagar pelo painel do sandbox, ver a baixa) antes de `ASAAS_AMBIENTE=Producao`; `SEGREDOS_CHAVE` no cofre.
+- [ ] Pix automático do BB: validado na **homologação do Banco do Brasil** antes de `PIX_BB_AMBIENTE=Producao` (hoje só foi testado contra um simulador).
 
 ## Limitações conhecidas
 

@@ -13,13 +13,17 @@ public class CobrancaPix
     public Guid CobrancaId { get; set; }
     public Cobranca Cobranca { get; set; } = null!;
 
-    /// <summary>Identificador da cobrança no banco (26–35 letras/números, regra do Banco Central).</summary>
+    /// <summary>Identificador da cobrança no provedor: o txid no BB (26–35 letras/números, regra do Banco Central) ou o id do pagamento
+    /// no Asaas (ex.: "pay_…").</summary>
     public string TxId { get; set; } = string.Empty;
 
     /// <summary>Valor com que a cobrança foi criada no banco (fixo: o Pix só aceita exatamente esse valor).</summary>
     public decimal Valor { get; set; }
 
     public string PixCopiaECola { get; set; } = string.Empty;
+
+    /// <summary>Quem criou esta cobrança (e quem a confere). As anteriores ao Asaas são todas do BB.</summary>
+    public ProvedorPagamento Provedor { get; set; } = ProvedorPagamento.BancoDoBrasil;
 
     public StatusCobrancaPix Status { get; set; }
 

@@ -5,6 +5,7 @@ import { PixAutomaticoStatus, TipoChavePix } from '../../models/cobranca.model';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
+import { ContaPagamentoComponent } from './conta-pagamento/conta-pagamento.component';
 
 interface OpcaoTipoChave {
   valor: TipoChavePix;
@@ -60,7 +61,7 @@ function inferirTipo(chave: string): TipoChavePix | '' {
 
 @Component({
   selector: 'app-configuracao-financeira',
-  imports: [FormsModule, LogsModalComponent],
+  imports: [FormsModule, LogsModalComponent, ContaPagamentoComponent],
   templateUrl: './configuracao-financeira.component.html',
   styleUrl: './configuracao-financeira.component.scss'
 })

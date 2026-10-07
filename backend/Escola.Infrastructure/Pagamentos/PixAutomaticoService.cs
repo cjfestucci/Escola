@@ -10,10 +10,13 @@ namespace Escola.Infrastructure.Pagamentos;
 
 public interface IPixAutomaticoService
 {
-    /// <summary>Código Pix "copia e cola" <b>dinâmico</b> (criado no banco, com baixa automática) pra cobrar <paramref name="valor"/>
-    /// desta cobrança. Devolve <c>null</c> se a integração está desligada, falta a chave Pix ou o banco falhou — quem chama usa então o
-    /// Pix estático de sempre, pra o pai nunca ficar sem como pagar.</summary>
-    Task<string?> ObterCopiaEColaAsync(Cobranca cobranca, decimal valor, string chavePix, CancellationToken ct = default);
+    /// <summary>Código Pix "copia e cola" <b>dinâmico</b> (criado no provedor, com baixa automática) pra cobrar <paramref name="valor"/>
+    /// desta cobrança. Devolve <c>null</c> se não há Pix automático nesta escola, falta dado (chave Pix pro BB, CPF do responsável pro
+    /// Asaas) ou o provedor falhou — quem chama usa então o Pix estático de sempre, pra o pai nunca ficar sem como pagar.</summary>
+    Task<string?> ObterCopiaEColaAsync(Cobranca cobranca, decimal valor, string? chavePix, CancellationToken ct = default);
+
+    /// <summary>Há Pix automático nesta escola (não exige chave Pix estática quando é o Asaas)?</summary>
+    Task<bool> DisponivelAsync(CancellationToken ct = default);
 
     /// <summary>Confere no banco (nunca confia no aviso recebido) se a cobrança Pix de <paramref name="txid"/> foi paga e, se foi, dá baixa.</summary>
     Task<bool> ConfirmarAsync(string txid, CancellationToken ct = default);
@@ -24,7 +27,7 @@ public interface IPixAutomaticoService
 
 public sealed class PixAutomaticoService(
     EscolaDbContext db,
-    IProvedorPix provedor,
+    IProvedorPixResolver provedores,
     IRelogioEscola relogio,
     IAuditoriaService auditoria,
     ILogger<PixAutomaticoService> logger) : IPixAutomaticoService
@@ -38,13 +41,18 @@ public sealed class PixAutomaticoService(
     /// <summary>Uma cobrança só é reaproveitada se ainda tiver pelo menos isso de validade (senão o pai abriria um código prestes a expirar).</summary>
     private static readonly TimeSpan ValidadeMinimaParaReuso = TimeSpan.FromHours(1);
 
-    public async Task<string?> ObterCopiaEColaAsync(Cobranca cobranca, decimal valor, string chavePix, CancellationToken ct = default)
+    public async Task<bool> DisponivelAsync(CancellationToken ct = default) => await provedores.ParaNovaCobrancaAsync(ct) is not null;
+
+    public async Task<string?> ObterCopiaEColaAsync(Cobranca cobranca, decimal valor, string? chavePix, CancellationToken ct = default)
     {
-        if (!provedor.Configurado || string.IsNullOrWhiteSpace(chavePix)) return null;
+        var provedor = await provedores.ParaNovaCobrancaAsync(ct);
+        if (provedor is null) return null;
+        // O BB cobra na chave Pix cadastrada da escola; o Asaas usa a chave da subconta dela.
+        if (provedor.Tipo == ProvedorPagamento.BancoDoBrasil && string.IsNullOrWhiteSpace(chavePix)) return null;
 
         var agora = DateTime.UtcNow;
         var reaproveitavel = await db.CobrancasPix
-            .Where(p => p.CobrancaId == cobranca.Id && p.Status == StatusCobrancaPix.Ativa && p.Valor == valor && p.ExpiraEm > agora + ValidadeMinimaParaReuso)
+            .Where(p => p.CobrancaId == cobranca.Id && p.Provedor == provedor.Tipo && p.Status == StatusCobrancaPix.Ativa && p.Valor == valor && p.ExpiraEm > agora + ValidadeMinimaParaReuso)
             .OrderByDescending(p => p.CriadoEm)
             .FirstOrDefaultAsync(ct);
         if (reaproveitavel is not null) return reaproveitavel.PixCopiaECola;
@@ -55,10 +63,31 @@ public sealed class PixAutomaticoService(
             ? 3 * 86400
             : Math.Clamp((cobranca.Vencimento.DayNumber - hoje.DayNumber + 1) * 86400, 86400, 60 * 86400);
 
-        var txid = Guid.NewGuid().ToString("N");
+        // O Asaas exige o pagador (CPF): o responsável financeiro do aluno (ou o primeiro responsável), se tiver CPF cadastrado.
+        PagadorPix? pagador = null;
+        Responsavel? responsavelPagador = null;
+        if (provedor.ExigePagador)
+        {
+            responsavelPagador = await db.AlunoResponsaveis
+                .Where(ar => ar.AlunoId == cobranca.AlunoId && ar.Responsavel.Cpf != null && ar.Responsavel.Cpf != "")
+                .OrderByDescending(ar => ar.ResponsavelFinanceiro)
+                .Select(ar => ar.Responsavel)
+                .FirstOrDefaultAsync(ct);
+            if (responsavelPagador is null)
+            {
+                logger.LogInformation("Cobrança {CobrancaId}: responsável sem CPF — usando o Pix estático (sem baixa automática).", cobranca.Id);
+                return null;
+            }
+            pagador = new PagadorPix(responsavelPagador.Id, responsavelPagador.Nome, responsavelPagador.Cpf!, responsavelPagador.Email, responsavelPagador.IdClienteAsaas);
+        }
+
         try
         {
-            var criada = await provedor.CriarCobrancaAsync(txid, chavePix, valor, expiracaoSegundos, cobranca.Descricao, ct);
+            var criada = await provedor.CriarCobrancaAsync(
+                new DadosNovaCobrancaPix(cobranca.Id, chavePix ?? string.Empty, valor, cobranca.Vencimento < hoje ? hoje : cobranca.Vencimento,
+                    expiracaoSegundos, cobranca.Descricao, pagador), ct);
+            if (criada.IdClienteExternoCriado is { } novoCliente && responsavelPagador is not null)
+                responsavelPagador.IdClienteAsaas = novoCliente;
 
             // As cobranças anteriores ainda abertas (valor diferente) continuam ativas e consultadas até expirarem: se alguém
             // pagar um código antigo, o pagamento ainda é reconhecido e dá baixa.
@@ -66,9 +95,10 @@ public sealed class PixAutomaticoService(
             {
                 Id = Guid.NewGuid(),
                 CobrancaId = cobranca.Id,
-                TxId = txid,
+                TxId = criada.IdExterno,
                 Valor = valor,
                 PixCopiaECola = criada.PixCopiaECola,
+                Provedor = provedor.Tipo,
                 Status = StatusCobrancaPix.Ativa,
                 CriadoEm = agora,
                 ExpiraEm = agora.AddSeconds(expiracaoSegundos)
@@ -78,7 +108,7 @@ public sealed class PixAutomaticoService(
         }
         catch (PixProvedorException ex)
         {
-            logger.LogWarning(ex, "Não foi possível criar a cobrança Pix no banco; usando o Pix estático.");
+            logger.LogWarning(ex, "Não foi possível criar a cobrança Pix no provedor {Provedor}; usando o Pix estático.", provedor.Tipo);
             return null;
         }
     }
@@ -92,8 +122,6 @@ public sealed class PixAutomaticoService(
 
     public async Task<int> ConciliarPendentesAsync(CancellationToken ct = default)
     {
-        if (!provedor.Configurado) return 0;
-
         var limite = DateTime.UtcNow - FolgaPosExpiracao;
         var pendentes = await db.CobrancasPix
             .Include(p => p.Cobranca)
@@ -128,6 +156,10 @@ public sealed class PixAutomaticoService(
     private async Task<bool> ConferirAsync(CobrancaPix pix, CancellationToken ct)
     {
         if (pix.Status == StatusCobrancaPix.Concluida) return false;
+
+        // Confere no provedor que criou a cobrança (uma escola pode ter trocado do BB pro Asaas com cobranças antigas abertas).
+        var provedor = await provedores.ParaAsync(pix.Provedor, ct);
+        if (provedor is null) return false;
 
         var consulta = await provedor.ConsultarCobrancaAsync(pix.TxId, ct);
         pix.UltimaVerificacaoEm = DateTime.UtcNow;
@@ -172,7 +204,7 @@ public sealed class PixAutomaticoService(
             cobranca.PagoEm = await relogio.DataLocalAsync(recebido.HorarioUtc);
             cobranca.ValorPago = recebido.Valor;
             auditoria.RegistrarSistema(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado,
-                $"Paga via Pix (baixa automática): R$ {valorTexto} — {cobranca.Descricao}");
+                $"Paga via Pix (baixa automática{(pix.Provedor == ProvedorPagamento.Asaas ? ", Asaas" : string.Empty)}): R$ {valorTexto} — {cobranca.Descricao}");
             baixou = true;
         }
 

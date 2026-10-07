@@ -77,6 +77,8 @@ export interface ResponsavelResumo {
   nome: string;
   email: string;
   telefone: string | null;
+  /** Só dígitos. Opcional, mas sem ele a mensalidade não sai pelo pagamento automático (o gateway exige o CPF do pagador). */
+  cpf?: string | null;
   responsavelFinanceiro: boolean;
   /** Login do portal ainda não ativado (convite enviado, senha não criada). Só vem do servidor. */
   contaPendente?: boolean;

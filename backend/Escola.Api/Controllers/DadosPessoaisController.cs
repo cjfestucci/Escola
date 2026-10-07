@@ -41,7 +41,7 @@ public class DadosPessoaisController(
         if (aluno is null) return NotFound("Aluno não encontrado.");
 
         var responsaveis = await db.AlunoResponsaveis.AsNoTracking().Where(ar => ar.AlunoId == alunoId)
-            .Select(ar => new { ar.Responsavel.Nome, ar.Responsavel.Email, ar.Responsavel.Telefone, ar.ResponsavelFinanceiro })
+            .Select(ar => new { ar.Responsavel.Nome, ar.Responsavel.Email, ar.Responsavel.Telefone, ar.Responsavel.Cpf, ar.ResponsavelFinanceiro })
             .ToListAsync();
         var ficha = await db.FichasSaude.AsNoTracking().Where(f => f.AlunoId == alunoId)
             .Select(f => new

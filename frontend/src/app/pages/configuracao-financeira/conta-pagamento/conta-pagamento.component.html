@@ -1,0 +1,151 @@
+@if (visivel() && conta(); as c) {
+  <section class="painel-formulario">
+    <button
+      type="button"
+      class="titulo-secao"
+      [class.aberta]="aberta()"
+      [attr.aria-expanded]="aberta()"
+      aria-controls="secao-conta-pagamento"
+      (click)="aberta.set(!aberta())"
+    >
+      <span>
+        Pagamento automático
+        @if (c.pagamentoAutomaticoAtivo) {
+          <span class="selo selo--ativo">Ativo</span>
+        } @else if (c.conectada) {
+          <span class="selo selo--pendente">Pendente</span>
+        }
+      </span>
+      <svg class="seta-secao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </button>
+
+    @if (aberta()) {
+      <div class="conteudo-secao" id="secao-conta-pagamento">
+        @if (c.conectada) {
+          <ul class="lista-status">
+            <li>Titular: <strong>{{ c.titularNome }}</strong> ({{ c.titularCpfCnpj }})</li>
+            <li>E-mail: <strong>{{ c.titularEmail }}</strong></li>
+            <li>Situação da conta: <strong>{{ rotuloSituacao(c.situacaoGateway) }}</strong></li>
+            <li>Chave Pix da conta: <strong>{{ c.chavePixCriada ? 'criada' : 'pendente' }}</strong></li>
+            <li>Aviso instantâneo de pagamento: <strong>{{ c.webhookConfigurado ? 'ligado' : 'desligado (a consulta periódica dá a baixa)' }}</strong></li>
+            @if (c.criadaEm) {
+              <li>Aberta em: <strong>{{ formatarDataHora(c.criadaEm) }}</strong></li>
+            }
+            @if (c.ambiente !== 'Producao') {
+              <li>Ambiente: <strong>teste (sandbox)</strong>: nenhum dinheiro de verdade circula</li>
+            }
+          </ul>
+          @if (!c.pagamentoAutomaticoAtivo) {
+            <p class="ajuda ajuda--aviso">
+              A conta ainda não está pronta para receber. Assim que a chave Pix for criada, as mensalidades passam a sair por ela.
+              Use "Atualizar situação" para consultar de novo.
+            </p>
+          }
+          <div class="botoes-linha">
+            <button type="button" class="secundario" [disabled]="atualizando()" (click)="atualizar()">
+              {{ atualizando() ? 'Consultando...' : 'Atualizar situação' }}
+            </button>
+          </div>
+          <p class="ajuda">
+            O código Pix de cada mensalidade é gerado nesta conta com o valor do dia. Quando a família paga, a mensalidade é baixada
+            sozinha (aparece no histórico como feita pelo "Sistema"). Para isso, o responsável financeiro precisa ter o
+            <strong>CPF</strong> preenchido na matrícula; sem o CPF, a família recebe o Pix comum, com baixa manual.
+          </p>
+        } @else if (!auth.podeEditarIdentidade()) {
+          <p class="ajuda">
+            Com o pagamento automático, as mensalidades pagas por Pix são baixadas sozinhas. Quem abre a conta de pagamento da escola
+            é o <strong>administrador</strong> da escola.
+          </p>
+        } @else {
+          <p class="ajuda ajuda--secao">
+            Abra a conta de pagamento da escola para as mensalidades pagas por Pix serem baixadas sozinhas. O dinheiro cai na conta
+            da escola, em nome do titular abaixo. Os dados vão para o gateway de pagamento (Asaas), que pode pedir documentos para
+            liberar a conta.
+          </p>
+          @if (c.ambiente !== 'Producao') {
+            <p class="ajuda ajuda--aviso">Ambiente de teste (sandbox): nenhum dinheiro de verdade circula.</p>
+          }
+          <p class="legenda-obrigatorio">Campo obrigatório</p>
+
+          <label><span class="obrigatorio">Nome do titular ou razão social</span>
+            <input type="text" [(ngModel)]="nome" maxlength="200" />
+          </label>
+          <label><span class="obrigatorio">E-mail</span>
+            <input type="email" [(ngModel)]="email" maxlength="200" placeholder="financeiro@escola.com.br" />
+          </label>
+          <label><span class="obrigatorio">CPF ou CNPJ</span>
+            <input type="text" inputmode="numeric" [(ngModel)]="cpfCnpj" maxlength="18" />
+          </label>
+
+          @if (ehCnpj) {
+            <label><span class="obrigatorio">Tipo de empresa</span>
+              <select [(ngModel)]="tipoEmpresa">
+                <option value="">Selecione</option>
+                @for (t of tiposEmpresa; track t.valor) {
+                  <option [value]="t.valor">{{ t.rotulo }}</option>
+                }
+              </select>
+            </label>
+          } @else {
+            <fieldset class="grupo-data">
+              <legend><span class="obrigatorio">Data de nascimento do titular</span></legend>
+              <select [(ngModel)]="diaNascimento" aria-label="Dia">
+                <option [ngValue]="null">Dia</option>
+                @for (d of dias; track d) {
+                  <option [ngValue]="d">{{ d }}</option>
+                }
+              </select>
+              <select [(ngModel)]="mesNascimento" aria-label="Mês">
+                <option [ngValue]="null">Mês</option>
+                @for (m of meses; track m.valor) {
+                  <option [ngValue]="+m.valor">{{ m.rotulo }}</option>
+                }
+              </select>
+              <select [(ngModel)]="anoNascimento" aria-label="Ano">
+                <option [ngValue]="null">Ano</option>
+                @for (a of anos; track a) {
+                  <option [ngValue]="a">{{ a }}</option>
+                }
+              </select>
+            </fieldset>
+          }
+
+          <label><span class="obrigatorio">Celular</span>
+            <input type="tel" [(ngModel)]="celular" maxlength="20" placeholder="(11) 99999-9999" />
+          </label>
+
+          <div class="linha-campos">
+            <label class="campo-curto"><span class="obrigatorio">CEP</span>
+              <input type="text" inputmode="numeric" [(ngModel)]="cep" maxlength="9" placeholder="00000-000" />
+            </label>
+            <label class="campo-largo"><span class="obrigatorio">Endereço</span>
+              <input type="text" [(ngModel)]="endereco" maxlength="200" placeholder="Rua, avenida…" />
+            </label>
+          </div>
+          <div class="linha-campos">
+            <label class="campo-curto"><span class="obrigatorio">Número</span>
+              <input type="text" [(ngModel)]="numero" maxlength="20" />
+            </label>
+            <label class="campo-largo">Complemento (opcional)
+              <input type="text" [(ngModel)]="complemento" maxlength="100" />
+            </label>
+          </div>
+          <label><span class="obrigatorio">Bairro</span>
+            <input type="text" [(ngModel)]="bairro" maxlength="100" />
+          </label>
+          <label><span class="obrigatorio">Faturamento mensal estimado (R$)</span>
+            <input type="number" min="1" step="100" [(ngModel)]="faturamentoMensal" />
+          </label>
+
+          <div class="botoes-linha">
+            <button type="button" class="primario" [disabled]="conectando()" (click)="conectar()">
+              {{ conectando() ? 'Abrindo conta...' : 'Abrir conta de pagamento' }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </section>
+}

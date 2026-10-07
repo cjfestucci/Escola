@@ -1,3 +1,4 @@
+using Escola.Domain.Enums;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -21,13 +22,20 @@ public sealed class BbPixClient(HttpClient http, IOptions<OpcoesPixBb> opcoes, C
     /// integração simplesmente não existe e eles seguem com o Pix estático.</summary>
     public bool Configurado => _o.Configurado && clienteAtual.Definido && clienteAtual.Id == _o.ClienteId;
 
-    public async Task<CobrancaPixCriada> CriarCobrancaAsync(string txid, string chavePix, decimal valor, int expiracaoSegundos, string? solicitacaoPagador, CancellationToken ct = default)
+    public ProvedorPagamento Tipo => ProvedorPagamento.BancoDoBrasil;
+
+    public bool ExigePagador => false;
+
+    public async Task<CobrancaPixCriada> CriarCobrancaAsync(DadosNovaCobrancaPix dados, CancellationToken ct = default)
     {
+        // txid é nosso: GUID sem hífens (32 caracteres, dentro da regra de 26–35 do Banco Central).
+        var txid = Guid.NewGuid().ToString("N");
+        var solicitacaoPagador = dados.Descricao;
         var corpo = new Dictionary<string, object?>
         {
-            ["calendario"] = new { expiracao = expiracaoSegundos },
-            ["valor"] = new { original = valor.ToString("F2", CultureInfo.InvariantCulture) },
-            ["chave"] = chavePix
+            ["calendario"] = new { expiracao = dados.ExpiracaoSegundos },
+            ["valor"] = new { original = dados.Valor.ToString("F2", CultureInfo.InvariantCulture) },
+            ["chave"] = dados.ChavePix
         };
         if (!string.IsNullOrWhiteSpace(solicitacaoPagador))
             corpo["solicitacaoPagador"] = solicitacaoPagador.Length > 140 ? solicitacaoPagador[..140] : solicitacaoPagador;
@@ -38,7 +46,7 @@ public sealed class BbPixClient(HttpClient http, IOptions<OpcoesPixBb> opcoes, C
         var copiaECola = json.RootElement.TryGetProperty("pixCopiaECola", out var campo) ? campo.GetString() : null;
         if (string.IsNullOrWhiteSpace(copiaECola))
             throw new PixProvedorException("O banco criou a cobrança, mas não devolveu o código Pix copia e cola.");
-        return new CobrancaPixCriada(copiaECola);
+        return new CobrancaPixCriada(txid, copiaECola);
     }
 
     public async Task<CobrancaPixConsultada?> ConsultarCobrancaAsync(string txid, CancellationToken ct = default)

@@ -11,6 +11,8 @@ using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Email;
 using Escola.Infrastructure.Financeiro;
 using Escola.Infrastructure.Pagamentos;
+using Escola.Infrastructure.Pagamentos.Asaas;
+using Escola.Infrastructure.Seguranca;
 using Escola.Api.Servicos;
 using System.Security.Cryptography.X509Certificates;
 using Escola.Infrastructure.Storage;
@@ -172,8 +174,16 @@ builder.Services.AddHttpClient<IProvedorPix, BbPixClient>(cliente => cliente.Tim
             handler.SslOptions.ClientCertificates = [X509CertificateLoader.LoadPkcs12FromFile(pixBb.CertificadoPfxCaminho, pixBb.CertificadoPfxSenha)];
         return handler;
     });
+// Gateway Asaas (modelo marketplace): a plataforma abre uma subconta por escola. Credencial da conta raiz e token do webhook vêm da
+// configuração (Asaas:*); a chave de cada subconta fica no banco, criptografada com Segredos:Chave.
+builder.Services.Configure<OpcoesAsaas>(builder.Configuration.GetSection(OpcoesAsaas.Secao));
+var asaas = builder.Configuration.GetSection(OpcoesAsaas.Secao).Get<OpcoesAsaas>() ?? new OpcoesAsaas();
+builder.Services.AddHttpClient<AsaasApi>(cliente => cliente.Timeout = TimeSpan.FromSeconds(20));
+builder.Services.AddSingleton(new CofreSegredos(builder.Configuration["Segredos:Chave"]));
+builder.Services.AddScoped<IProvedorPixResolver, ProvedorPixResolver>();
+
 builder.Services.AddScoped<IPixAutomaticoService, PixAutomaticoService>();
-if (pixBb.Configurado) builder.Services.AddHostedService<ConciliacaoPixWorker>();
+if (pixBb.Configurado || asaas.Configurado) builder.Services.AddHostedService<ConciliacaoPixWorker>();
 builder.Services.AddScoped<IDisciplinaService, DisciplinaService>();
 
 var app = builder.Build();

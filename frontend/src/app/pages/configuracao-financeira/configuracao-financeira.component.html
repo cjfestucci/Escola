@@ -179,7 +179,11 @@
       }
     </section>
 
+    <app-conta-pagamento />
+
+    <!-- Legado: Pix automático do BB, só pra escola dona das credenciais configuradas no ambiente. -->
     @if (statusPixAutomatico(); as pa) {
+      @if (pa.configurado) {
       <section class="painel-formulario">
         <button
           type="button"
@@ -197,13 +201,6 @@
 
         @if (pixAutomaticoAberto()) {
           <div class="conteudo-secao" id="secao-pix-automatico">
-            @if (!pa.configurado) {
-              <p class="ajuda">
-                A baixa automática <strong>não está ativada</strong> neste ambiente. Enquanto isso, o código Pix continua sendo
-                gerado normalmente e as mensalidades são baixadas manualmente. Para ativar, peça ao suporte para configurar as
-                credenciais da API Pix do Banco do Brasil.
-              </p>
-            } @else {
               <ul class="lista-status">
                 <li>Ambiente: <strong>{{ pa.ambiente }}</strong></li>
                 <li>Chave Pix da escola: <strong>{{ pa.chavePixConfigurada ? 'configurada' : 'faltando — preencha acima' }}</strong></li>
@@ -226,10 +223,10 @@
                 Cada vez que alguém abre o código Pix de uma mensalidade, ele é criado no banco com o valor atualizado. Quando o
                 pagamento é confirmado, a mensalidade é baixada sozinha e aparece no histórico como feita pelo "Sistema".
               </p>
-            }
           </div>
         }
       </section>
+      }
     }
 
     <div class="botoes">

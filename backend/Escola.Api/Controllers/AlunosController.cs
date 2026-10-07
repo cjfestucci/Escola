@@ -8,6 +8,7 @@ using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Financeiro;
+using Escola.Infrastructure.Pagamentos;
 using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -180,6 +181,8 @@ public class AlunosController(
         return Ok(resultado);
     }
 
+    private static string SoDigitos(string? texto) => new((texto ?? string.Empty).Where(char.IsDigit).ToArray());
+
     private async Task<bool> EstaBloqueadoAsync(Guid alunoId) => (await bloqueio.ObterBloqueadosAsync([alunoId])).Contains(alunoId);
 
     private async Task<AlunoDetalheDto> DetalheAsync(Aluno aluno)
@@ -215,6 +218,13 @@ public class AlunosController(
         if (request.Responsaveis.Any(r => string.IsNullOrWhiteSpace(r.Nome) || string.IsNullOrWhiteSpace(r.Email)))
             return "Nome e e-mail são obrigatórios para cada responsável.";
 
+        foreach (var r in request.Responsaveis.Where(r => !string.IsNullOrWhiteSpace(r.Cpf)))
+        {
+            var cpf = SoDigitos(r.Cpf);
+            if (cpf.Length != 11 || !ChavePix.CpfValido(cpf))
+                return $"CPF inválido para o responsável {r.Nome.Trim()}.";
+        }
+
         return null;
     }
 
@@ -234,6 +244,13 @@ public class AlunosController(
                 vinculoExistente.Responsavel.Nome = input.Nome.Trim();
                 vinculoExistente.Responsavel.Email = input.Email.Trim();
                 vinculoExistente.Responsavel.Telefone = input.Telefone;
+                var cpfNovo = string.IsNullOrWhiteSpace(input.Cpf) ? null : SoDigitos(input.Cpf);
+                if (cpfNovo != vinculoExistente.Responsavel.Cpf)
+                {
+                    vinculoExistente.Responsavel.Cpf = cpfNovo;
+                    // O cliente no gateway foi criado com o CPF antigo: o próximo pagamento cria outro, com o CPF certo.
+                    vinculoExistente.Responsavel.IdClienteAsaas = null;
+                }
                 vinculoExistente.ResponsavelFinanceiro = input.ResponsavelFinanceiro;
                 responsavelIdsMantidos.Add(vinculoExistente.ResponsavelId);
                 continue;
@@ -245,7 +262,11 @@ public class AlunosController(
             var responsavel = await db.Responsaveis.FirstOrDefaultAsync(r => r.Email.ToLower() == email.ToLower());
             if (responsavel is null)
             {
-                responsavel = new Responsavel { Id = Guid.NewGuid(), Nome = input.Nome.Trim(), Email = email, Telefone = input.Telefone };
+                responsavel = new Responsavel
+                {
+                    Id = Guid.NewGuid(), Nome = input.Nome.Trim(), Email = email, Telefone = input.Telefone,
+                    Cpf = string.IsNullOrWhiteSpace(input.Cpf) ? null : SoDigitos(input.Cpf)
+                };
                 db.Responsaveis.Add(responsavel);
 
                 // Responsável novo: também cria o login dele (Portal dos Pais), a não ser que o e-mail

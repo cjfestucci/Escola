@@ -6,6 +6,8 @@ using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Email;
+using Escola.Infrastructure.Pagamentos.Asaas;
+using Escola.Infrastructure.Seguranca;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -43,6 +45,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     private readonly SqliteConnection _conexao = new("DataSource=:memory:");
     private readonly DbContextOptions<EscolaDbContext> _opcoesBanco;
     public EmailFalso Email { get; } = new();
+    public AsaasFalso Asaas { get; } = new();
+    public const string AsaasWebhookToken = "token-do-webhook-de-teste";
+    private static readonly string ChaveSegredos = CofreSegredos.GerarChave();
 
     public ApiFactory()
     {
@@ -75,6 +80,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             ["Suporte:Nome"] = "Suporte Teste",
             ["Suporte:SenhaHash"] = SenhaHasher.Hash(SuporteSenha),
             ["Suporte:TotpSegredo"] = SuporteTotp,
+            ["Segredos:Chave"] = ChaveSegredos,
+            ["Asaas:ApiKey"] = "$aact_hmlg_conta_raiz_de_teste",
+            ["Asaas:WebhookToken"] = AsaasWebhookToken,
+            ["Asaas:WebhookUrlBase"] = "https://escola.teste",
         };
         foreach (var (chave, valor) in config) builder.UseSetting(chave, valor);
 
@@ -89,6 +98,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(Email);
+
+            // Nada sai pra rede: o HttpClient do Asaas fala com o falso.
+            services.AddHttpClient<AsaasApi>().ConfigurePrimaryHttpMessageHandler(() => Asaas.NovoHandler());
         });
     }
 

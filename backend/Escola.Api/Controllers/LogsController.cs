@@ -17,7 +17,7 @@ namespace Escola.Api.Controllers;
 public class LogsController(EscolaDbContext db) : ControllerBase
 {
     /// <summary>Tipos de histórico que o Suporte pode consultar: só o das configurações do ambiente e do cliente.</summary>
-    private static readonly string[] TiposDoSuporte = [nameof(ConfiguracaoEscola), nameof(ConfiguracaoFinanceira), nameof(Cliente)];
+    private static readonly string[] TiposDoSuporte = [nameof(ConfiguracaoEscola), nameof(ConfiguracaoFinanceira), nameof(Cliente), nameof(ContaPagamento)];
 
     [HttpGet]
     public async Task<ActionResult<List<LogAuditoriaDto>>> Listar([FromQuery] string entidadeTipo, [FromQuery] Guid entidadeId)

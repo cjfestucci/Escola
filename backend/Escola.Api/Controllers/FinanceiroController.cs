@@ -193,13 +193,12 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
         if (config is { PagamentoPixAtivo: false })
             return BadRequest("O pagamento por Pix não está habilitado nesta escola.");
-        if (config is null || string.IsNullOrWhiteSpace(config.PixChave) || string.IsNullOrWhiteSpace(config.PixNomeRecebedor) || string.IsNullOrWhiteSpace(config.PixCidade))
-            return BadRequest("A chave Pix da escola ainda não foi configurada.");
-
         // Cobra o valor atualizado (com multa/juros, se a escola configurou e a cobrança está atrasada).
         var valor = cobranca.Valor + EncargosCobranca.Calcular(cobranca.Valor, cobranca.Vencimento, await relogio.HojeAsync(), cobranca.Paga, cobranca.Cancelada, config.ToPolitica()).Total;
         var (codigo, automatico) = await GerarCodigoPixAsync(cobranca, config, valor);
-        return Ok(new PixCobrancaDto(codigo, automatico));
+        return codigo is null
+            ? BadRequest("A chave Pix da escola ainda não foi configurada.")
+            : Ok(new PixCobrancaDto(codigo, automatico));
     }
 
     /// <summary>Envia por e-mail, ao(s) responsável(is) do aluno, os detalhes da cobrança e o código Pix pra pagamento.</summary>
@@ -227,7 +226,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         var valorAtualizado = cobranca.Valor + encargos.Total;
         string? codigoPix = null;
         // Só oferece no e-mail as formas de pagamento ativas: sem Pix ativo, não vai código Pix.
-        if (config is { PagamentoPixAtivo: true } && !string.IsNullOrWhiteSpace(config.PixChave) && !string.IsNullOrWhiteSpace(config.PixNomeRecebedor) && !string.IsNullOrWhiteSpace(config.PixCidade))
+        if (config is not { PagamentoPixAtivo: false })
             codigoPix = (await GerarCodigoPixAsync(cobranca, config, valorAtualizado)).Codigo;
         var instrucoesPresencial = config is { PagamentoPresencialAtivo: true }
             ? (string.IsNullOrWhiteSpace(config.InstrucoesPagamentoPresencial) ? "Pagamento também pode ser feito na escola." : config.InstrucoesPagamentoPresencial)
@@ -484,15 +483,19 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
 
     /// <summary>Pix dinâmico do banco (com baixa automática) quando a integração está ligada e a cobrança ainda está em aberto;
     /// caso contrário — integração desligada, cobrança já paga/cancelada ou banco fora do ar — o Pix estático de sempre.</summary>
-    private async Task<(string Codigo, bool Automatico)> GerarCodigoPixAsync(Cobranca cobranca, ConfiguracaoFinanceira config, decimal valor)
+    /// <returns>Nulo se não há como gerar Pix: sem automático disponível e sem chave Pix estática cadastrada.</returns>
+    private async Task<(string? Codigo, bool Automatico)> GerarCodigoPixAsync(Cobranca cobranca, ConfiguracaoFinanceira? config, decimal valor)
     {
         if (!cobranca.Paga && !cobranca.Cancelada)
         {
-            var dinamico = await pixAutomatico.ObterCopiaEColaAsync(cobranca, valor, config.PixChave!);
+            // Automático primeiro: subconta Asaas da escola (não precisa da chave estática) ou BB (cobra na chave cadastrada).
+            var dinamico = await pixAutomatico.ObterCopiaEColaAsync(cobranca, valor, config?.PixChave);
             if (dinamico is not null) return (dinamico, true);
         }
 
-        return (PixBrCode.Gerar(config.PixChave!, config.PixNomeRecebedor!, config.PixCidade!, valor, cobranca.Id.ToString("N")), false);
+        if (config is null || string.IsNullOrWhiteSpace(config.PixChave) || string.IsNullOrWhiteSpace(config.PixNomeRecebedor) || string.IsNullOrWhiteSpace(config.PixCidade))
+            return (null, false);
+        return (PixBrCode.Gerar(config.PixChave, config.PixNomeRecebedor, config.PixCidade, valor, cobranca.Id.ToString("N")), false);
     }
 
     private async Task<(EncargosCobranca.Politica Politica, DateOnly Hoje)> ContextoEncargosAsync()

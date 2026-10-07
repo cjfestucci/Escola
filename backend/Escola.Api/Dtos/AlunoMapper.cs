@@ -21,7 +21,7 @@ public static class AlunoMapper
         aluno.Ativo,
         aluno.Responsaveis
             .Select(ar => new ResponsavelResumoDto(ar.Responsavel.Id, ar.Responsavel.Nome, ar.Responsavel.Email, ar.Responsavel.Telefone,
-                ar.ResponsavelFinanceiro, contasPendentes?.Contains(ar.ResponsavelId) ?? false))
+                ar.ResponsavelFinanceiro, contasPendentes?.Contains(ar.ResponsavelId) ?? false, ar.Responsavel.Cpf))
             .ToList(),
         [],
         aluno.Posicao,

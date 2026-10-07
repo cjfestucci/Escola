@@ -190,6 +190,18 @@
               />
             </label>
 
+            <label>CPF (opcional)
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="14"
+                [ngModel]="responsavel.cpf"
+                (ngModelChange)="atualizarResponsavel($index, 'cpf', $event)"
+                placeholder="000.000.000-00"
+              />
+              <small class="dica-campo">Necessário para a mensalidade ser paga por Pix com baixa automática.</small>
+            </label>
+
             <label class="linha-checkbox">
               <input
                 type="checkbox"

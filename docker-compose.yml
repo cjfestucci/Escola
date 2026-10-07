@@ -36,6 +36,13 @@ services:
       Pix__Bb__ClientSecret: ${PIX_BB_CLIENT_SECRET:-}
       Pix__Bb__ChaveAplicacao: ${PIX_BB_CHAVE_APLICACAO:-}
       Pix__Bb__Ambiente: ${PIX_BB_AMBIENTE:-Homologacao}
+      # Gateway Asaas (subconta por escola; vazio = sem pagamento automático pelo Asaas)
+      Asaas__ApiKey: ${ASAAS_API_KEY:-}
+      Asaas__Ambiente: ${ASAAS_AMBIENTE:-Sandbox}
+      Asaas__WebhookToken: ${ASAAS_WEBHOOK_TOKEN:-}
+      Asaas__WebhookUrlBase: ${ASAAS_WEBHOOK_URL_BASE:-}
+      # Chave do cofre (AES-256, 32 bytes em base64) que criptografa as chaves de API das subcontas no banco
+      Segredos__Chave: ${SEGREDOS_CHAVE:-}
     volumes:
       - fotos:/app/wwwroot/uploads
       - documentos:/app/dados-privados

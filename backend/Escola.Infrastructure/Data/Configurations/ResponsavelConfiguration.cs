@@ -11,5 +11,7 @@ public class ResponsavelConfiguration : IEntityTypeConfiguration<Responsavel>
         builder.Property(r => r.Nome).IsRequired().HasMaxLength(200);
         builder.Property(r => r.Email).IsRequired().HasMaxLength(256);
         builder.HasIndex("ClienteId", nameof(Responsavel.Email)).IsUnique();
+        builder.Property(r => r.Cpf).HasMaxLength(11);
+        builder.Property(r => r.IdClienteAsaas).HasMaxLength(100);
     }
 }

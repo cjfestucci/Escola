@@ -1,0 +1,180 @@
+// Mesmo visual das outras seções de Configurações → Financeiro (os estilos de lá são do componente pai, não chegam aqui).
+.painel-formulario {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  input,
+  select {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+    background: var(--cor-superficie);
+    min-width: 0;
+  }
+}
+
+.titulo-secao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+.seta-secao {
+  width: 18px;
+  height: 18px;
+  color: var(--cor-texto-suave);
+  transition: transform 0.15s;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+
+  .aberta & {
+    transform: rotate(0deg);
+  }
+}
+
+.selo {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.selo--ativo {
+  background: #e3f6ea;
+  color: #1c7a3e;
+}
+
+.selo--pendente {
+  background: #fdf1dc;
+  color: #8a4b08;
+}
+
+.conteudo-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ajuda {
+  margin: -6px 0 0;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.ajuda--secao {
+  margin-top: -8px;
+}
+
+.ajuda--aviso {
+  color: #8a4b08;
+}
+
+.lista-status {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.88rem;
+}
+
+.grupo-data {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1.2fr;
+  gap: 8px;
+
+  legend {
+    padding: 0;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+}
+
+.linha-campos {
+  display: flex;
+  gap: 12px;
+
+  .campo-curto {
+    flex: 0 0 150px;
+    min-width: 0;
+  }
+
+  .campo-largo {
+    flex: 3;
+    min-width: 0;
+  }
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+
+    .campo-curto,
+    .campo-largo {
+      flex: none;
+    }
+  }
+}
+
+.botoes-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .secundario,
+  .primario {
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-weight: 600;
+    font-size: 0.85rem;
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+
+  .secundario {
+    background: transparent;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+  }
+
+  .primario {
+    border: 1px solid transparent;
+    background: var(--cor-primaria);
+    color: #fff;
+  }
+}

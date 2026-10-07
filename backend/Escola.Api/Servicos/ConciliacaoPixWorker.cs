@@ -1,37 +1,46 @@
+using Escola.Domain.Enums;
 using Escola.Infrastructure.Clientes;
+using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Pagamentos;
+using Escola.Infrastructure.Pagamentos.Asaas;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Escola.Api.Servicos;
 
-/// <summary>Pergunta ao banco, de tempos em tempos, se as cobranças Pix abertas foram pagas e dá baixa. É o que faz a baixa
-/// automática funcionar <b>sem precisar de um endereço público</b> pro webhook (e cobre o caso do webhook falhar). Só é
-/// registrado quando a integração com o banco está configurada.</summary>
-public sealed class ConciliacaoPixWorker(IServiceScopeFactory escopos, IOptions<OpcoesPixBb> opcoes, ILogger<ConciliacaoPixWorker> logger) : BackgroundService
+/// <summary>Pergunta periodicamente aos provedores (Asaas, BB) pelas cobranças Pix ainda abertas e dá baixa nas pagas — o caminho
+/// principal da baixa automática (funciona sem endereço público; o webhook só acelera). Roda <b>escola por escola</b>, cada uma no
+/// próprio escopo: as que têm subconta Asaas neste ambiente e a dona das credenciais do BB.</summary>
+public sealed class ConciliacaoPixWorker(
+    IServiceScopeFactory escopos,
+    IOptions<OpcoesPixBb> opcoesBb,
+    IOptions<OpcoesAsaas> opcoesAsaas,
+    ILogger<ConciliacaoPixWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken parada)
     {
-        var intervalo = TimeSpan.FromSeconds(Math.Max(10, opcoes.Value.IntervaloConciliacaoSegundos));
-        logger.LogInformation("Conciliação de Pix ativa: consultando o banco a cada {Segundos}s.", (int)intervalo.TotalSeconds);
+        var intervalo = TimeSpan.FromSeconds(Math.Max(10, opcoesBb.Value.IntervaloConciliacaoSegundos));
+        logger.LogInformation("Conciliação de Pix ativa: consultando os provedores a cada {Segundos}s.", (int)intervalo.TotalSeconds);
 
         using var relogio = new PeriodicTimer(intervalo);
         try
         {
             while (await relogio.WaitForNextTickAsync(parada))
             {
-                try
+                foreach (var cliente in await ClientesComPixAutomaticoAsync(parada))
                 {
-                    await using var escopo = escopos.CreateAsyncScope();
-                    // As credenciais do BB pertencem a um cliente só (OpcoesPixBb.ClienteId): a conciliação roda no escopo dele.
-                    escopo.ServiceProvider.GetRequiredService<ClienteAtual>().Definir(opcoes.Value.ClienteId!.Value);
-                    var servico = escopo.ServiceProvider.GetRequiredService<IPixAutomaticoService>();
-                    var baixas = await servico.ConciliarPendentesAsync(parada);
-                    if (baixas > 0) logger.LogInformation("Conciliação de Pix: {Baixas} cobrança(s) paga(s) e baixada(s).", baixas);
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    // Uma rodada com erro (banco fora do ar, etc.) não pode derrubar o serviço: tenta de novo no próximo ciclo.
-                    logger.LogError(ex, "Falha na rodada de conciliação de Pix.");
+                    try
+                    {
+                        await using var escopo = escopos.CreateAsyncScope();
+                        escopo.ServiceProvider.GetRequiredService<ClienteAtual>().Definir(cliente);
+                        var baixas = await escopo.ServiceProvider.GetRequiredService<IPixAutomaticoService>().ConciliarPendentesAsync(parada);
+                        if (baixas > 0) logger.LogInformation("Conciliação de Pix (cliente {Cliente}): {Baixas} cobrança(s) paga(s) e baixada(s).", cliente, baixas);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        // Uma escola com problema (provedor fora do ar, chave inválida) não pode travar as outras.
+                        logger.LogError(ex, "Falha na conciliação de Pix do cliente {Cliente}.", cliente);
+                    }
                 }
             }
         }
@@ -39,5 +48,23 @@ public sealed class ConciliacaoPixWorker(IServiceScopeFactory escopos, IOptions<
         {
             // Encerrando a aplicação.
         }
+    }
+
+    private async Task<List<Guid>> ClientesComPixAutomaticoAsync(CancellationToken ct)
+    {
+        await using var escopo = escopos.CreateAsyncScope();
+        var db = escopo.ServiceProvider.GetRequiredService<EscolaDbContext>();
+
+        var clientes = new HashSet<Guid>();
+        if (opcoesAsaas.Value.Configurado)
+        {
+            var ambiente = opcoesAsaas.Value.NomeAmbiente;
+            clientes.UnionWith(await db.ContasPagamento.IgnoreQueryFilters()
+                .Where(c => c.Provedor == ProvedorPagamento.Asaas && c.Ambiente == ambiente)
+                .Select(c => EF.Property<Guid>(c, EscolaDbContext.ColunaCliente))
+                .ToListAsync(ct));
+        }
+        if (opcoesBb.Value.Configurado && opcoesBb.Value.ClienteId is { } doBb) clientes.Add(doBb);
+        return [.. clientes];
     }
 }

@@ -3,6 +3,7 @@ import { DIAS_AVISO_ATESTADO, rotuloAtestado, situacaoAtestado } from './atestad
 import { formatarQuantidade, formatarTamanho } from '../shared/numero-utils';
 import { resultadoDoJogo } from './competicao.model';
 import { FALTAS_SEGUIDAS_PARA_ALERTA } from './presenca.model';
+import { rotuloSituacaoGateway } from './pagamento.model';
 
 describe('resultadoDoJogo', () => {
   it('sai do placar e só existe em jogo realizado', () => {
@@ -57,5 +58,14 @@ describe('situação do atestado médico', () => {
   it('sem data é "sem atestado", não vencido', () => {
     expect(situacaoAtestado(null, hoje)).toBe('sem');
     expect(situacaoAtestado(undefined, hoje)).toBe('sem');
+  });
+});
+
+describe('situação da conta de pagamento', () => {
+  it('traduz as situações do gateway e mantém as desconhecidas', () => {
+    expect(rotuloSituacaoGateway('APPROVED')).toBe('Aprovada');
+    expect(rotuloSituacaoGateway('awaiting_approval')).toBe('Em análise pelo gateway');
+    expect(rotuloSituacaoGateway(null)).toBe('Ainda não consultada');
+    expect(rotuloSituacaoGateway('OUTRA')).toBe('OUTRA');
   });
 });

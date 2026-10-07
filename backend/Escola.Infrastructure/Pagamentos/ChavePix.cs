@@ -92,7 +92,8 @@ public static class ChavePix
 
     private static string SoDigitos(string texto) => new(texto.Where(char.IsDigit).ToArray());
 
-    private static bool CpfValido(string cpf)
+    /// <summary>CPF com dígitos verificadores corretos (só dígitos, 11 caracteres).</summary>
+    public static bool CpfValido(string cpf)
     {
         if (cpf.Distinct().Count() == 1) return false;
 
@@ -106,7 +107,8 @@ public static class ChavePix
         return true;
     }
 
-    private static bool CnpjValido(string cnpj)
+    /// <summary>CNPJ com dígitos verificadores corretos (só dígitos, 14 caracteres).</summary>
+    public static bool CnpjValido(string cnpj)
     {
         if (cnpj.Distinct().Count() == 1) return false;
 
