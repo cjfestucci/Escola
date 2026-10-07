@@ -23,7 +23,8 @@
   }
 
   input[type='text'],
-  input[type='number'] {
+  input[type='number'],
+  textarea {
     font-family: inherit;
     font-size: 1rem;
     padding: 9px 10px;
@@ -32,6 +33,17 @@
     color: var(--cor-texto);
   }
 
+  textarea {
+    resize: vertical;
+  }
+
+  label.linha-checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--cor-texto);
+  }
 }
 
 .titulo-secao {
@@ -182,4 +194,8 @@
       opacity: 0.6;
     }
   }
+}
+
+.ajuda--aviso {
+  color: #8a4b08;
 }

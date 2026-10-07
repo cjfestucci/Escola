@@ -74,6 +74,7 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
   readonly historicoAberto = signal(false);
   // Seções recolhíveis: a primeira abre expandida, as demais minimizadas.
   readonly pixAberto = signal(true);
+  readonly formasAberto = signal(false);
   readonly bloqueioAberto = signal(false);
   readonly mensalidadesAberto = signal(false);
   readonly pixAutomaticoAberto = signal(false);
@@ -90,6 +91,14 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
   diaVencimentoMensalidade: number | null = 10;
   multaAtrasoPercentual: number | null = null;
   jurosMensaisPercentual: number | null = null;
+  pagamentoPixAtivo = true;
+  pagamentoBoletoAtivo = false;
+  pagamentoPresencialAtivo = false;
+  instrucoesPagamentoPresencial = '';
+
+  get configuracaoPixCompleta(): boolean {
+    return !!this.pixChave.trim() && !!this.pixNomeRecebedor.trim() && !!this.pixCidade.trim();
+  }
 
   get tipoSelecionado(): OpcaoTipoChave | undefined {
     return TIPOS_CHAVE.find((t) => t.valor === this.tipoChave);
@@ -108,6 +117,10 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
         this.diaVencimentoMensalidade = config.diaVencimentoMensalidade;
         this.multaAtrasoPercentual = config.multaAtrasoPercentual;
         this.jurosMensaisPercentual = config.jurosMensaisPercentual;
+        this.pagamentoPixAtivo = config.pagamentoPixAtivo;
+        this.pagamentoBoletoAtivo = config.pagamentoBoletoAtivo;
+        this.pagamentoPresencialAtivo = config.pagamentoPresencialAtivo;
+        this.instrucoesPagamentoPresencial = config.instrucoesPagamentoPresencial ?? '';
         this.configuracaoId.set(config.id);
         this.carregando.set(false);
       },
@@ -155,6 +168,12 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
       return;
     }
 
+    if (!this.pagamentoPixAtivo && !this.pagamentoBoletoAtivo && !this.pagamentoPresencialAtivo) {
+      this.formasAberto.set(true);
+      this.notificacao.erro('Deixe ao menos uma forma de pagamento ativa.');
+      return;
+    }
+
     this.salvando.set(true);
     this.financeiroService
       .editarConfiguracao({
@@ -165,7 +184,11 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
         diasParaBloqueio: dias,
         diaVencimentoMensalidade: dia,
         multaAtrasoPercentual: multa,
-        jurosMensaisPercentual: juros
+        jurosMensaisPercentual: juros,
+        pagamentoPixAtivo: this.pagamentoPixAtivo,
+        pagamentoBoletoAtivo: this.pagamentoBoletoAtivo,
+        pagamentoPresencialAtivo: this.pagamentoPresencialAtivo,
+        instrucoesPagamentoPresencial: this.pagamentoPresencialAtivo ? this.instrucoesPagamentoPresencial.trim() || null : null
       })
       .subscribe({
         next: (config) => {
@@ -173,13 +196,14 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
           // O backend devolve a chave já normalizada (ex.: telefone com +55) — mostra exatamente o que foi guardado.
           this.pixChave = config.pixChave ?? '';
           this.configuracaoId.set(config.id);
-          this.notificacao.sucesso('Configuração Pix salva com sucesso.');
+          this.notificacao.sucesso('Configuração financeira salva com sucesso.');
         },
         error: (resposta) => {
           this.salvando.set(false);
           // O erro do backend pode ser de qualquer seção (ex.: chave Pix inválida) — abre a que provavelmente o causou.
           const mensagem = typeof resposta.error === 'string' ? resposta.error.toLowerCase() : '';
-          if (/vencimento|multa|juros/.test(mensagem)) this.mensalidadesAberto.set(true);
+          if (mensagem.includes('forma de pagamento') || mensagem.includes('instruções')) this.formasAberto.set(true);
+          else           if (/vencimento|multa|juros/.test(mensagem)) this.mensalidadesAberto.set(true);
           else if (mensagem.includes('dias')) this.bloqueioAberto.set(true);
           else this.pixAberto.set(true);
           this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a configuração.');

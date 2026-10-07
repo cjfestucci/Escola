@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { Aluno, Turma } from '../../models/aluno.model';
-import { Cobranca, PreviaMensalidades } from '../../models/cobranca.model';
+import { Cobranca, PreviaMensalidades, FormasPagamento } from '../../models/cobranca.model';
 import { AlunoService } from '../../services/aluno.service';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -172,7 +172,11 @@ export class FinanceiroListaComponent implements OnInit {
     });
   }
 
+  /** Formas de pagamento ativas na escola: só elas são oferecidas (nulo até carregar, pra não piscar uma opção desligada). */
+  readonly formas = signal<FormasPagamento | null>(null);
+
   ngOnInit(): void {
+    this.financeiroService.formasPagamento().subscribe({ next: (f) => this.formas.set(f), error: () => undefined });
     // Atalhos do Dashboard abrem a lista já filtrada (ex.: /financeiro/mensalidades?status=atrasado).
     const status = this.route.snapshot.queryParamMap.get('status');
     if (status === 'pendente' || status === 'pago' || status === 'atrasado' || status === 'cancelada') this.filtroStatus.set(status);

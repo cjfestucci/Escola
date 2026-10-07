@@ -185,3 +185,13 @@ button {
   border-color: #f5c2bf;
   color: #8c1d18;
 }
+
+/* Portal: aviso do pagamento na escola (forma de pagamento presencial ativa em Configurações → Financeiro). */
+.aviso-pagamento-presencial {
+  background: var(--cor-primaria-clara);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+  color: var(--cor-texto);
+}

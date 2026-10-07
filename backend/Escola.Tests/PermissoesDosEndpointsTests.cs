@@ -112,7 +112,7 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
         // dentro da ação; todo o resto que ele alcança tem que ser só o portal (/api/portal/*, ex.: o termo de matrícula).
         var alcance = Endpoints.Where(e => !e.Anonimo && e.Permite("Responsavel")).Select(e => e.Rota).ToList();
         var forasDoPortal = alcance.Where(r => !r.StartsWith("/api/alunos/") && !r.StartsWith("/api/responsaveis/")
-            && !r.StartsWith("/api/turmas/") && !r.StartsWith("/api/financeiro/cobrancas/") && !r.StartsWith("/api/logs")
+            && !r.StartsWith("/api/turmas/") && !r.StartsWith("/api/financeiro/cobrancas/") && r != "/api/financeiro/formas-pagamento" && !r.StartsWith("/api/logs")
             && !r.StartsWith("/api/portal/")).ToList();
         foreach (var r in forasDoPortal) saida.WriteLine(r);
 

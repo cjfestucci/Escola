@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { Aluno } from '../../models/aluno.model';
-import { Cobranca } from '../../models/cobranca.model';
+import { Cobranca, FormasPagamento } from '../../models/cobranca.model';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { ResponsavelService } from '../../services/responsavel.service';
@@ -88,7 +88,11 @@ export class PortalFinanceiroComponent implements OnInit {
     };
   });
 
+  /** Formas de pagamento ativas na escola: só elas são oferecidas (nulo até carregar, pra não piscar uma opção desligada). */
+  readonly formas = signal<FormasPagamento | null>(null);
+
   ngOnInit(): void {
+    this.financeiroService.formasPagamento().subscribe({ next: (f) => this.formas.set(f), error: () => undefined });
     const responsavelId = this.sessao.responsavelId();
     if (!responsavelId) {
       this.router.navigateByUrl('/portal');

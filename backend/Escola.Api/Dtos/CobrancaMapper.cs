@@ -40,7 +40,18 @@ public static class CobrancaMapper
         !string.IsNullOrWhiteSpace(c.PixChave) && !string.IsNullOrWhiteSpace(c.PixNomeRecebedor) && !string.IsNullOrWhiteSpace(c.PixCidade),
         c.DiaVencimentoMensalidade,
         c.MultaAtrasoPercentual,
-        c.JurosMensaisPercentual);
+        c.JurosMensaisPercentual,
+        c.PagamentoPixAtivo,
+        c.PagamentoBoletoAtivo,
+        c.PagamentoPresencialAtivo,
+        c.InstrucoesPagamentoPresencial);
+
+    /// <summary>Sem configuração salva vale o padrão da entidade (só Pix).</summary>
+    public static FormasPagamentoDto ToFormasPagamento(this ConfiguracaoFinanceira? c)
+    {
+        c ??= new ConfiguracaoFinanceira();
+        return new(c.PagamentoPixAtivo, c.PagamentoBoletoAtivo, c.PagamentoPresencialAtivo, c.PagamentoPresencialAtivo ? c.InstrucoesPagamentoPresencial : null);
+    }
 
     public static EncargosCobranca.Politica ToPolitica(this ConfiguracaoFinanceira? c) =>
         c is null ? EncargosCobranca.Politica.Nenhuma : new(c.MultaAtrasoPercentual, c.JurosMensaisPercentual);

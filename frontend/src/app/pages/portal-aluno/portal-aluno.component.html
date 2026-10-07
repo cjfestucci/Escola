@@ -238,6 +238,9 @@
 
     @if (mostrarFinanceiro()) {
       <div class="painel-ficha-saude">
+        @if (formas()?.presencial) {
+          <p class="aviso-pagamento-presencial">💵 <strong>Pagamento na escola:</strong> {{ formas()?.instrucoesPresencial || 'Também é possível pagar diretamente na escola.' }}</p>
+    }
         @for (cobranca of cobrancas(); track cobranca.id) {
           <div class="linha-cobranca">
             <div>
@@ -253,8 +256,11 @@
               } @else {
                 <span class="status status--pendente">Pendente</span>
               }
-              @if (!cobranca.paga) {
+              @if (!cobranca.paga && !cobranca.cancelada && formas()?.pix) {
                 <button type="button" class="botao-pix" (click)="abrirPix(cobranca)">Copiar código Pix</button>
+              }
+              @if (!cobranca.paga && !cobranca.cancelada && formas()?.boleto) {
+                <button type="button" class="botao-boleto" disabled title="Geração de boleto ainda não disponível — em breve">Boleto (em breve)</button>
               }
             </div>
           </div>

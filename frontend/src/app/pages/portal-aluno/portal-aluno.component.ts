@@ -3,7 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
-import { Cobranca } from '../../models/cobranca.model';
+import { Cobranca, FormasPagamento } from '../../models/cobranca.model';
 import { RegistroDiarioClasse } from '../../models/diario-classe.model';
 import { CampeonatoFamilia, JogosCampeonatoDoAluno, LocalJogo, JogosDoAluno, ROTULOS_MANDO, ROTULOS_RESULTADO, resultadoDoJogo } from '../../models/competicao.model';
 import { rotuloAtestado, situacaoAtestado } from '../../models/atestado.model';
@@ -166,7 +166,11 @@ export class PortalAlunoComponent implements OnInit {
   protected readonly hojeIso = hojeIso;
   protected readonly formatarDataAbsoluta = formatarDataAbsoluta;
 
+  /** Formas de pagamento ativas na escola: só elas são oferecidas (nulo até carregar, pra não piscar uma opção desligada). */
+  readonly formas = signal<FormasPagamento | null>(null);
+
   ngOnInit(): void {
+    this.financeiroService.formasPagamento().subscribe({ next: (f) => this.formas.set(f), error: () => undefined });
     if (!this.sessao.responsavelId()) {
       this.router.navigateByUrl('/portal');
       return;

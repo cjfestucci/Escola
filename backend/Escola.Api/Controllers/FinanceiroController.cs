@@ -1,3 +1,4 @@
+using System.Net;
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
@@ -190,6 +191,8 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         }
 
         var config = await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync();
+        if (config is { PagamentoPixAtivo: false })
+            return BadRequest("O pagamento por Pix não está habilitado nesta escola.");
         if (config is null || string.IsNullOrWhiteSpace(config.PixChave) || string.IsNullOrWhiteSpace(config.PixNomeRecebedor) || string.IsNullOrWhiteSpace(config.PixCidade))
             return BadRequest("A chave Pix da escola ainda não foi configurada.");
 
@@ -223,10 +226,14 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         var encargos = EncargosCobranca.Calcular(cobranca.Valor, cobranca.Vencimento, await relogio.HojeAsync(), cobranca.Paga, cobranca.Cancelada, config.ToPolitica());
         var valorAtualizado = cobranca.Valor + encargos.Total;
         string? codigoPix = null;
-        if (config is not null && !string.IsNullOrWhiteSpace(config.PixChave) && !string.IsNullOrWhiteSpace(config.PixNomeRecebedor) && !string.IsNullOrWhiteSpace(config.PixCidade))
+        // Só oferece no e-mail as formas de pagamento ativas: sem Pix ativo, não vai código Pix.
+        if (config is { PagamentoPixAtivo: true } && !string.IsNullOrWhiteSpace(config.PixChave) && !string.IsNullOrWhiteSpace(config.PixNomeRecebedor) && !string.IsNullOrWhiteSpace(config.PixCidade))
             codigoPix = (await GerarCodigoPixAsync(cobranca, config, valorAtualizado)).Codigo;
+        var instrucoesPresencial = config is { PagamentoPresencialAtivo: true }
+            ? (string.IsNullOrWhiteSpace(config.InstrucoesPagamentoPresencial) ? "Pagamento também pode ser feito na escola." : config.InstrucoesPagamentoPresencial)
+            : null;
 
-        var corpo = MontarCorpoEmail(cobranca, codigoPix, valorAtualizado, encargos.Total);
+        var corpo = MontarCorpoEmail(cobranca, codigoPix, valorAtualizado, encargos.Total, instrucoesPresencial);
 
         foreach (var responsavel in destinatarios)
             await emailSender.EnviarAsync(responsavel.Email, responsavel.Nome, $"Cobrança — {cobranca.Descricao}", corpo);
@@ -279,6 +286,25 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             db.ConfiguracoesFinanceiras.Add(config);
         }
 
+        // Formas de pagamento: o que não vier no request mantém o valor atual (cliente antigo da tela não desliga nada sem querer).
+        var pixAtivo = request.PagamentoPixAtivo ?? config.PagamentoPixAtivo;
+        var boletoAtivo = request.PagamentoBoletoAtivo ?? config.PagamentoBoletoAtivo;
+        var presencialAtivo = request.PagamentoPresencialAtivo ?? config.PagamentoPresencialAtivo;
+        if (!pixAtivo && !boletoAtivo && !presencialAtivo)
+            return BadRequest("Deixe ao menos uma forma de pagamento ativa.");
+        var instrucoes = string.IsNullOrWhiteSpace(request.InstrucoesPagamentoPresencial) ? null : request.InstrucoesPagamentoPresencial.Trim();
+        if (instrucoes is { Length: > 500 })
+            return BadRequest("As instruções do pagamento na escola podem ter no máximo 500 caracteres.");
+
+        var pixAtivoAntes = config.PagamentoPixAtivo;
+        var boletoAtivoAntes = config.PagamentoBoletoAtivo;
+        var presencialAtivoAntes = config.PagamentoPresencialAtivo;
+        var instrucoesAntes = config.InstrucoesPagamentoPresencial;
+        config.PagamentoPixAtivo = pixAtivo;
+        config.PagamentoBoletoAtivo = boletoAtivo;
+        config.PagamentoPresencialAtivo = presencialAtivo;
+        config.InstrucoesPagamentoPresencial = instrucoes;
+
         var tipoAntes = config.PixTipoChave?.ToString();
         var chaveAntes = config.PixChave;
         var nomeAntes = config.PixNomeRecebedor;
@@ -307,7 +333,11 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             ("Dias para bloqueio", diasBloqueioAntes, config.DiasParaBloqueio),
             ("Dia de vencimento das mensalidades", diaVencimentoAntes, config.DiaVencimentoMensalidade),
             ("Multa por atraso (%)", multaAntes, config.MultaAtrasoPercentual),
-            ("Juros mensais por atraso (%)", jurosAntes, config.JurosMensaisPercentual));
+            ("Juros mensais por atraso (%)", jurosAntes, config.JurosMensaisPercentual),
+            ("Pagamento por Pix", pixAtivoAntes, config.PagamentoPixAtivo),
+            ("Pagamento por boleto", boletoAtivoAntes, config.PagamentoBoletoAtivo),
+            ("Pagamento na escola", presencialAtivoAntes, config.PagamentoPresencialAtivo),
+            ("Instruções do pagamento na escola", instrucoesAntes, config.InstrucoesPagamentoPresencial));
 
         // Salvar sem mudar nada não vira entrada de histórico (só poluiria a trilha).
         if (criando || detalhe is not null)
@@ -316,6 +346,13 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
 
         return Ok(config.ToDto());
     }
+
+    /// <summary>Formas de pagamento ativas — o portal e a tela de mensalidades só mostram essas opções. Sem segredo (não traz a chave
+    /// Pix), por isso aberto à Equipe e ao Responsável.</summary>
+    [HttpGet("formas-pagamento")]
+    [Authorize(Roles = $"{GruposDePapeis.Equipe},{GruposDePapeis.Responsavel}")]
+    public async Task<ActionResult<FormasPagamentoDto>> FormasPagamento() =>
+        Ok((await db.ConfiguracoesFinanceiras.FirstOrDefaultAsync()).ToFormasPagamento());
 
     /// <summary>Visão do Portal dos Pais: cobranças de um aluno específico. Equipe vê qualquer aluno;
     /// um Responsável só o(s) próprio(s) filho(s).</summary>
@@ -485,14 +522,18 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     private IQueryable<Cobranca> ComIncludes() =>
         db.Cobrancas.Include(c => c.Aluno).ThenInclude(a => a.Turma);
 
-    private static string MontarCorpoEmail(Cobranca cobranca, string? codigoPix, decimal valorAtualizado, decimal encargos)
+    private static string MontarCorpoEmail(Cobranca cobranca, string? codigoPix, decimal valorAtualizado, decimal encargos, string? instrucoesPresencial = null)
     {
         var encargosHtml = encargos > 0
             ? $"<br/>Em atraso — valor atualizado com multa/juros: <strong>R$ {valorAtualizado:N2}</strong>"
             : string.Empty;
 
+        var presencialHtml = instrucoesPresencial is null
+            ? string.Empty
+            : $"<p><strong>Pagamento na escola:</strong> {WebUtility.HtmlEncode(instrucoesPresencial)}</p>";
+
         var pixHtml = codigoPix is null
-            ? "<p>Entre em contato com a escola para combinar o pagamento.</p>"
+            ? (presencialHtml.Length > 0 ? string.Empty : "<p>Entre em contato com a escola para combinar o pagamento.</p>")
             : $"""
                <p>Pague com Pix copiando o código abaixo no app do seu banco:</p>
                <p style="font-family: monospace; word-break: break-all; background: #f3f4f6; padding: 12px; border-radius: 6px;">{codigoPix}</p>
@@ -500,10 +541,11 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
 
         return $"""
                 <p>Olá,</p>
-                <p>Você tem uma cobrança referente a <strong>{cobranca.Descricao}</strong>, aluno(a) <strong>{cobranca.Aluno.Nome}</strong>.</p>
+                <p>Você tem uma cobrança referente a <strong>{WebUtility.HtmlEncode(cobranca.Descricao)}</strong>, aluno(a) <strong>{WebUtility.HtmlEncode(cobranca.Aluno.Nome)}</strong>.</p>
                 <p>Valor: <strong>R$ {cobranca.Valor:F2}</strong><br/>
                 Vencimento: <strong>{cobranca.Vencimento:dd/MM/yyyy}</strong>{encargosHtml}</p>
                 {pixHtml}
+                {presencialHtml}
                 """;
     }
 }

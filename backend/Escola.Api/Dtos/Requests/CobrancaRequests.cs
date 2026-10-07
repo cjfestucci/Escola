@@ -14,7 +14,11 @@ public record EditarConfiguracaoFinanceiraRequest(
     int? DiasParaBloqueio = null,
     int? DiaVencimentoMensalidade = null,
     decimal? MultaAtrasoPercentual = null,
-    decimal? JurosMensaisPercentual = null);
+    decimal? JurosMensaisPercentual = null,
+    bool? PagamentoPixAtivo = null,
+    bool? PagamentoBoletoAtivo = null,
+    bool? PagamentoPresencialAtivo = null,
+    string? InstrucoesPagamentoPresencial = null);
 
 /// <summary>Mensalidades de um mês, pra todas as turmas ou só uma. Usada tanto na pré-visualização quanto na geração.</summary>
 public record GerarMensalidadesRequest(int Ano, int Mes, Guid? TurmaId = null);

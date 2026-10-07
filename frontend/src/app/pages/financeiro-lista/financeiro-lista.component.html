@@ -271,7 +271,7 @@
               >
                 {{ cobranca.paga ? 'Marcar pendente' : 'Marcar paga' }}
               </button>
-              @if (!cobranca.paga) {
+              @if (!cobranca.paga && formas()?.pix) {
                 <button type="button" class="botao-icone" (click)="abrirPix(cobranca)" aria-label="Ver código Pix" title="Ver código Pix">💠</button>
               }
               <button

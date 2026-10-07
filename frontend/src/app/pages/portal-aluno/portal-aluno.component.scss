@@ -520,3 +520,18 @@
   font-size: 0.85rem;
   margin-bottom: 10px;
 }
+.botao-boleto {
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+  opacity: 0.7;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+

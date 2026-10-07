@@ -25,5 +25,19 @@ public class ConfiguracaoFinanceira
 
     /// <summary>Juros por mês de atraso, calculados pro rata por dia (÷30), sobre o valor. Nulo = sem juros.</summary>
     public decimal? JurosMensaisPercentual { get; set; }
+
+    // ----- Formas de pagamento oferecidas à família (desde 2026-10-06). Só aparece no portal/e-mail o que estiver ativo. -----
+
+    /// <summary>Pix (código copia e cola + QR). Ligado por padrão: era a única forma antes desta opção existir.</summary>
+    public bool PagamentoPixAtivo { get; set; } = true;
+
+    /// <summary>Boleto. Ainda não há integração com banco/processadora: quando ativo, aparece pra família como "em breve".</summary>
+    public bool PagamentoBoletoAtivo { get; set; }
+
+    /// <summary>Pagamento na própria escola (dinheiro, cartão na secretaria...). Só informativo: a baixa continua manual.</summary>
+    public bool PagamentoPresencialAtivo { get; set; }
+
+    /// <summary>Texto mostrado à família junto do pagamento presencial (onde, horário, formas aceitas).</summary>
+    public string? InstrucoesPagamentoPresencial { get; set; }
     public DateTime AtualizadoEm { get; set; }
 }

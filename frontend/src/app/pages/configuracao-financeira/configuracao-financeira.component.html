@@ -66,6 +66,55 @@
       <button
         type="button"
         class="titulo-secao"
+        [class.aberta]="formasAberto()"
+        [attr.aria-expanded]="formasAberto()"
+        aria-controls="secao-formas"
+        (click)="formasAberto.set(!formasAberto())"
+      >
+        <span>Formas de pagamento</span>
+        <svg class="seta-secao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      @if (formasAberto()) {
+        <div class="conteudo-secao" id="secao-formas">
+          <p class="ajuda">
+            Escolha como os responsáveis podem pagar. Só as formas marcadas aparecem no Portal dos Pais e no e-mail de cobrança.
+            Deixe ao menos uma marcada.
+          </p>
+          <label class="linha-checkbox">
+            <input type="checkbox" [(ngModel)]="pagamentoPixAtivo" />
+            Pix (código copia e cola e QR Code)
+          </label>
+          @if (pagamentoPixAtivo && !configuracaoPixCompleta) {
+            <p class="ajuda ajuda--aviso">Preencha a chave, o nome e a cidade em "Recebimento por Pix" para o código ser gerado.</p>
+          }
+          <label class="linha-checkbox">
+            <input type="checkbox" [(ngModel)]="pagamentoBoletoAtivo" />
+            Boleto
+          </label>
+          @if (pagamentoBoletoAtivo) {
+            <p class="ajuda ajuda--aviso">A emissão de boleto ainda não está integrada a um banco: a opção aparece para a família como "em breve".</p>
+          }
+          <label class="linha-checkbox">
+            <input type="checkbox" [(ngModel)]="pagamentoPresencialAtivo" />
+            Pagamento na escola (dinheiro, cartão na secretaria…)
+          </label>
+          @if (pagamentoPresencialAtivo) {
+            <label>Instruções para a família (opcional)
+              <textarea [(ngModel)]="instrucoesPagamentoPresencial" rows="2" maxlength="500"
+                placeholder="Ex.: Secretaria, de segunda a sexta, das 8h às 17h. Aceitamos dinheiro e cartão."></textarea>
+            </label>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="painel-formulario">
+      <button
+        type="button"
+        class="titulo-secao"
         [class.aberta]="bloqueioAberto()"
         [attr.aria-expanded]="bloqueioAberto()"
         aria-controls="secao-bloqueio"

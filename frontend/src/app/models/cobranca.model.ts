@@ -48,6 +48,10 @@ export interface ConfiguracaoFinanceira {
   diaVencimentoMensalidade: number;
   multaAtrasoPercentual: number | null;
   jurosMensaisPercentual: number | null;
+  pagamentoPixAtivo: boolean;
+  pagamentoBoletoAtivo: boolean;
+  pagamentoPresencialAtivo: boolean;
+  instrucoesPagamentoPresencial: string | null;
 }
 
 export interface EditarConfiguracaoFinanceira {
@@ -59,6 +63,10 @@ export interface EditarConfiguracaoFinanceira {
   diaVencimentoMensalidade: number;
   multaAtrasoPercentual: number | null;
   jurosMensaisPercentual: number | null;
+  pagamentoPixAtivo: boolean;
+  pagamentoBoletoAtivo: boolean;
+  pagamentoPresencialAtivo: boolean;
+  instrucoesPagamentoPresencial: string | null;
 }
 
 export interface PixCobranca {
@@ -113,4 +121,12 @@ export interface PixAutomaticoStatus {
   intervaloConciliacaoSegundos: number;
   cobrancasAguardando: number;
   pagasAutomaticamente: number;
+}
+
+/** Formas de pagamento ativas (Configurações → Financeiro): o portal e as telas só oferecem estas. */
+export interface FormasPagamento {
+  pix: boolean;
+  boleto: boolean;
+  presencial: boolean;
+  instrucoesPresencial: string | null;
 }

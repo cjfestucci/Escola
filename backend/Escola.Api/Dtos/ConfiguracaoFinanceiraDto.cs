@@ -14,7 +14,14 @@ public record ConfiguracaoFinanceiraDto(
     bool Configurado,
     int DiaVencimentoMensalidade = 10,
     decimal? MultaAtrasoPercentual = null,
-    decimal? JurosMensaisPercentual = null);
+    decimal? JurosMensaisPercentual = null,
+    bool PagamentoPixAtivo = true,
+    bool PagamentoBoletoAtivo = false,
+    bool PagamentoPresencialAtivo = false,
+    string? InstrucoesPagamentoPresencial = null);
+
+/// <summary>O que a família (e a equipe) podem oferecer na hora de pagar. Sem dado sensível: não inclui a chave Pix.</summary>
+public record FormasPagamentoDto(bool Pix, bool Boleto, bool Presencial, string? InstrucoesPresencial);
 
 /// <param name="Automatico">O código foi criado no banco: o pagamento é confirmado e baixado sozinho. Falso = Pix estático (baixa manual).</param>
 public record PixCobrancaDto(string CodigoCopiaECola, bool Automatico = false);

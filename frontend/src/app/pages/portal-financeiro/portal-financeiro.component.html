@@ -57,6 +57,9 @@
   } @else if (cobrancasFiltradas().length === 0) {
     <p class="vazio">Nenhuma cobrança encontrada com esses filtros.</p>
   } @else {
+    @if (formas()?.presencial) {
+      <p class="aviso-pagamento-presencial">💵 <strong>Pagamento na escola:</strong> {{ formas()?.instrucoesPresencial || 'Também é possível pagar diretamente na escola.' }}</p>
+    }
     <ul class="lista-cobrancas">
       @for (cobranca of cobrancasFiltradas(); track cobranca.id) {
         <li class="cartao-cobranca">
@@ -84,11 +87,15 @@
               <span class="status status--pendente">A vencer</span>
             }
 
-            @if (!cobranca.paga) {
-              <button type="button" class="botao-pix" (click)="abrirPix(cobranca)">Pix</button>
-              <button type="button" class="botao-boleto" disabled title="Geração de boleto ainda não disponível — em breve">
-                Boleto (em breve)
-              </button>
+            @if (!cobranca.paga && !cobranca.cancelada) {
+              @if (formas()?.pix) {
+                <button type="button" class="botao-pix" (click)="abrirPix(cobranca)">Pix</button>
+              }
+              @if (formas()?.boleto) {
+                <button type="button" class="botao-boleto" disabled title="Geração de boleto ainda não disponível — em breve">
+                  Boleto (em breve)
+                </button>
+              }
             }
           </div>
 

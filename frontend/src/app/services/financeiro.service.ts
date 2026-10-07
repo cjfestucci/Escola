@@ -9,6 +9,7 @@ import {
   CriarCobranca,
   EditarCobranca,
   EditarConfiguracaoFinanceira,
+  FormasPagamento,
   GeracaoMensalidades,
   PixAutomaticoStatus,
   PixCobranca,
@@ -81,6 +82,11 @@ export class FinanceiroService {
 
   registrarWebhookPix(): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/pix/webhook/registrar`, {});
+  }
+
+  /** Formas de pagamento ativas (sem dado sensível): usado pelo portal e pela tela de mensalidades. */
+  formasPagamento(): Observable<FormasPagamento> {
+    return this.http.get<FormasPagamento>(`${this.baseUrl}/financeiro/formas-pagamento`);
   }
 
   obterConfiguracao(): Observable<ConfiguracaoFinanceira> {
