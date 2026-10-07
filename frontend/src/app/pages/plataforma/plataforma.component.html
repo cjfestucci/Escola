@@ -136,6 +136,30 @@
     </section>
 
     <section class="painel-formulario">
+      <p class="titulo-painel">Fuso horário</p>
+      <label>Fuso horário da escola
+        <select [(ngModel)]="fusoHorario">
+          @for (fuso of fusos; track fuso.valor) {
+            <option [value]="fuso.valor">{{ fuso.rotulo }}</option>
+          }
+        </select>
+      </label>
+      <p class="ajuda">
+        Define quando o dia vira no app: o que aparece como "Hoje" na rotina, no diário e na chamada, a data de pagamento e
+        quando uma cobrança passa a ser atrasada. Os horários dos registros também são mostrados neste fuso, para todos os
+        usuários, onde quer que estejam. Fica no histórico das configurações do cliente.
+      </p>
+      @if (fusoMudou) {
+        <p class="aviso">Trocar o fuso muda o "hoje" de todos os usuários deste cliente a partir do próximo acesso.</p>
+      }
+      <div class="botoes">
+        <button type="button" class="primario" [disabled]="salvandoFuso() || !fusoMudou" (click)="salvarFuso()">
+          {{ salvandoFuso() ? 'Salvando...' : 'Salvar fuso' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="painel-formulario">
       <p class="titulo-painel">Logo da empresa</p>
       <p class="ajuda">Aparece ao lado do nome do app, no menu e na tela de login. PNG, JPEG ou WEBP, até 2MB. Fundo transparente funciona bem.</p>
       <div class="area-logo">

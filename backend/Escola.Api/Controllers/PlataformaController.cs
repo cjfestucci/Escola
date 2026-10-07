@@ -1,4 +1,6 @@
 using Escola.Api.Auth;
+using Escola.Api.Dtos;
+using Escola.Api.Dtos.Requests;
 using Escola.Api.Servicos;
 using Escola.Infrastructure.Auth;
 using Escola.Domain.Entities;
@@ -140,6 +142,37 @@ public class PlataformaController(
         config.AtualizadoEm = DateTime.UtcNow;
         auditoria.Registrar(nameof(ConfiguracaoEscola), config.Id, criando ? AcaoAuditoria.Criado : AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
+    }
+
+    /// <summary>Fuso horário da escola: define quando o dia vira no app inteiro (o "hoje" da rotina, da chamada, atrasos, vencimentos).
+    /// Só o Suporte muda (saiu de Configurações → Geral em 2026-10-06: trocar o fuso no meio da vida mexe em datas de tudo). Fica no
+    /// histórico da Configuração Geral.</summary>
+    [HttpPut("fuso")]
+    public async Task<ActionResult<ConfiguracaoEscolaDto>> EditarFuso(EditarFusoHorarioRequest request)
+    {
+        var fusoNovo = request.FusoHorario?.Trim();
+        if (!RelogioEscola.FusoValido(fusoNovo))
+            return BadRequest("Fuso horário inválido.");
+
+        var config = await db.ConfiguracoesEscola.FirstOrDefaultAsync();
+        var criando = config is null;
+        if (config is null)
+        {
+            config = new ConfiguracaoEscola { Id = Guid.NewGuid(), FusoHorario = RelogioEscola.FusoPadrao };
+            db.ConfiguracoesEscola.Add(config);
+        }
+
+        var fusoAntes = config.FusoHorario;
+        config.FusoHorario = fusoNovo!;
+        config.AtualizadoEm = DateTime.UtcNow;
+
+        var detalhe = AuditoriaDetalhe.MontarAlteracoes(("Fuso horário", fusoAntes, config.FusoHorario));
+        if (criando || detalhe is not null)
+            auditoria.Registrar(nameof(ConfiguracaoEscola), config.Id, criando ? AcaoAuditoria.Criado : AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
+        await db.SaveChangesAsync();
+
+        var segmento = await db.Clientes.Where(c => c.Id == clienteAtual.Id).Select(c => c.Segmento).FirstOrDefaultAsync();
+        return Ok(new ConfiguracaoEscolaDto(config.Id, config.FusoHorario, config.CorPrincipal, segmento, config.LogoUrl));
     }
 
     // ----- Administradores da escola (convite por e-mail) -----

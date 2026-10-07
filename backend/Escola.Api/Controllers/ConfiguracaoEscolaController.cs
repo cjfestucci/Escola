@@ -39,10 +39,6 @@ public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService 
     [Authorize(Roles = GruposDePapeis.GestaoOuSuporte)]
     public async Task<ActionResult<ConfiguracaoEscolaDto>> Editar(EditarConfiguracaoEscolaRequest request)
     {
-        var fusoNovo = request.FusoHorario?.Trim();
-        if (!RelogioEscola.FusoValido(fusoNovo))
-            return BadRequest("Fuso horário inválido.");
-
         var corNova = CorPrincipal.Normalizar(request.CorPrincipal);
         if (corNova is not null)
         {
@@ -60,16 +56,13 @@ public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService 
             db.ConfiguracoesEscola.Add(config);
         }
 
-        var fusoAntes = config.FusoHorario;
+        // O fuso horário não é editado aqui (é do Suporte, na tela Plataforma): só a cor muda.
         var corAntes = config.CorPrincipal;
-        config.FusoHorario = fusoNovo!;
         config.CorPrincipal = corNova;
         config.AtualizadoEm = DateTime.UtcNow;
 
         auditoria.Registrar(nameof(ConfiguracaoEscola), config.Id, criando ? AcaoAuditoria.Criado : AcaoAuditoria.Editado, this.UsuarioIdAtual(),
-            AuditoriaDetalhe.MontarAlteracoes(
-                ("Fuso horário", fusoAntes, config.FusoHorario),
-                ("Cor principal", corAntes ?? "padrão", config.CorPrincipal ?? "padrão")));
+            AuditoriaDetalhe.MontarAlteracoes(("Cor principal", corAntes ?? "padrão", config.CorPrincipal ?? "padrão")));
         await db.SaveChangesAsync();
 
         return Ok(new ConfiguracaoEscolaDto(config.Id, config.FusoHorario, config.CorPrincipal, await SegmentoAtualAsync(), config.LogoUrl));

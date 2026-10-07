@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { AdminEscola, ClientePlataforma, DiagnosticoPlataforma, ROTULOS_SEGMENTO, ResultadoEnvioAdmin, SegmentoCliente } from '../../models/plataforma.model';
+import { FUSOS_HORARIOS } from '../../models/configuracao-escola.model';
 import { ConfiguracaoEscolaService } from '../../services/configuracao-escola.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { PlataformaService } from '../../services/plataforma.service';
@@ -52,7 +53,43 @@ export class PlataformaComponent implements OnInit {
 
   protected readonly segmentos = (Object.keys(ROTULOS_SEGMENTO) as SegmentoCliente[]).map((valor) => ({ valor, rotulo: ROTULOS_SEGMENTO[valor] }));
 
+  // Fuso horário (só o Suporte muda; saiu de Configurações → Geral)
+  fusoHorario = '';
+  private fusoSalvo = '';
+  fusos = FUSOS_HORARIOS;
+  readonly salvandoFuso = signal(false);
+
+  get fusoMudou(): boolean {
+    return !!this.fusoHorario && this.fusoHorario !== this.fusoSalvo;
+  }
+
+  salvarFuso(): void {
+    this.salvandoFuso.set(true);
+    this.configuracaoEscolaService.editarFuso(this.fusoHorario).subscribe({
+      next: (config) => {
+        this.aplicarFuso(config.fusoHorario);
+        this.salvandoFuso.set(false);
+        this.notificacao.sucesso('Fuso horário salvo.');
+      },
+      error: (resposta) => {
+        this.salvandoFuso.set(false);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar o fuso horário.');
+      }
+    });
+  }
+
+  private aplicarFuso(fuso: string): void {
+    this.fusoHorario = fuso;
+    this.fusoSalvo = fuso;
+    // Fuso salvo por fora da lista (ex.: direto na API) continua aparecendo como opção
+    if (!this.fusos.some((f) => f.valor === fuso)) this.fusos = [...this.fusos, { valor: fuso, rotulo: fuso }];
+  }
+
   ngOnInit(): void {
+    this.configuracaoEscolaService.obter().subscribe({
+      next: (config) => this.aplicarFuso(config.fusoHorario),
+      error: () => this.notificacao.erro('Não foi possível carregar o fuso horário.')
+    });
     this.plataformaService.obterCliente().subscribe({
       next: (cliente) => {
         this.aplicar(cliente);

@@ -10,19 +10,6 @@
     <p>Carregando...</p>
   } @else {
     <div class="painel-formulario">
-      <label>Fuso horário
-        <select [(ngModel)]="fusoHorario">
-          @for (fuso of fusos; track fuso.valor) {
-            <option [value]="fuso.valor">{{ fuso.rotulo }}</option>
-          }
-        </select>
-      </label>
-      <p class="ajuda">
-        Define quando o dia vira no app: o que aparece como "Hoje" na rotina e no diário, a data de pagamento e
-        quando uma cobrança passa a ser atrasada. Os horários dos registros também são mostrados neste fuso, para
-        todos os usuários, onde quer que estejam.
-      </p>
-
       <div class="campo-cor">
         <span class="rotulo-campo" id="rotulo-cor">Cor principal</span>
         <div class="cores" role="radiogroup" aria-labelledby="rotulo-cor">

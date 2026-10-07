@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { FUSOS_HORARIOS } from '../../models/configuracao-escola.model';
 import { ConfiguracaoEscolaService } from '../../services/configuracao-escola.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
@@ -22,9 +21,6 @@ export class ConfiguracaoGeralComponent implements OnInit, OnDestroy {
   readonly configuracaoId = signal<string | null>(null);
   readonly historicoAberto = signal(false);
 
-  fusoHorario = '';
-  fusos = FUSOS_HORARIOS;
-
   protected readonly coresSugeridas = CORES_SUGERIDAS;
   protected readonly corPadrao = COR_PADRAO;
 
@@ -41,15 +37,10 @@ export class ConfiguracaoGeralComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.configuracaoService.obter().subscribe({
       next: (config) => {
-        this.fusoHorario = config.fusoHorario;
         this.configuracaoId.set(config.id);
         this.corSalva = config.corPrincipal;
         this.corEscolhida.set(config.corPrincipal);
         this.corTexto.set(config.corPrincipal ?? '');
-        // Fuso salvo por fora da lista (ex.: direto na API) continua aparecendo como opção
-        if (!this.fusos.some((f) => f.valor === config.fusoHorario)) {
-          this.fusos = [...this.fusos, { valor: config.fusoHorario, rotulo: config.fusoHorario }];
-        }
         this.carregando.set(false);
       },
       error: () => {
@@ -94,7 +85,7 @@ export class ConfiguracaoGeralComponent implements OnInit, OnDestroy {
     }
 
     this.salvando.set(true);
-    this.configuracaoService.editar(this.fusoHorario, this.corEscolhida()).subscribe({
+    this.configuracaoService.editar(this.corEscolhida()).subscribe({
       next: (config) => {
         this.configuracaoId.set(config.id);
         this.corSalva = config.corPrincipal;

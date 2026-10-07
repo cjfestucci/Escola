@@ -35,9 +35,17 @@ export class ConfiguracaoEscolaService {
     return this.http.get<ConfiguracaoEscola>(`${this.baseUrl}/configuracao/escola`).pipe(tap((config) => this.aplicar(config)));
   }
 
-  editar(fusoHorario: string, corPrincipal: string | null): Observable<ConfiguracaoEscola> {
+  /** Configurações → Geral (Gestão): só a cor. O fuso é do Suporte, na Plataforma ({@link editarFuso}). */
+  editar(corPrincipal: string | null): Observable<ConfiguracaoEscola> {
     return this.http
-      .put<ConfiguracaoEscola>(`${this.baseUrl}/configuracao/escola`, { fusoHorario, corPrincipal })
+      .put<ConfiguracaoEscola>(`${this.baseUrl}/configuracao/escola`, { corPrincipal })
+      .pipe(tap((config) => this.aplicar(config)));
+  }
+
+  /** Tela Plataforma (só Suporte): troca o fuso horário da escola e já aplica no app. */
+  editarFuso(fusoHorario: string): Observable<ConfiguracaoEscola> {
+    return this.http
+      .put<ConfiguracaoEscola>(`${this.baseUrl}/plataforma/fuso`, { fusoHorario })
       .pipe(tap((config) => this.aplicar(config)));
   }
 
