@@ -2,12 +2,18 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 
+import { AssinaturaService } from './assinatura.service';
 import { AuthService } from './auth.service';
 import { SegmentoService } from './segmento.service';
 import { TermoService } from './termo.service';
 
 /** Pra onde mandar quem tentou entrar numa área que não é dele. O Suporte (equipe do produto) nunca vai pras telas do
  * cliente — sua casa é a Plataforma; o Responsável vai pro portal; o resto da equipe, pra rotina. */
+/** Assinatura do clube suspensa/pendente: o Admin só usa a tela da assinatura (a API responderia 402 em tudo). */
+function bloqueioDaAssinatura(): string | null {
+  return inject(AssinaturaService).bloqueada() ? '/configuracoes/assinatura' : null;
+}
+
 function destinoSemAcesso(auth: AuthService): string {
   if (!auth.estaLogado()) return '/entrar';
   if (auth.ehSuporte()) return '/plataforma';
@@ -31,6 +37,8 @@ export const redirecionamentoInicialGuard: CanActivateFn = () => {
 export const equipeGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
+  const bloqueio = bloqueioDaAssinatura();
+  if (bloqueio) return router.parseUrl(bloqueio);
 
   if (auth.ehEquipe()) return true;
   return router.parseUrl(destinoSemAcesso(auth));
@@ -39,6 +47,8 @@ export const equipeGuard: CanActivateFn = () => {
 export const gestaoGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
+  const bloqueio = bloqueioDaAssinatura();
+  if (bloqueio) return router.parseUrl(bloqueio);
 
   if (auth.ehGestao()) return true;
   return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
@@ -48,6 +58,8 @@ export const gestaoGuard: CanActivateFn = () => {
 export const configuracaoGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
+  const bloqueio = bloqueioDaAssinatura();
+  if (bloqueio) return router.parseUrl(bloqueio);
 
   if (auth.podeConfigurar()) return true;
   return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
@@ -64,6 +76,8 @@ export const suporteGuard: CanActivateFn = () => {
 export const financeiroGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
+  const bloqueio = bloqueioDaAssinatura();
+  if (bloqueio) return router.parseUrl(bloqueio);
 
   if (auth.ehFinanceiro()) return true;
   return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
@@ -91,4 +105,13 @@ export const termoPortalGuard: CanActivateFn = () => {
     map((t) => (t.alunos.length > 0 ? router.parseUrl('/portal/termo') : true)),
     catchError(() => of(true))
   );
+};
+
+/** Assinatura do clube: o dono da conta (Admin) e o Suporte. */
+export const adminOuSuporteGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (auth.podeEditarIdentidade()) return true;
+  return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
 };

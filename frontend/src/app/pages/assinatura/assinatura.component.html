@@ -1,0 +1,89 @@
+<div class="container container--estreito">
+  <p class="subtitulo">O plano do clube no Gestor Tático.</p>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else if (semAssinatura()) {
+    <div class="painel">
+      <p class="ajuda">Este clube não foi cadastrado pelo site, então não há assinatura para mostrar aqui. Fale com o suporte para tratar do plano.</p>
+    </div>
+  } @else {
+  @if (assinaturas.minha(); as a) {
+    <div class="painel situacao" [class]="'situacao--' + a.situacao">
+      <div class="cabecalho">
+        <span class="selo">{{ a.rotulo }}</span>
+        <button type="button" class="link" [disabled]="atualizando()" (click)="atualizar()">
+          {{ atualizando() ? 'Conferindo...' : 'Já paguei — conferir agora' }}
+        </button>
+      </div>
+
+      @switch (a.situacao) {
+        @case ('EmTeste') {
+          <p>
+            Teste grátis até <strong>{{ formatarData(a.testeAte!) }}</strong>
+            ({{ a.diasRestantesTeste === 0 ? 'último dia' : 'faltam ' + a.diasRestantesTeste + (a.diasRestantesTeste === 1 ? ' dia' : ' dias') }}).
+            Para continuar usando depois disso, pague a 1ª mensalidade.
+          </p>
+        }
+        @case ('Ativa') {
+          <p>Tudo em dia. Obrigado!</p>
+        }
+        @case ('EmAtraso') {
+          <p>
+            A mensalidade de {{ formatarData(a.vencimentoEmAberto!) }} está em atraso. O acesso é suspenso
+            {{ a.diasToleranciaAtraso }} dias depois do vencimento.
+          </p>
+        }
+        @case ('AguardandoPagamento') {
+          <p>O acesso do clube é liberado assim que a 1ª mensalidade for paga.</p>
+        }
+        @case ('Suspensa') {
+          <p>
+            O acesso do clube está <strong>suspenso</strong> por falta de pagamento: a equipe não consegue entrar e só você vê esta tela.
+            Assim que o pagamento for confirmado, tudo volta ao normal — nenhum dado foi apagado.
+          </p>
+        }
+        @case ('Cancelada') {
+          <p>Esta assinatura foi cancelada. Fale com o suporte para reativar.</p>
+        }
+      }
+
+      @if (a.linkPagamento) {
+        <a class="pagar" [href]="a.linkPagamento" target="_blank" rel="noopener">Pagar agora</a>
+        <p class="ajuda">Pix, boleto ou cartão de crédito, na página segura do nosso parceiro de pagamentos.</p>
+      }
+    </div>
+
+    <div class="painel">
+      <p class="titulo-secao">Plano</p>
+      <div class="linha"><span>Plano completo</span><strong>{{ formatarReais(a.valorMensal) }} por mês</strong></div>
+      <p class="ajuda">Calculado para {{ a.atletasInformados }} atletas, como informado no cadastro.</p>
+    </div>
+
+    <div class="painel">
+      <p class="titulo-secao">Faturas</p>
+      @if (!a.faturasDisponiveis) {
+        <p class="ajuda">Não foi possível consultar as faturas agora.</p>
+      } @else if (a.faturas.length === 0) {
+        <p class="ajuda">Nenhuma fatura ainda.</p>
+      } @else {
+        <ul class="faturas">
+          @for (f of a.faturas; track f.vencimento) {
+            <li>
+              <span>Vence em {{ formatarData(f.vencimento) }}</span>
+              <span>{{ formatarReais(f.valor) }}</span>
+              @if (f.paga) {
+                <span class="status status--paga">Paga{{ f.pagaEm ? ' em ' + formatarData(f.pagaEm) : '' }}</span>
+              } @else if (f.linkPagamento) {
+                <a class="status status--aberta" [href]="f.linkPagamento" target="_blank" rel="noopener">Pagar</a>
+              } @else {
+                <span class="status status--aberta">Em aberto</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+  }
+</div>

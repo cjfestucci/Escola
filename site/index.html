@@ -24,8 +24,8 @@
       <a href="#familia">Portal da Família</a>
       <a href="#precos">Preços</a>
       <a href="#duvidas">Dúvidas</a>
-      <a class="entrar" href="#entrar">Entrar</a>
-      <a class="botao botao--primario" href="assinar.html">Assinar</a>
+      <a class="entrar" data-app="entrar" href="#">Entrar</a>
+      <a class="botao botao--primario" data-app="assinar" href="#">Teste grátis</a>
     </nav>
   </div>
 </header>
@@ -40,12 +40,12 @@
         <h1>Seu clube organizado <em>do treino ao financeiro.</em></h1>
         <p class="lead">Atletas, chamada, jogos e convocação, mensalidades com Pix que dá baixa sozinho e um portal para as famílias acompanharem tudo. Sem planilha, sem caderno, sem cobrança pelo WhatsApp.</p>
         <div class="acoes">
-          <a class="botao botao--primario botao--grande" href="assinar.html">Assinar agora</a>
+          <a class="botao botao--primario botao--grande" data-app="assinar" href="#">Começar teste grátis</a>
           <a class="botao botao--secundario botao--grande" href="#recursos">Ver recursos</a>
         </div>
         <ul class="garantias">
+          <li><span class="dias-teste"></span> dias grátis, sem cartão</li>
           <li>Sem fidelidade</li>
-          <li>Comece a usar no mesmo dia</li>
           <li>Funciona no celular</li>
         </ul>
       </div>
@@ -228,7 +228,7 @@
         <h2>Do cadastro ao primeiro treino no mesmo dia</h2>
       </div>
       <div class="passos">
-        <div class="passo"><h3>Assine pelo site</h3><p>Informe os dados do clube e pague a primeira mensalidade. Leva poucos minutos.</p></div>
+        <div class="passo"><h3>Cadastre o clube</h3><p>Informe os dados do clube e comece o teste grátis. Sem cartão de crédito, leva poucos minutos.</p></div>
         <div class="passo"><h3>Confirme o e-mail</h3><p>Você recebe um link para criar sua senha e já entra como administrador do clube.</p></div>
         <div class="passo"><h3>Monte o clube</h3><p>Cadastre categorias e atletas, convide treinadores e configure o Pix. Os pais recebem o convite por e-mail.</p></div>
       </div>
@@ -266,7 +266,7 @@
             <output id="total" for="atletas"></output>
             <p class="detalhe">por mês · <span id="por-atleta"></span> por atleta</p>
           </div>
-          <a class="botao botao--primario botao--grande" id="assinar-simulado" href="assinar.html">Assinar com esse plano</a>
+          <a class="botao botao--primario botao--grande" id="assinar-simulado" data-app="assinar" href="#">Começar teste grátis</a>
         </div>
       </div>
     </div>
@@ -285,8 +285,12 @@
           <p>Não. O Gestor Tático funciona no navegador do computador e do celular, e pode ser adicionado à tela inicial como um aplicativo.</p>
         </details>
         <details>
+          <summary>Como funciona o teste grátis?</summary>
+          <p>Você cadastra o clube e usa tudo por <span class="dias-teste"></span> dias, sem cartão de crédito. No fim do teste, escolhe pagar com Pix, boleto ou cartão. Se não pagar, o acesso é suspenso, mas nada é apagado na hora.</p>
+        </details>
+        <details>
           <summary>Como é contado o número de atletas?</summary>
-          <p>Contamos os atletas ativos no dia do fechamento da fatura. Atleta desativado não entra na conta.</p>
+          <p>A mensalidade é calculada pelo número de atletas que você informa no cadastro.</p>
         </details>
         <details>
           <summary>Tem fidelidade ou multa para cancelar?</summary>
@@ -312,8 +316,8 @@
   <section class="secao secao--escura cta-final">
     <div class="container">
       <h2>Pronto para organizar o seu clube?</h2>
-      <p>Assine em poucos minutos e comece a usar hoje mesmo.</p>
-      <a class="botao botao--primario botao--grande" href="assinar.html">Assinar agora</a>
+      <p>Teste grátis por <span class="dias-teste"></span> dias. Depois, Pix, boleto ou cartão — sem fidelidade.</p>
+      <a class="botao botao--primario botao--grande" data-app="assinar" href="#">Começar teste grátis</a>
     </div>
   </section>
 
@@ -333,8 +337,8 @@
       <ul>
         <li><a href="#recursos">Recursos</a></li>
         <li><a href="#precos">Preços</a></li>
-        <li><a href="assinar.html">Assinar</a></li>
-        <li><a href="#entrar">Entrar</a></li>
+        <li><a data-app="assinar" href="#">Teste grátis</a></li>
+        <li><a data-app="entrar" href="#">Entrar</a></li>
       </ul>
     </div>
     <div>
@@ -352,6 +356,8 @@
 <script src="precos.js"></script>
 <script>
   document.getElementById('ano').textContent = new Date().getFullYear();
+  document.querySelectorAll('[data-app]').forEach((a) => (a.href = URL_APP + '/' + a.dataset.app));
+  document.querySelectorAll('.dias-teste').forEach((s) => (s.textContent = DIAS_TESTE));
   document.getElementById('preco-fixo').textContent = formatarReais(PRECO_FIXO);
   document.getElementById('preco-atleta').textContent = formatarReais(PRECO_POR_ATLETA);
 
@@ -362,7 +368,7 @@
     document.getElementById('atletas-qtd').textContent = atletas;
     document.getElementById('total').textContent = formatarReais(total);
     document.getElementById('por-atleta').textContent = formatarReais(total / atletas);
-    document.getElementById('assinar-simulado').href = 'assinar.html?atletas=' + atletas;
+    document.getElementById('assinar-simulado').href = URL_APP + '/assinar?atletas=' + atletas;
   }
   faixa.addEventListener('input', atualizarSimulador);
   atualizarSimulador();

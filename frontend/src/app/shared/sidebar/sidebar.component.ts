@@ -94,7 +94,7 @@ export class SidebarComponent {
   protected itensPrincipais(): ItemNav[] {
     if (this.contextoService.contexto() === 'portal') return ITENS_PORTAL;
     // Suporte (equipe do produto): só a Plataforma e as Configurações — nada de dado de aluno, saúde ou financeiro do cliente.
-    if (this.contextoService.contexto() === 'suporte') return [ITEM_PLATAFORMA, ITEM_CONFIGURACOES];
+    if (this.contextoService.contexto() === 'suporte') return [ITEM_PLATAFORMA, this.itemConfiguracoes()];
 
     const itens: ItemNav[] = [ITEM_DASHBOARD, ITEM_UNIDADES];
     if (this.segmentoService.mostrarRotinaDiaria()) itens.push(ITEM_TURMA_ROTINA);
@@ -103,8 +103,14 @@ export class SidebarComponent {
     itens.push(ITEM_TURMAS_CADASTRO, { rotulo: this.segmentoService.rotuloCadastro(), rota: '/matricula', icone: 'matricula' });
     if (this.segmentoService.mostrarCompeticoes()) itens.push(ITEM_COMPETICOES);
     if (this.auth.ehFinanceiro()) itens.push(ITEM_FORNECEDORES, ITEM_FINANCEIRO, ITEM_ESTOQUE);
-    if (this.auth.ehGestao()) itens.push(ITEM_USUARIOS, ITEM_CONFIGURACOES);
+    if (this.auth.ehGestao()) itens.push(ITEM_USUARIOS, this.itemConfiguracoes());
     return itens;
+  }
+
+  /** A assinatura do clube é do dono da conta (Admin) e do Suporte — o Coordenador não vê. */
+  private itemConfiguracoes(): ItemNav {
+    if (!this.auth.podeEditarIdentidade()) return ITEM_CONFIGURACOES;
+    return { ...ITEM_CONFIGURACOES, subitens: [...ITEM_CONFIGURACOES.subitens!, { rotulo: 'Assinatura', rota: '/configuracoes/assinatura' }] };
   }
 
   protected grupoExpandido(item: ItemNav): boolean {
@@ -122,7 +128,7 @@ export class SidebarComponent {
 
   private expandirGruposComRotaAtiva(): void {
     const url = this.router.url;
-    const ativos = [ITEM_COMPETICOES, ITEM_FINANCEIRO, ITEM_ESTOQUE, ITEM_CONFIGURACOES].filter((item) => item.subitens?.some((sub) => url.startsWith(sub.rota)));
+    const ativos = [ITEM_COMPETICOES, ITEM_FINANCEIRO, ITEM_ESTOQUE, this.itemConfiguracoes()].filter((item) => item.subitens?.some((sub) => url.startsWith(sub.rota)));
     if (ativos.length === 0) return;
     this.gruposExpandidos.update((atual) => new Set([...atual, ...ativos.map((item) => item.rotulo)]));
   }

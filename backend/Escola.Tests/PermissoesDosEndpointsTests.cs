@@ -13,14 +13,17 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
     public void OMapaEncontraOsEndpointsDoApp() => Assert.True(Endpoints.Count > 100, $"Só {Endpoints.Count} endpoints encontrados.");
 
     [Fact]
-    public void OsUnicosEndpointsAnonimosSaoLoginRecuperacaoDeSenhaConfiguracaoPublicaEWebhookDoPix()
+    public void OsUnicosEndpointsAnonimosSaoLoginRecuperacaoDeSenhaConfiguracaoPublicaAssinaturaEWebhooks()
     {
         var anonimos = Endpoints.Where(e => e.Anonimo).Select(e => e.Titulo).OrderBy(t => t).ToList();
         foreach (var a in anonimos) saida.WriteLine(a);
 
         Assert.Equal(
         [
+            "GET /api/assinaturas/plano",
             "GET /api/configuracao/escola",
+            "POST /api/assinaturas",
+            "POST /api/assinaturas/asaas/webhook",
             "POST /api/auth/entrar",
             "POST /api/auth/esqueci-senha",
             "POST /api/auth/redefinir-senha",
@@ -74,7 +77,7 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
 
         var foraDaConfiguracao = doSuporte.Where(t =>
             !t.Contains("/api/plataforma") && !t.Contains("/api/configuracao/escola") && !t.Contains("/api/financeiro/configuracao")
-            && !t.Contains("/api/pix/") && !t.Contains("/api/pagamentos/conta") && !t.Contains("/api/logs")).ToList();
+            && !t.Contains("/api/pix/") && !t.Contains("/api/pagamentos/conta") && !t.Contains("/api/assinaturas/minha") && !t.Contains("/api/logs")).ToList();
 
         Assert.True(foraDaConfiguracao.Count == 0, "O Suporte alcança dado do cliente: " + string.Join("; ", foraDaConfiguracao));
     }

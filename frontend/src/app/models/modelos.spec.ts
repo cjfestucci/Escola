@@ -4,6 +4,7 @@ import { formatarQuantidade, formatarTamanho } from '../shared/numero-utils';
 import { resultadoDoJogo } from './competicao.model';
 import { FALTAS_SEGUIDAS_PARA_ALERTA } from './presenca.model';
 import { rotuloSituacaoGateway } from './pagamento.model';
+import { cnpjValido, cpfValido, valorDoPlano } from './assinatura.model';
 
 describe('resultadoDoJogo', () => {
   it('sai do placar e só existe em jogo realizado', () => {
@@ -67,5 +68,22 @@ describe('situação da conta de pagamento', () => {
     expect(rotuloSituacaoGateway('awaiting_approval')).toBe('Em análise pelo gateway');
     expect(rotuloSituacaoGateway(null)).toBe('Ainda não consultada');
     expect(rotuloSituacaoGateway('OUTRA')).toBe('OUTRA');
+  });
+});
+
+describe('assinatura', () => {
+  it('valida CPF e CNPJ pelo dígito verificador', () => {
+    expect(cpfValido('52998224725')).toBeTrue();
+    expect(cpfValido('52998224724')).toBeFalse();
+    expect(cpfValido('11111111111')).toBeFalse();
+    expect(cnpjValido('11222333000181')).toBeTrue();
+    expect(cnpjValido('11222333000182')).toBeFalse();
+    expect(cnpjValido('00000000000000')).toBeFalse();
+  });
+
+  it('calcula a mensalidade como fixo + valor por atleta', () => {
+    const plano = { precoFixo: 99, precoPorAtleta: 3, diasTeste: 7, versaoTermos: 'v' };
+    expect(valorDoPlano(plano, 40)).toBe(219);
+    expect(valorDoPlano(plano, 0)).toBe(99);
   });
 });

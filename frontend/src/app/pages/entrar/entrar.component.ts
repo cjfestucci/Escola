@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { environment } from '../../../environments/environment';
 import { OpcaoClienteLogin } from '../../models/auth.model';
@@ -11,7 +11,7 @@ import { SegmentoService } from '../../services/segmento.service';
 
 @Component({
   selector: 'app-entrar',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './entrar.component.html',
   styleUrl: './entrar.component.scss'
 })

@@ -81,4 +81,8 @@
       </button>
     }
   </form>
+
+  @if (segmentoService.semEscola()) {
+    <p class="convite-assinar">Ainda não é cliente? <a routerLink="/assinar">Comece seu teste grátis</a></p>
+  }
 </div>

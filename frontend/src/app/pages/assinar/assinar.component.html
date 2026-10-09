@@ -1,0 +1,126 @@
+<div class="assinar">
+  <header class="marca">
+    <img [src]="segmentoService.simboloProduto" alt="" />
+    <span>Gestor <strong>Tático</strong></span>
+  </header>
+
+  @if (etapa() === 'pronto' && resultado(); as r) {
+    <section class="painel pronto">
+      @if (r.situacao === 'AguardandoPagamento') {
+        <div class="icone">💳</div>
+        <h1>Falta só o pagamento</h1>
+        <p>
+          O cadastro do <strong>{{ nomeClube }}</strong> foi feito. Assim que a 1ª mensalidade
+          ({{ formatarReais(r.valorMensal) }}) for paga, você recebe em <strong>{{ email }}</strong> o link para criar sua senha.
+        </p>
+        @if (r.linkPagamento) {
+          <a class="botao botao--primario" [href]="r.linkPagamento" target="_blank" rel="noopener">Pagar agora</a>
+          <p class="ajuda">Pix, boleto ou cartão de crédito, na página segura do nosso parceiro de pagamentos.</p>
+        } @else {
+          <p class="ajuda">O link de pagamento vai chegar no seu e-mail em instantes.</p>
+        }
+      } @else {
+        <div class="icone">📬</div>
+        <h1>Pronto! Agora, confira seu e-mail.</h1>
+        <p>
+          Enviamos para <strong>{{ email }}</strong> um link para confirmar o e-mail e criar sua senha. Depois é só entrar como
+          administrador do <strong>{{ nomeClube }}</strong>.
+        </p>
+        @if (r.testeAte) {
+          <p class="ajuda">Seu teste grátis vai até {{ formatarData(r.testeAte) }}. Nada é cobrado antes disso.</p>
+        }
+        @if (!r.emailEnviado) {
+          <p class="ajuda ajuda--aviso">Se o e-mail não chegar em alguns minutos, veja a caixa de spam ou fale com o suporte.</p>
+        }
+        <button type="button" class="botao botao--secundario" (click)="irParaEntrar()">Ir para a tela de entrar</button>
+      }
+    </section>
+  } @else {
+    <div class="grade">
+      <section class="painel">
+        <ol class="etapas">
+          <li [class.atual]="etapa() === 'clube'" [class.feita]="etapa() === 'voce'"><b>1</b> Clube</li>
+          <li [class.atual]="etapa() === 'voce'"><b>2</b> Seus dados</li>
+        </ol>
+
+        @if (etapa() === 'clube') {
+          <h1>Comece seu teste grátis</h1>
+          <p class="sub">
+            @if (plano(); as p) {
+              @if (p.diasTeste > 0) {
+                {{ p.diasTeste }} dias para usar tudo, sem cartão de crédito.
+              } @else {
+                Assine e comece a usar hoje mesmo.
+              }
+            }
+          </p>
+          <p class="legenda-obrigatorio">Campo obrigatório</p>
+          <form class="campos" (ngSubmit)="continuar()">
+            <label class="inteiro"><span class="obrigatorio">Nome do clube ou escola</span>
+              <input type="text" [(ngModel)]="nomeClube" name="nomeClube" maxlength="200" autocomplete="organization"
+                placeholder="Ex.: Escola de Futebol Craque do Amanhã" />
+            </label>
+            <label><span class="obrigatorio">CNPJ ou CPF</span>
+              <input type="text" [(ngModel)]="cpfCnpj" name="cpfCnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" />
+            </label>
+            <label><span class="obrigatorio">Cidade</span>
+              <input type="text" [(ngModel)]="cidade" name="cidade" maxlength="120" autocomplete="address-level2" placeholder="Ex.: Campinas" />
+            </label>
+            <label class="inteiro"><span class="obrigatorio">Quantos atletas, aproximadamente?</span>
+              <input type="number" [ngModel]="atletas()" (ngModelChange)="definirAtletas($event)" name="atletas" min="1" max="5000" inputmode="numeric" />
+              <span class="ajuda">Usado para calcular a mensalidade depois do teste.</span>
+            </label>
+            <div class="acoes inteiro">
+              <span></span>
+              <button type="submit" class="botao botao--primario">Continuar</button>
+            </div>
+          </form>
+        } @else {
+          <h1>Quem vai administrar</h1>
+          <p class="sub">Essa pessoa vira o administrador do clube e convida o resto da equipe depois.</p>
+          <p class="legenda-obrigatorio">Campo obrigatório</p>
+          <form class="campos" (ngSubmit)="assinar()">
+            <label class="inteiro"><span class="obrigatorio">Seu nome</span>
+              <input type="text" [(ngModel)]="nomeAdmin" name="nomeAdmin" maxlength="200" autocomplete="name" />
+            </label>
+            <label><span class="obrigatorio">E-mail</span>
+              <input type="email" [(ngModel)]="email" name="email" maxlength="256" autocomplete="email" placeholder="voce@seuclube.com.br" />
+              <span class="ajuda">O link de acesso chega aqui.</span>
+            </label>
+            <label><span class="obrigatorio">Celular (WhatsApp)</span>
+              <input type="tel" [(ngModel)]="celular" name="celular" maxlength="20" autocomplete="tel" placeholder="(11) 99999-8888" />
+            </label>
+            <label class="aceite inteiro">
+              <input type="checkbox" [(ngModel)]="aceite" name="aceite" />
+              <span>Li e concordo com os Termos de Uso e a Política de Privacidade do Gestor Tático.</span>
+            </label>
+            <div class="acoes inteiro">
+              <button type="button" class="botao botao--secundario" (click)="voltar()">Voltar</button>
+              <button type="submit" class="botao botao--primario" [disabled]="enviando()">
+                {{ enviando() ? 'Criando seu clube...' : (plano()?.diasTeste ? 'Começar teste grátis' : 'Assinar') }}
+              </button>
+            </div>
+          </form>
+        }
+      </section>
+
+      <aside class="painel resumo">
+        <h2>Plano completo</h2>
+        @if (plano(); as p) {
+          <div class="linha"><span>Valor fixo</span><span>{{ formatarReais(p.precoFixo) }}</span></div>
+          <div class="linha"><span>{{ atletas() }} atletas × {{ formatarReais(p.precoPorAtleta) }}</span><span>{{ formatarReais(p.precoPorAtleta * atletas()) }}</span></div>
+          <div class="linha total"><span>Por mês</span><span>{{ formatarReais(valorMensal() ?? 0) }}</span></div>
+          @if (p.diasTeste > 0) {
+            <p class="nota">Os primeiros {{ p.diasTeste }} dias são grátis. Depois, você escolhe pagar com Pix, boleto ou cartão. Sem fidelidade.</p>
+          } @else {
+            <p class="nota">Pix, boleto ou cartão de crédito. Sem fidelidade.</p>
+          }
+        } @else {
+          <p class="nota">Carregando...</p>
+        }
+      </aside>
+    </div>
+
+    <p class="ja-cliente">Já é cliente? <button type="button" class="link" (click)="irParaEntrar()">Entrar</button></p>
+  }
+</div>

@@ -1,0 +1,135 @@
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0;
+}
+
+.painel {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.titulo-secao {
+  font-weight: 700;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.selo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria);
+}
+
+// Cores semânticas (fixas de propósito): verde em dia, âmbar atenção, vermelho bloqueado.
+.situacao--Ativa .selo {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.situacao--EmAtraso .selo {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.situacao--Suspensa,
+.situacao--AguardandoPagamento,
+.situacao--Cancelada {
+  border-color: #f5c2bf;
+
+  .selo {
+    background: #fdecea;
+    color: #8c1d18;
+  }
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-primaria);
+  text-decoration: underline;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.pagar {
+  align-self: flex-start;
+  background: var(--cor-primaria);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+.ajuda {
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+}
+
+.linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.faturas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--cor-borda);
+    font-size: 0.9rem;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+
+  &--paga {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  &--aberta {
+    background: #fef3c7;
+    color: #b45309;
+  }
+}

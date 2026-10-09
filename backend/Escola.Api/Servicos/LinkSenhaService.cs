@@ -18,7 +18,10 @@ public enum TipoLinkSenha
     Convite,
     /// <summary>Convite de responsável feito pela Matrícula: mesmo link de 7 dias do <see cref="Convite"/>, mas o e-mail fala da matrícula
     /// e avisa que ela só vale depois do aceite do termo no portal.</summary>
-    ConviteMatricula
+    ConviteMatricula,
+    /// <summary>Boas-vindas de quem assinou pelo site: o Admin do clube recém-criado confirma o e-mail e cadastra a senha (link de 7 dias).
+    /// O e-mail traz o resumo do plano (<c>detalhe</c>).</summary>
+    BoasVindasAssinatura
 }
 
 /// <param name="Gerado">O token foi criado (se falso, não há link nenhum — ex.: falta <c>App:UrlBase</c>).</param>
@@ -31,7 +34,7 @@ public interface ILinkSenhaService
 {
     /// <summary>Cria um link de uso único pra <paramref name="usuario"/> definir a senha e o manda por e-mail. Um link novo invalida os
     /// anteriores ainda abertos da mesma conta. Nunca lança por falha de entrega: devolve o que aconteceu.</summary>
-    Task<ResultadoLinkSenha> EnviarAsync(Usuario usuario, TipoLinkSenha tipo, string? nomeCliente = null, IReadOnlyList<string>? nomesAlunos = null);
+    Task<ResultadoLinkSenha> EnviarAsync(Usuario usuario, TipoLinkSenha tipo, string? nomeCliente = null, IReadOnlyList<string>? nomesAlunos = null, string? detalhe = null);
 }
 
 public sealed class LinkSenhaService(
@@ -44,7 +47,7 @@ public sealed class LinkSenhaService(
     private static readonly TimeSpan ValidadeRedefinicao = TimeSpan.FromHours(1);
     private static readonly TimeSpan ValidadeConvite = TimeSpan.FromDays(7);
 
-    public async Task<ResultadoLinkSenha> EnviarAsync(Usuario usuario, TipoLinkSenha tipo, string? nomeCliente = null, IReadOnlyList<string>? nomesAlunos = null)
+    public async Task<ResultadoLinkSenha> EnviarAsync(Usuario usuario, TipoLinkSenha tipo, string? nomeCliente = null, IReadOnlyList<string>? nomesAlunos = null, string? detalhe = null)
     {
         // O endereço do site vem da configuração do deploy — nunca do cabeçalho da requisição (Origin/Host), que o atacante
         // controla: usar ele deixaria alguém pedir o link de outra pessoa e fazer o e-mail apontar pro site dele.
@@ -61,7 +64,7 @@ public sealed class LinkSenhaService(
         var anteriores = await db.RedefinicoesSenha.Where(r => r.UsuarioId == usuario.Id && r.UsadoEm == null).ToListAsync();
         foreach (var anterior in anteriores) anterior.UsadoEm = agora;
 
-        var convite = tipo is TipoLinkSenha.Convite or TipoLinkSenha.ConviteMatricula;
+        var convite = tipo is TipoLinkSenha.Convite or TipoLinkSenha.ConviteMatricula or TipoLinkSenha.BoasVindasAssinatura;
         db.RedefinicoesSenha.Add(new RedefinicaoSenha
         {
             Id = Guid.NewGuid(),
@@ -91,6 +94,7 @@ public sealed class LinkSenhaService(
             var (assunto, corpo) = tipo switch
             {
                 TipoLinkSenha.ConviteMatricula => MontarConviteMatricula(usuario.Nome, nomeCliente, nomesAlunos ?? [], link),
+                TipoLinkSenha.BoasVindasAssinatura => MontarBoasVindas(usuario.Nome, nomeCliente, detalhe, link),
                 TipoLinkSenha.Convite => MontarConvite(usuario.Nome, nomeCliente, link),
                 _ => MontarRedefinicao(usuario.Nome, nomeCliente, link)
             };
@@ -132,6 +136,22 @@ public sealed class LinkSenhaService(
                 <p>Para confirmar este e-mail e cadastrar a sua senha, clique no link abaixo:</p>
                 <p><a href="{linkSeguro}">Confirmar e cadastrar minha senha</a></p>
                 <p>O link vale por 7 dias e só pode ser usado uma vez. Se você não esperava este convite, pode ignorar este e-mail — nenhum acesso será liberado sem esse passo.</p>
+                """);
+    }
+
+    private static (string Assunto, string Corpo) MontarBoasVindas(string nome, string? nomeCliente, string? detalhe, string link)
+    {
+        var nomeSeguro = WebUtility.HtmlEncode(nome);
+        var clienteSeguro = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(nomeCliente) ? "seu clube" : nomeCliente);
+        var linkSeguro = WebUtility.HtmlEncode(link);
+        var detalheHtml = string.IsNullOrWhiteSpace(detalhe) ? string.Empty : $"<p>{WebUtility.HtmlEncode(detalhe)}</p>";
+        return ($"Bem-vindo ao {MarcaProduto.Nome} — {nomeCliente ?? "seu clube"}", $"""
+                <p>Olá, {nomeSeguro}!</p>
+                <p>O <strong>{clienteSeguro}</strong> já está no {MarcaProduto.Nome}, e você é o administrador.</p>
+                {detalheHtml}
+                <p>Para confirmar este e-mail e criar a sua senha, clique no link abaixo. Depois é só entrar:</p>
+                <p><a href="{linkSeguro}">Confirmar e-mail e criar minha senha</a></p>
+                <p>O link vale por 7 dias e só pode ser usado uma vez. Se você não fez esse cadastro, ignore este e-mail.</p>
                 """);
     }
 

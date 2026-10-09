@@ -6,7 +6,9 @@ pra todos — `CLIENTE_ID`/`CLIENTE_NOME` só dizem qual é o cliente criado na 
 
 ## Cliente (escola) novo
 
-Ainda não há tela de cadastro (vem com a assinatura pelo site). Por enquanto:
+**Clube**: ele mesmo se cadastra em `/assinar` (link "Comece seu teste grátis" no login e no site institucional) — ver "Assinatura pelo site" abaixo. Nada a fazer aqui.
+
+**Escola infantil, ou cliente sem passar pelo site** (fica sem assinatura e sem bloqueio por pagamento), à mão:
 
 1. Inserir a escola: `INSERT INTO "Clientes" ("Id","Nome","Ativo","CriadoEm","Segmento") VALUES (gen_random_uuid(), 'Nome da Escola', true, now(), 1);`
    (`Segmento`: 0 = escola, 1 = clube).
@@ -62,6 +64,23 @@ A plataforma tem **uma conta Asaas (a conta raiz)** e abre, pela tela, **uma sub
 
 Sem `ASAAS_API_KEY` a seção nem aparece e tudo segue como antes (Pix estático com baixa manual, ou o BB pra quem tem).
 
+## Assinatura pelo site (o clube vira cliente sozinho)
+
+O clube se cadastra em `{app}/assinar`: o sistema cria o cliente (segmento clube), a Unidade Principal, o Admin (por convite — o e-mail
+de boas-vindas traz o link pra criar a senha), a conta de Suporte e a **assinatura mensal na conta RAIZ do Asaas** (a mesma `ASAAS_API_KEY`
+acima: aqui é a plataforma cobrando o clube). Desenho completo em `docs/ASSINATURA.md`.
+
+1. `ASSINATURA_*` no `.env`: dias de teste (0 = paga antes de entrar), preço fixo + por atleta (**iguais a `site/precos.js`**) e dias de
+   atraso até suspender.
+2. **SMTP obrigatório**: sem ele o e-mail de boas-vindas não chega e o clube não consegue criar a senha (o link só aparece no log em
+   Development). O Suporte pode reenviar pela Plataforma → Administradores da escola.
+3. Webhook (opcional — a tarefa de fundo confere as assinaturas a cada hora): no **painel do Asaas da conta raiz** (Integrações →
+   Webhooks), cadastre `{API}/api/assinaturas/asaas/webhook` com os eventos de cobrança e o token `ASSINATURA_WEBHOOK_TOKEN`.
+   É diferente do webhook das subcontas (`/api/pagamentos/asaas/webhook`, que o sistema grava sozinho).
+4. Em `site/precos.js`, `URL_APP` = endereço público do app.
+
+Sem `ASAAS_API_KEY` o cadastro funciona, mas não há cobrança: o teste acaba, o clube é suspenso e não tem onde pagar.
+
 ## Atualizar
 
 `git pull && docker compose up -d --build`. As migrations rodam sozinhas ao subir (`MIGRAR_AO_INICIAR=true`).
@@ -85,6 +104,7 @@ migra; as outras só encontram o banco já atualizado.
 - [ ] SMTP funcionando (teste o "Esqueceu a senha?" com um e-mail real).
 - [ ] Backup do banco e dos volumes agendado **e restaurado uma vez** como teste.
 - [ ] Asaas: fluxo completo validado no **sandbox** (abrir subconta, gerar Pix, pagar pelo painel do sandbox, ver a baixa) antes de `ASAAS_AMBIENTE=Producao`; `SEGREDOS_CHAVE` no cofre.
+- [ ] Assinatura pelo site validada no **sandbox** (cadastro → assinatura criada na conta raiz → pagar a fatura pelo painel → clube vira "Ativa"); Termos de Uso e Política de Privacidade publicados.
 - [ ] Pix automático do BB: validado na **homologação do Banco do Brasil** antes de `PIX_BB_AMBIENTE=Producao` (hoje só foi testado contra um simulador).
 
 ## Limitações conhecidas

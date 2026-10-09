@@ -164,3 +164,14 @@ input {
     opacity: 0.6;
   }
 }
+
+.convite-assinar {
+  margin-top: 28px;
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+
+  a {
+    color: var(--cor-primaria);
+    font-weight: 700;
+  }
+}

@@ -8,6 +8,7 @@
 
 <div class="app-area" [class.app-area--sem-sidebar]="!auth.estaLogado()">
   <app-topbar (abrirMenu)="menuAberto.set(true)" />
+  <app-aviso-assinatura />
 
   <main class="app-conteudo">
     <router-outlet></router-outlet>

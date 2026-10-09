@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { configuracaoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard, termoPortalGuard } from './services/auth.guards';
+import { adminOuSuporteGuard, configuracaoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard, termoPortalGuard } from './services/auth.guards';
 import { NOME_PRODUTO } from './services/segmento.service';
 
 export const routes: Routes = [
@@ -10,6 +10,11 @@ export const routes: Routes = [
     path: 'entrar',
     data: { titulo: NOME_PRODUTO },
     loadComponent: () => import('./pages/entrar/entrar.component').then((m) => m.EntrarComponent)
+  },
+  {
+    path: 'assinar',
+    data: { titulo: NOME_PRODUTO },
+    loadComponent: () => import('./pages/assinar/assinar.component').then((m) => m.AssinarComponent)
   },
   {
     path: 'esqueci-senha',
@@ -137,6 +142,13 @@ export const routes: Routes = [
     data: { titulo: 'Configurações financeiras' },
     loadComponent: () =>
       import('./pages/configuracao-financeira/configuracao-financeira.component').then((m) => m.ConfiguracaoFinanceiraComponent)
+  },
+  {
+    path: 'configuracoes/assinatura',
+    pathMatch: 'full',
+    canActivate: [adminOuSuporteGuard],
+    data: { titulo: 'Assinatura' },
+    loadComponent: () => import('./pages/assinatura/assinatura.component').then((m) => m.AssinaturaComponent)
   },
   {
     path: 'configuracoes/pix',

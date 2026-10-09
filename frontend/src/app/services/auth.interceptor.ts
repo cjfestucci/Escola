@@ -20,6 +20,10 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         authService.sair();
         router.navigateByUrl('/entrar');
       }
+      // 402: a assinatura do clube está pendente — o Admin só alcança a tela da assinatura (a API barra o resto).
+      if (erro.status === 402 && paraApi && !router.url.startsWith('/configuracoes/assinatura')) {
+        router.navigateByUrl('/configuracoes/assinatura');
+      }
       return throwError(() => erro);
     })
   );

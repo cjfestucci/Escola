@@ -47,6 +47,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     public EmailFalso Email { get; } = new();
     public AsaasFalso Asaas { get; } = new();
     public const string AsaasWebhookToken = "token-do-webhook-de-teste";
+    public const string AssinaturaWebhookToken = "token-do-webhook-da-assinatura";
     private static readonly string ChaveSegredos = CofreSegredos.GerarChave();
 
     public ApiFactory()
@@ -84,6 +85,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             ["Asaas:ApiKey"] = "$aact_hmlg_conta_raiz_de_teste",
             ["Asaas:WebhookToken"] = AsaasWebhookToken,
             ["Asaas:WebhookUrlBase"] = "https://escola.teste",
+            ["Assinatura:WebhookToken"] = AssinaturaWebhookToken,
         };
         foreach (var (chave, valor) in config) builder.UseSetting(chave, valor);
 

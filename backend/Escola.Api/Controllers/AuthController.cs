@@ -167,6 +167,10 @@ public class AuthController(
         if (usuario.Papel != PapelUsuario.Suporte && !await db.Clientes.AnyAsync(c => c.Id == clienteDaConta && c.Ativo))
             return Unauthorized("O acesso desta escola está suspenso. Entre em contato com o suporte.");
 
+        // Assinatura do clube pendente/suspensa: só o Admin entra (pra pagar); o Suporte, como sempre, também.
+        if (usuario.Papel is not (PapelUsuario.Suporte or PapelUsuario.Admin) && await Autenticacao.AssinaturaBloqueadaAsync(db))
+            return Unauthorized("O acesso deste clube está suspenso por pendência na assinatura. Fale com o administrador do clube.");
+
         // Segundo fator (código do app autenticador): obrigatório pro Suporte. O segredo vem da configuração do deploy
         // (Suporte:TotpSegredo), nunca do banco — quem lê o banco não consegue gerar o código.
         if (usuario.Papel == PapelUsuario.Suporte)

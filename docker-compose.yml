@@ -43,6 +43,12 @@ services:
       Asaas__WebhookUrlBase: ${ASAAS_WEBHOOK_URL_BASE:-}
       # Chave do cofre (AES-256, 32 bytes em base64) que criptografa as chaves de API das subcontas no banco
       Segredos__Chave: ${SEGREDOS_CHAVE:-}
+      # Assinatura pelo site (plano e regras; a cobrança usa a conta raiz do Asaas)
+      Assinatura__DiasTeste: ${ASSINATURA_DIAS_TESTE:-7}
+      Assinatura__PrecoFixo: ${ASSINATURA_PRECO_FIXO:-99}
+      Assinatura__PrecoPorAtleta: ${ASSINATURA_PRECO_POR_ATLETA:-3}
+      Assinatura__DiasToleranciaAtraso: ${ASSINATURA_DIAS_TOLERANCIA:-7}
+      Assinatura__WebhookToken: ${ASSINATURA_WEBHOOK_TOKEN:-}
     volumes:
       - fotos:/app/wwwroot/uploads
       - documentos:/app/dados-privados

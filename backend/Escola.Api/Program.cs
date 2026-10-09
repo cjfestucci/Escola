@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
 using Escola.Infrastructure;
+using Escola.Infrastructure.Assinaturas;
 using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Clientes;
@@ -122,8 +123,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 // forjado com outro clienteId não acha a conta), está ativa, não teve as sessões revogadas depois da emissão deste token
                 // (desativar conta, trocar senha, "encerrar sessões"), e se o cliente não foi suspenso.
                 var db = contexto.HttpContext.RequestServices.GetRequiredService<EscolaDbContext>();
-                var motivo = await Autenticacao.MotivoDeRecusaAsync(db, contexto.Principal!, clienteDoToken);
-                if (motivo is not null) contexto.Fail(motivo);
+                var conferencia = await Autenticacao.ConferirAsync(db, contexto.Principal!, clienteDoToken);
+                if (conferencia.Motivo is not null) contexto.Fail(conferencia.Motivo);
+                else if (conferencia.SoAssinatura) contexto.HttpContext.Items[Autenticacao.ItemSoAssinatura] = true;
             }
         };
     });
@@ -186,6 +188,12 @@ builder.Services.AddScoped<IProvedorPixResolver, ProvedorPixResolver>();
 builder.Services.AddScoped<IPixAutomaticoService, PixAutomaticoService>();
 if (pixBb.Configurado || asaas.Configurado) builder.Services.AddHostedService<ConciliacaoPixWorker>();
 builder.Services.AddScoped<IDisciplinaService, DisciplinaService>();
+
+// Assinatura pelo site (o clube vira cliente sozinho): plano em Assinatura:*, cobrança na conta raiz do Asaas.
+builder.Services.Configure<OpcoesAssinatura>(builder.Configuration.GetSection(OpcoesAssinatura.Secao));
+builder.Services.AddScoped<IAssinaturaService, AssinaturaService>();
+// Nos testes a situação é atualizada sob demanda (a tarefa de fundo correria em paralelo com o teste).
+if (!builder.Environment.IsEnvironment("Testing")) builder.Services.AddHostedService<AssinaturasWorker>();
 
 var app = builder.Build();
 
@@ -259,6 +267,21 @@ app.UseCors(FrontendCorsPolicy);
 app.UseStaticFiles();
 
 app.UseAuthentication();
+
+// Assinatura do clube pendente/suspensa: o Admin continua logado, mas só alcança a tela da assinatura (pra pagar). 402 = "pagamento
+// necessário" — o app usa esse código pra levar o Admin até lá.
+app.Use(async (contexto, proximo) =>
+{
+    if (contexto.Items.ContainsKey(Autenticacao.ItemSoAssinatura) && !Autenticacao.LiberadoComAssinaturaBloqueada(contexto.Request))
+    {
+        contexto.Response.StatusCode = StatusCodes.Status402PaymentRequired;
+        contexto.Response.ContentType = "text/plain; charset=utf-8";
+        await contexto.Response.WriteAsync(Autenticacao.MensagemAssinaturaBloqueada);
+        return;
+    }
+    await proximo();
+});
+
 app.UseAuthorization();
 
 app.MapControllers();

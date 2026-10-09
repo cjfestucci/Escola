@@ -186,6 +186,67 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
             Texto(raiz, "externalReference"));
     }
 
+    // ----- Assinatura da plataforma (conta RAIZ: é a plataforma cobrando o clube, não a escola cobrando a família) -----
+
+    /// <summary>Cliente da plataforma (o clube que assina). Recebe as notificações de cobrança do próprio Asaas.</summary>
+    public async Task<string> CriarClientePlataformaAsync(string nome, string cpfCnpj, string email, string? celular, string referenciaExterna, CancellationToken ct = default)
+    {
+        var corpo = new JsonObject
+        {
+            ["name"] = nome,
+            ["cpfCnpj"] = cpfCnpj,
+            ["email"] = email,
+            ["externalReference"] = referenciaExterna
+        };
+        if (!string.IsNullOrWhiteSpace(celular)) corpo["mobilePhone"] = celular;
+        using var json = await EnviarAsync(_o.ApiKey, HttpMethod.Post, "/customers", corpo, ct);
+        return Texto(json!.RootElement, "id") ?? throw new PixProvedorException("O Asaas não devolveu o identificador do cliente.");
+    }
+
+    /// <summary>Assinatura mensal. <c>billingType = UNDEFINED</c>: o clube escolhe Pix, boleto ou cartão na página de pagamento do Asaas
+    /// (nunca recebemos dado de cartão).</summary>
+    public async Task<string> CriarAssinaturaAsync(string clienteId, decimal valor, DateOnly primeiroVencimento, string descricao, string referenciaExterna, CancellationToken ct = default)
+    {
+        var corpo = new JsonObject
+        {
+            ["customer"] = clienteId,
+            ["billingType"] = "UNDEFINED",
+            ["cycle"] = "MONTHLY",
+            ["value"] = valor,
+            ["nextDueDate"] = primeiroVencimento.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            ["description"] = descricao,
+            ["externalReference"] = referenciaExterna
+        };
+        using var json = await EnviarAsync(_o.ApiKey, HttpMethod.Post, "/subscriptions", corpo, ct);
+        return Texto(json!.RootElement, "id") ?? throw new PixProvedorException("O Asaas não devolveu o identificador da assinatura.");
+    }
+
+    private static readonly string[] StatusPago = ["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"];
+
+    /// <summary>Faturas (cobranças) geradas pela assinatura, inclusive as já pagas. Estornadas contam como não pagas.</summary>
+    public async Task<IReadOnlyList<Assinaturas.FaturaAssinatura>> ListarFaturasDaAssinaturaAsync(string assinaturaId, CancellationToken ct = default)
+    {
+        using var json = await EnviarAsync(_o.ApiKey, HttpMethod.Get, $"/subscriptions/{Uri.EscapeDataString(assinaturaId)}/payments?limit=100", null, ct);
+        var faturas = new List<Assinaturas.FaturaAssinatura>();
+        if (!json!.RootElement.TryGetProperty("data", out var dados) || dados.ValueKind != JsonValueKind.Array) return faturas;
+
+        foreach (var p in dados.EnumerateArray())
+        {
+            if (p.TryGetProperty("deleted", out var excluida) && excluida.ValueKind == JsonValueKind.True) continue;
+            if (!DateOnly.TryParse(Texto(p, "dueDate"), CultureInfo.InvariantCulture, out var vencimento)) continue;
+            var status = (Texto(p, "status") ?? "PENDING").ToUpperInvariant();
+            var pagaEm = Texto(p, "clientPaymentDate") ?? Texto(p, "paymentDate");
+            faturas.Add(new Assinaturas.FaturaAssinatura(
+                Texto(p, "id") ?? string.Empty,
+                vencimento,
+                p.TryGetProperty("value", out var v) && v.TryGetDecimal(out var valor) ? valor : 0m,
+                StatusPago.Contains(status),
+                DateOnly.TryParse(pagaEm, CultureInfo.InvariantCulture, out var d) ? d : null,
+                Texto(p, "invoiceUrl")));
+        }
+        return faturas;
+    }
+
     /// <summary>Prova que a chave da conta raiz e o endereço estão certos, sem criar nada.</summary>
     public async Task TestarContaRaizAsync(CancellationToken ct = default)
     {
