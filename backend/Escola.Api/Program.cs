@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure;
 using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Clientes;
@@ -52,7 +53,7 @@ if (args.Length >= 1 && args[0] == "--gerar-segredo-totp")
     var conta = args.Length >= 2 ? args[1] : "suporte";
     var segredoNovo = Totp.GerarSegredo();
     Console.WriteLine($"Segredo (Suporte:TotpSegredo): {segredoNovo}");
-    Console.WriteLine($"Link para o app autenticador:  {Totp.UriOtpAuth("Rotina Escola", conta, segredoNovo)}");
+    Console.WriteLine($"Link para o app autenticador:  {Totp.UriOtpAuth(MarcaProduto.Nome, conta, segredoNovo)}");
     Console.WriteLine("Guarde o segredo em local seguro (cofre de senhas): quem o tem gera os códigos.");
     return;
 }

@@ -5,7 +5,8 @@ namespace Escola.Tests;
 public class CorPrincipalTests
 {
     [Theory]
-    [InlineData("#6C5DD3")] // padrão do produto
+    [InlineData("#0E2A3A")] // padrão do produto (azul-marinho da marca)
+    [InlineData("#6C5DD3")] // padrão antigo (roxo)
     [InlineData("#2563EB")]
     [InlineData("#334155")]
     public void CoresDasAmostrasPassamNoContraste(string cor) =>

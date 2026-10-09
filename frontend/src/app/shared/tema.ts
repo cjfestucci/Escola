@@ -4,13 +4,14 @@
  * Sem cor escolhida (null) as variáveis inline são removidas e valem os padrões do CSS.
  */
 
-export const COR_PADRAO = '#6C5DD3';
+export const COR_PADRAO = '#0E2A3A'; // azul-marinho da marca Gestor Tático (até 2026-10-08 era o roxo #6C5DD3)
 
 /** Mesmo mínimo que o backend exige (WCAG AA): a cor é fundo de botão/menu com texto branco por cima. */
 export const CONTRASTE_MINIMO = 4.5;
 
 export const CORES_SUGERIDAS: { valor: string; rotulo: string }[] = [
-  { valor: COR_PADRAO, rotulo: 'Roxo (padrão)' },
+  { valor: COR_PADRAO, rotulo: 'Azul-marinho (padrão)' },
+  { valor: '#6C5DD3', rotulo: 'Roxo' },
   { valor: '#2563EB', rotulo: 'Azul' },
   { valor: '#0F766E', rotulo: 'Turquesa' },
   { valor: '#15803D', rotulo: 'Verde' },
@@ -65,7 +66,7 @@ export function contrasteComBranco(cor: string): number {
 
 /** Texto de por que a cor não serve, ou null se serve. */
 export function problemaDaCor(cor: string): string | null {
-  if (!corValida(cor)) return 'Cor inválida. Use o formato #RRGGBB, por exemplo #6C5DD3.';
+  if (!corValida(cor)) return 'Cor inválida. Use o formato #RRGGBB, por exemplo #0E2A3A.';
   if (contrasteComBranco(cor) < CONTRASTE_MINIMO) {
     return 'Essa cor é clara demais: o texto branco dos botões e do menu ficaria difícil de ler. Escolha uma cor mais escura.';
   }

@@ -8,7 +8,6 @@ import { SegmentoService } from '../../services/segmento.service';
 import { SessaoService } from '../../services/sessao.service';
 
 const TITULOS_CLUBE: Record<string, string> = {
-  'Rotina Escola': 'Escola de Futebol',
   'Matrícula': 'Atletas',
   'Novo aluno': 'Novo atleta',
   'Editar aluno': 'Editar atleta',

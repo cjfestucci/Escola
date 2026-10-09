@@ -1,4 +1,4 @@
-# Publicando o Rotina Escola
+# Publicando o Gestor Tático
 
 **Um site só atende todos os clientes** (escolas): mesma tela de login, e é a **conta que entra** que define a escola (desde 2026-10-07).
 Todos usam o mesmo banco PostgreSQL (os dados são separados por `ClienteId`). Então **um** `docker-compose.yml` com **um** `.env` serve

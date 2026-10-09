@@ -67,7 +67,7 @@ public class ConfiguracaoEscolaController(EscolaDbContext db, IAuditoriaService 
         if (corNova is not null)
         {
             if (!CorPrincipal.FormatoValido(corNova))
-                return BadRequest("Cor inválida. Use o formato #RRGGBB, por exemplo #6C5DD3.");
+                return BadRequest("Cor inválida. Use o formato #RRGGBB, por exemplo #0E2A3A.");
             if (CorPrincipal.ContrasteComBranco(corNova) < CorPrincipal.ContrasteMinimo)
                 return BadRequest("Essa cor é clara demais: o texto branco dos botões e do menu ficaria difícil de ler. Escolha uma cor mais escura.");
         }

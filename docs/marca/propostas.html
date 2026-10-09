@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestor Tático — propostas de logo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  :root { --azul: #0E2A3A; --verde: #16A34A; --amarelo: #FACC15; --fundo: #F4F6F8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 16px; background: var(--fundo); font-family: Inter, 'Segoe UI', Arial, sans-serif; color: var(--azul); }
+  h1 { margin: 0 0 4px; font-size: 1.5rem; }
+  .sub { margin: 0 0 28px; color: #5B6B78; }
+  .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; }
+  .card { background: #fff; border: 1px solid #E2E8EE; border-radius: 16px; overflow: hidden; }
+  .card h2 { margin: 0; padding: 16px 20px 4px; font-size: 1.05rem; }
+  .card p { margin: 0; padding: 0 20px 14px; color: #5B6B78; font-size: .88rem; }
+  .simbolo { display: flex; justify-content: center; padding: 24px 0; background: var(--fundo); }
+  .lockup { display: flex; align-items: center; gap: 12px; padding: 18px 20px; }
+  .lockup.escuro { background: var(--azul); }
+  .palavra { font-size: 1.6rem; letter-spacing: -.02em; white-space: nowrap; }
+  .palavra .g { font-weight: 500; }
+  .palavra .t { font-weight: 800; color: var(--verde); }
+  .escuro .palavra .g { color: #fff; }
+  .escuro .palavra .t { color: #4ADE80; }
+  .pequenos { display: flex; align-items: center; gap: 14px; padding: 12px 20px 18px; color: #5B6B78; font-size: .8rem; }
+</style>
+</head>
+<body>
+  <h1>Gestor Tático — propostas de logo</h1>
+  <p class="sub">Símbolo grande, versão com o nome (fundo claro e escuro) e tamanhos pequenos (ícone de app e favicon).</p>
+  <div class="grade" id="grade"></div>
+
+<script>
+const AZUL = '#0E2A3A', VERDE = '#16A34A', AMARELO = '#FACC15';
+
+// A — Círculo central: o "G" é o círculo do meio-campo, a barra é a linha central e a bola fica no centro.
+const circuloCentral = (fundo = AZUL, traco = '#fff', bola = VERDE) => `
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="14" fill="${fundo}"/>
+  <path d="M44.3 21.7 A16 16 0 1 0 48 32 H38" fill="none" stroke="${traco}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="32" r="4.5" fill="${bola}"/>
+</svg>`;
+
+// B — Prancheta: o quadro tático do treinador, com a jogada desenhada (O → X).
+const prancheta = (fundo = VERDE, linha = '#fff', jogada = AMARELO) => `
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="14" fill="${fundo}"/>
+  <g fill="none" stroke="${linha}" stroke-opacity=".5" stroke-width="1.6">
+    <rect x="9" y="9" width="46" height="46" rx="3"/>
+    <line x1="9" y1="32" x2="55" y2="32"/>
+    <circle cx="32" cy="32" r="6"/>
+  </g>
+  <circle cx="20" cy="45" r="4" fill="none" stroke="${linha}" stroke-width="2.6"/>
+  <g stroke="${linha}" stroke-width="2.6" stroke-linecap="round"><line x1="41" y1="16" x2="48" y2="23"/><line x1="48" y1="16" x2="41" y2="23"/></g>
+  <path d="M21 39 Q21 22 35 21" fill="none" stroke="${jogada}" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="3.5 3.5"/>
+  <path d="M34 16.5 L40 21 L34 25.5 Z" fill="${jogada}"/>
+</svg>`;
+
+// C — Escudo: a linguagem dos clubes, com o monograma GT e a seta de avanço.
+const escudo = (fundo = AZUL, letra = '#fff', seta = VERDE) => `
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <path d="M32 4 L54 12 V30 C54 45 44 54.5 32 60 C20 54.5 10 45 10 30 V12 Z" fill="${fundo}"/>
+  <polyline points="25,19 32,13 39,19" fill="none" stroke="${seta}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="32" y="42" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="800" font-size="19" fill="${letra}" letter-spacing="-0.5">GT</text>
+</svg>`;
+
+const propostas = [
+  { nome: 'A — Círculo central', texto: 'O "G" é o círculo do meio-campo e a barra é a linha central, com a bola no centro. Simples, funciona bem pequeno.', claro: circuloCentral(), escuro: circuloCentral(VERDE, '#fff', AZUL) },
+  { nome: 'B — Prancheta tática', texto: 'O quadro do treinador com a jogada desenhada. Conta a história do nome, mas tem mais detalhe.', claro: prancheta(), escuro: prancheta() },
+  { nome: 'C — Escudo GT', texto: 'Linguagem de clube de futebol: escudo com monograma e seta de avanço. Tradicional e sóbrio.', claro: escudo(), escuro: escudo('#fff', AZUL, VERDE) }
+];
+
+const tam = (svg, px) => svg.replace('<svg ', `<svg width="${px}" height="${px}" `);
+document.getElementById('grade').innerHTML = propostas.map(p => `
+  <section class="card">
+    <h2>${p.nome}</h2>
+    <p>${p.texto}</p>
+    <div class="simbolo">${tam(p.claro, 140)}</div>
+    <div class="lockup">${tam(p.claro, 44)}<span class="palavra"><span class="g">Gestor </span><span class="t">Tático</span></span></div>
+    <div class="lockup escuro">${tam(p.escuro, 44)}<span class="palavra"><span class="g">Gestor </span><span class="t">Tático</span></span></div>
+    <div class="pequenos">${tam(p.claro, 32)} ${tam(p.claro, 16)} <span>32px e 16px</span></div>
+  </section>`).join('');
+</script>
+</body>
+</html>

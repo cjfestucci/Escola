@@ -1,4 +1,4 @@
-# API do Rotina Escola. Contexto de build: a pasta backend/  →  docker build -f backend/Dockerfile backend
+# API do Gestor Tático. Contexto de build: a pasta backend/  →  docker build -f backend/Dockerfile backend
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 

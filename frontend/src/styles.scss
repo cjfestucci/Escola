@@ -1,10 +1,11 @@
 :root {
-  --cor-primaria: #6c5dd3;
-  --cor-primaria-escura: #5645b5;
+  // Padrão = azul-marinho da marca Gestor Tático (#0E2A3A); os tons abaixo seguem a mesma fórmula de shared/tema.ts.
+  --cor-primaria: #0e2a3a;
+  --cor-primaria-escura: #0b222e;
   // Tons claros da cor principal (fundos de destaque, hover, barras). Derivados de --cor-primaria quando a
   // escola escolhe outra cor (ver shared/tema.ts) — por isso nada deve usar um roxo fixo em hexadecimal.
-  --cor-primaria-clara: #f1effc;
-  --cor-primaria-suave: #d9d4f6;
+  --cor-primaria-clara: #e7eaeb;
+  --cor-primaria-suave: #bcc3c8;
   --cor-fundo: #f4f6fb;
   --cor-superficie: #ffffff;
   --cor-texto: #1f2430;
@@ -15,13 +16,13 @@
 
   --sidebar-largura: 260px;
   --topbar-altura: 64px;
-  --cor-sidebar-fundo: #5b3fd9;
+  --cor-sidebar-fundo: #0c2533;
   --cor-sidebar-texto: rgba(255, 255, 255, 0.72);
   --cor-sidebar-texto-ativo: #ffffff;
   --cor-sidebar-item-ativo: rgba(255, 255, 255, 0.14);
 
-  --cor-stat-roxo-fundo: #ece9fd;
-  --cor-stat-roxo-texto: #6c5dd3;
+  --cor-stat-roxo-fundo: #e7eaeb;
+  --cor-stat-roxo-texto: #0e2a3a;
   --cor-stat-verde-fundo: #dcfce7;
   --cor-stat-verde-texto: #16a34a;
   --cor-stat-ambar-fundo: #fef3c7;

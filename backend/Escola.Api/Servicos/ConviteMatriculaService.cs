@@ -1,5 +1,6 @@
 using System.Net;
 using Escola.Domain.Enums;
+using Escola.Infrastructure;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Data;
@@ -89,7 +90,7 @@ public sealed class ConviteMatriculaService(
             """;
         try
         {
-            await emailSender.EnviarAsync(email, nome, $"Confirme a matrícula — {nomeCliente ?? "Rotina Escola"}", corpo);
+            await emailSender.EnviarAsync(email, nome, $"Confirme a matrícula — {nomeCliente ?? MarcaProduto.Nome}", corpo);
             return (true, null);
         }
         catch (Exception ex)

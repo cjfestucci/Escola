@@ -30,7 +30,7 @@ services:
       Smtp__Usuario: ${SMTP_USUARIO:-}
       Smtp__Senha: ${SMTP_SENHA:-}
       Smtp__RemetenteEmail: ${SMTP_REMETENTE_EMAIL:-}
-      Smtp__RemetenteNome: ${SMTP_REMETENTE_NOME:-Rotina Escola}
+      Smtp__RemetenteNome: ${SMTP_REMETENTE_NOME:-Gestor Tático}
       # Pix automático do Banco do Brasil (opcional; vazio = Pix estático com baixa manual)
       Pix__Bb__ClientId: ${PIX_BB_CLIENT_ID:-}
       Pix__Bb__ClientSecret: ${PIX_BB_CLIENT_SECRET:-}

@@ -1,23 +1,24 @@
 import { Routes } from '@angular/router';
 
 import { configuracaoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard, termoPortalGuard } from './services/auth.guards';
+import { NOME_PRODUTO } from './services/segmento.service';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', canActivate: [redirecionamentoInicialGuard], children: [] },
   { path: 'portal', pathMatch: 'full', redirectTo: 'entrar' },
   {
     path: 'entrar',
-    data: { titulo: 'Rotina Escola' },
+    data: { titulo: NOME_PRODUTO },
     loadComponent: () => import('./pages/entrar/entrar.component').then((m) => m.EntrarComponent)
   },
   {
     path: 'esqueci-senha',
-    data: { titulo: 'Rotina Escola' },
+    data: { titulo: NOME_PRODUTO },
     loadComponent: () => import('./pages/esqueci-senha/esqueci-senha.component').then((m) => m.EsqueciSenhaComponent)
   },
   {
     path: 'redefinir-senha',
-    data: { titulo: 'Rotina Escola' },
+    data: { titulo: NOME_PRODUTO },
     loadComponent: () => import('./pages/redefinir-senha/redefinir-senha.component').then((m) => m.RedefinirSenhaComponent)
   },
   {

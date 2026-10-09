@@ -5,6 +5,11 @@ import { resolverFotoUrl } from '../shared/registro-rotina-display';
 
 export type Segmento = 'escola' | 'clube';
 
+/** Marca do produto (a plataforma), usada onde ainda não há escola: tela de login, menu sem sessão. Espelho de MarcaProduto.Nome no backend. */
+export const NOME_PRODUTO = 'Gestor Tático';
+/** Símbolo da marca (public/marca), mostrado nas telas sem sessão quando não há logo de escola. */
+export const SIMBOLO_PRODUTO = 'marca/simbolo.svg';
+
 /** Segmento vindo do cliente (banco), guardado pro app abrir no vocabulário certo mesmo sem rede (PWA). */
 const CHAVE_CACHE = 'escola.segmento';
 /** Sobreposição manual, só pra comparar as duas experiências no mesmo ambiente de dev sem recompilar. */
@@ -49,8 +54,12 @@ export class SegmentoService {
   readonly rotuloPortal = computed(() => (this.ehClube() ? 'Portal da Família' : 'Portal dos Pais'));
   private readonly _nomeEscola = signal<string | null>(this.lerNomeEscola());
   /** Nome no topo do menu: o da escola da sessão; sem login (tela de login de todas as escolas), a marca do produto. */
-  readonly nomeApp = computed(() => this._nomeEscola() ?? (this.ehClube() ? 'Escola de Futebol' : 'Rotina Escola'));
-  readonly iconeApp = computed(() => (this.ehClube() ? '⚽' : '🏫'));
+  readonly nomeApp = computed(() => this._nomeEscola() ?? NOME_PRODUTO);
+  /** Sem escola na sessão: as telas de login/senha mostram o símbolo da marca (SIMBOLO_PRODUTO) em vez do ícone. */
+  readonly semEscola = computed(() => this._nomeEscola() === null);
+  readonly simboloProduto = SIMBOLO_PRODUTO;
+  /** Sem escola na sessão vale o ícone da marca (futebol); com escola, o do segmento dela. */
+  readonly iconeApp = computed(() => (this._nomeEscola() === null || this.ehClube() ? '⚽' : '🏫'));
 
   readonly mostrarRotinaDiaria = computed(() => !this.ehClube());
   readonly mostrarDiarioClasse = computed(() => !this.ehClube());

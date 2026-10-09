@@ -1,6 +1,6 @@
 {
-  "name": "escola-frontend",
-  "short_name": "escola-frontend",
+  "name": "Gestor Tático",
+  "short_name": "Gestor Tático",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

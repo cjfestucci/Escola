@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Escola.Domain.Entities;
+using Escola.Infrastructure;
 using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Email;
 using Microsoft.EntityFrameworkCore;
@@ -125,7 +126,7 @@ public sealed class LinkSenhaService(
         var nomeSeguro = WebUtility.HtmlEncode(nome);
         var clienteSeguro = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(nomeCliente) ? "sua escola" : nomeCliente);
         var linkSeguro = WebUtility.HtmlEncode(link);
-        return ($"Convite de acesso — {nomeCliente ?? "Rotina Escola"}", $"""
+        return ($"Convite de acesso — {nomeCliente ?? MarcaProduto.Nome}", $"""
                 <p>Olá, {nomeSeguro}!</p>
                 <p>Foi criado um acesso de <strong>administrador</strong> para você no sistema de <strong>{clienteSeguro}</strong>.</p>
                 <p>Para confirmar este e-mail e cadastrar a sua senha, clique no link abaixo:</p>
@@ -140,7 +141,7 @@ public sealed class LinkSenhaService(
         var clienteSeguro = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(nomeCliente) ? "a escola" : nomeCliente);
         var alunosSeguro = WebUtility.HtmlEncode(nomesAlunos.Count == 0 ? "seu(sua) filho(a)" : string.Join(", ", nomesAlunos));
         var linkSeguro = WebUtility.HtmlEncode(link);
-        return ($"Confirme a matrícula — {nomeCliente ?? "Rotina Escola"}", $"""
+        return ($"Confirme a matrícula — {nomeCliente ?? MarcaProduto.Nome}", $"""
                 <p>Olá, {nomeSeguro}!</p>
                 <p>A matrícula de <strong>{alunosSeguro}</strong> foi registrada por <strong>{clienteSeguro}</strong>.</p>
                 <p>Para confirmar este e-mail e criar a sua senha de acesso ao portal, clique no link abaixo:</p>

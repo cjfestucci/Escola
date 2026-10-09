@@ -1,6 +1,8 @@
 <div class="entrar">
   @if (segmentoService.logoUrl(); as logo) {
     <img class="marca-logo" [src]="logo" alt="Logo" />
+  } @else if (segmentoService.semEscola()) {
+    <img class="marca-simbolo" [src]="segmentoService.simboloProduto" alt="Gestor Tático" />
   } @else {
     <span class="marca-icone">{{ segmentoService.iconeApp() }}</span>
   }

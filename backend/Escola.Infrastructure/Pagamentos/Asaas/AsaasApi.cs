@@ -90,7 +90,7 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
         {
             corpo["webhooks"] = new JsonArray(new JsonObject
             {
-                ["name"] = "Rotina Escola — pagamentos",
+                ["name"] = $"{MarcaProduto.Nome} — pagamentos",
                 ["url"] = $"{_o.WebhookUrlBase!.TrimEnd('/')}/api/pagamentos/asaas/webhook",
                 ["email"] = dados.Email,
                 ["enabled"] = true,
@@ -202,7 +202,7 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
 
         using var requisicao = new HttpRequestMessage(metodo, _o.UrlApiEfetiva + caminho);
         requisicao.Headers.TryAddWithoutValidation("access_token", apiKey);
-        requisicao.Headers.UserAgent.Add(new ProductInfoHeaderValue("RotinaEscola", "1.0"));
+        requisicao.Headers.UserAgent.Add(new ProductInfoHeaderValue("GestorTatico", "1.0"));
         requisicao.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         if (corpo is not null)
             requisicao.Content = new StringContent(corpo.ToJsonString(Json), Encoding.UTF8, "application/json");
