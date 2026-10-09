@@ -12,6 +12,12 @@
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "backend/Escola.Api", "--launch-profile", "http", "--", "--urls", "http://localhost:5080"],
       "port": 5080
+    },
+    {
+      "name": "escola-site",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["-e", "const h=require('http'),f=require('fs'),p=require('path'),r=p.resolve('site'),t={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml'};h.createServer((q,s)=>{let u=decodeURIComponent(q.url.split('?')[0]);if(u.endsWith('/'))u+='index.html';const a=p.join(r,u);if(!a.startsWith(r))return s.writeHead(403).end();f.readFile(a,(e,d)=>{if(e)return s.writeHead(404).end('404');s.writeHead(200,{'Content-Type':t[p.extname(a)]||'application/octet-stream'}).end(d)})}).listen(8090)"],
+      "port": 8090
     }
   ]
 }
