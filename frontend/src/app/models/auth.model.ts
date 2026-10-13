@@ -1,4 +1,4 @@
-export type Papel = 'Admin' | 'Coordenador' | 'Educador' | 'Financeiro' | 'Responsavel' | 'Suporte';
+export type Papel = 'Admin' | 'Coordenador' | 'Educador' | 'Financeiro' | 'Responsavel' | 'Suporte' | 'Secretaria';
 
 export interface LoginResposta {
   token: string;

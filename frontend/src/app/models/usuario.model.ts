@@ -4,7 +4,7 @@ export interface Usuario {
   papel: string;
 }
 
-export type PapelEquipe = 'Admin' | 'Coordenador' | 'Educador' | 'Financeiro';
+export type PapelEquipe = 'Admin' | 'Coordenador' | 'Educador' | 'Financeiro' | 'Secretaria';
 
 export interface UsuarioConta {
   id: string;

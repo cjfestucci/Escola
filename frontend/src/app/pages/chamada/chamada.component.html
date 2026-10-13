@@ -19,7 +19,7 @@
   }
 
   @if (!carregandoTurmas() && sessao.turmas().length === 0) {
-    <p class="vazio">Nenhuma turma cadastrada ainda.</p>
+    <p class="vazio">{{ sessao.ehEducador() ? 'Você ainda não está vinculado a nenhuma turma. Fale com a coordenação.' : 'Nenhuma turma cadastrada ainda.' }}</p>
   } @else if (!carregandoTurmas()) {
     <div class="navegador-data">
       <button type="button" class="botao-nav-data" (click)="diaAnterior()" aria-label="Dia anterior">‹</button>

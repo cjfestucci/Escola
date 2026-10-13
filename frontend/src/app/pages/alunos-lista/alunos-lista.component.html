@@ -77,6 +77,8 @@
 
   @if (carregando()) {
     <p>Carregando...</p>
+  } @else if (semTurmaVinculada()) {
+    <p class="vazio">Você ainda não está vinculado a nenhuma turma. Fale com a coordenação.</p>
   } @else if (alunos().length === 0) {
     <p class="vazio">Nenhum aluno nesta turma.</p>
   } @else if (alunosFiltrados().length === 0) {

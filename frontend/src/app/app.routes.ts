@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { adminOuSuporteGuard, configuracaoGuard, logadoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard, termoPortalGuard } from './services/auth.guards';
+import { adminOuSuporteGuard, balcaoGuard, cadastroGuard, configuracaoGuard, logadoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard, termoPortalGuard } from './services/auth.guards';
 import { NOME_PRODUTO } from './services/segmento.service';
 
 export const routes: Routes = [
@@ -96,14 +96,14 @@ export const routes: Routes = [
   },
   {
     path: 'matricula/novo',
-    canActivate: [gestaoGuard],
+    canActivate: [cadastroGuard],
     data: { titulo: 'Novo aluno' },
     loadComponent: () =>
       import('./pages/matricula-formulario/matricula-formulario.component').then((m) => m.MatriculaFormularioComponent)
   },
   {
     path: 'matricula/:id/editar',
-    canActivate: [gestaoGuard],
+    canActivate: [cadastroGuard],
     data: { titulo: 'Editar aluno' },
     loadComponent: () =>
       import('./pages/matricula-formulario/matricula-formulario.component').then((m) => m.MatriculaFormularioComponent)
@@ -190,7 +190,7 @@ export const routes: Routes = [
   {
     path: 'financeiro/mensalidades',
     pathMatch: 'full',
-    canActivate: [financeiroGuard],
+    canActivate: [balcaoGuard],
     data: { titulo: 'Mensalidades' },
     loadComponent: () =>
       import('./pages/financeiro-lista/financeiro-lista.component').then((m) => m.FinanceiroListaComponent)
@@ -289,20 +289,20 @@ export const routes: Routes = [
   {
     path: 'estoque/produtos',
     pathMatch: 'full',
-    canActivate: [financeiroGuard],
+    canActivate: [balcaoGuard],
     data: { titulo: 'Produtos' },
     loadComponent: () => import('./pages/produtos-lista/produtos-lista.component').then((m) => m.ProdutosListaComponent)
   },
   {
     path: 'estoque/produtos/novo',
-    canActivate: [financeiroGuard],
+    canActivate: [balcaoGuard],
     data: { titulo: 'Novo produto' },
     loadComponent: () =>
       import('./pages/produto-formulario/produto-formulario.component').then((m) => m.ProdutoFormularioComponent)
   },
   {
     path: 'estoque/produtos/:id/editar',
-    canActivate: [financeiroGuard],
+    canActivate: [balcaoGuard],
     data: { titulo: 'Editar produto' },
     loadComponent: () =>
       import('./pages/produto-formulario/produto-formulario.component').then((m) => m.ProdutoFormularioComponent)
@@ -310,7 +310,7 @@ export const routes: Routes = [
   {
     path: 'estoque/movimentacoes',
     pathMatch: 'full',
-    canActivate: [financeiroGuard],
+    canActivate: [balcaoGuard],
     data: { titulo: 'Movimentações de estoque' },
     loadComponent: () =>
       import('./pages/movimentacoes-estoque/movimentacoes-estoque.component').then((m) => m.MovimentacoesEstoqueComponent)

@@ -25,58 +25,60 @@
     </div>
   }
 
-  <div class="grade-stats">
-    <div class="stat">
-      <div class="stat-topo">
-        <span class="stat-icone stat-icone--recebido">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 7.5v9M9.5 9.5c0-1.1 1-2 2.5-2s2.5.7 2.5 1.8c0 2.4-5 1.4-5 3.7 0 1.1 1.1 1.8 2.5 1.8s2.5-.9 2.5-2" />
-          </svg>
-        </span>
-        @if (variacaoRecebido(); as variacao) {
-          <span class="stat-badge" [class.stat-badge--negativo]="variacao < 0">{{ variacao > 0 ? '+' : '' }}{{ variacao }}%</span>
+  @if (auth.ehFinanceiro()) {
+    <div class="grade-stats">
+      <div class="stat">
+        <div class="stat-topo">
+          <span class="stat-icone stat-icone--recebido">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7.5v9M9.5 9.5c0-1.1 1-2 2.5-2s2.5.7 2.5 1.8c0 2.4-5 1.4-5 3.7 0 1.1 1.1 1.8 2.5 1.8s2.5-.9 2.5-2" />
+            </svg>
+          </span>
+          @if (variacaoRecebido(); as variacao) {
+            <span class="stat-badge" [class.stat-badge--negativo]="variacao < 0">{{ variacao > 0 ? '+' : '' }}{{ variacao }}%</span>
+          }
+        </div>
+        <span class="stat-valor">R$ {{ recebidoEsteMes() | number: '1.2-2' }}</span>
+        <span class="stat-rotulo">Recebido este mês</span>
+        @if (auth.ehFinanceiro()) {
+          <a routerLink="/financeiro" class="stat-link">Ver financeiro →</a>
         }
       </div>
-      <span class="stat-valor">R$ {{ recebidoEsteMes() | number: '1.2-2' }}</span>
-      <span class="stat-rotulo">Recebido este mês</span>
-      @if (auth.ehFinanceiro()) {
-        <a routerLink="/financeiro" class="stat-link">Ver financeiro →</a>
-      }
-    </div>
-
-    <div class="stat">
-      <div class="stat-topo">
-        <span class="stat-icone stat-icone--pendente">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 7v5l3.2 2" />
-          </svg>
-        </span>
+  
+      <div class="stat">
+        <div class="stat-topo">
+          <span class="stat-icone stat-icone--pendente">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3.2 2" />
+            </svg>
+          </span>
+        </div>
+        <span class="stat-valor">{{ resumoFinanceiro().pendentes }}</span>
+        <span class="stat-rotulo">Cobranças a vencer</span>
+        @if (auth.ehFinanceiro()) {
+          <a routerLink="/financeiro/mensalidades" [queryParams]="{ status: 'pendente' }" class="stat-link">Ver a vencer →</a>
+        }
       </div>
-      <span class="stat-valor">{{ resumoFinanceiro().pendentes }}</span>
-      <span class="stat-rotulo">Cobranças a vencer</span>
-      @if (auth.ehFinanceiro()) {
-        <a routerLink="/financeiro/mensalidades" [queryParams]="{ status: 'pendente' }" class="stat-link">Ver a vencer →</a>
-      }
-    </div>
-
-    <div class="stat">
-      <div class="stat-topo">
-        <span class="stat-icone stat-icone--atrasado">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 4 3 20h18L12 4Z" />
-            <path d="M12 10v4M12 17h.01" />
-          </svg>
-        </span>
+  
+      <div class="stat">
+        <div class="stat-topo">
+          <span class="stat-icone stat-icone--atrasado">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4 3 20h18L12 4Z" />
+              <path d="M12 10v4M12 17h.01" />
+            </svg>
+          </span>
+        </div>
+        <span class="stat-valor">{{ resumoFinanceiro().atrasadas }}</span>
+        <span class="stat-rotulo">Cobranças atrasadas</span>
+        @if (auth.ehFinanceiro()) {
+          <a routerLink="/financeiro/mensalidades" [queryParams]="{ status: 'atrasado' }" class="stat-link">Ver atrasadas →</a>
+        }
       </div>
-      <span class="stat-valor">{{ resumoFinanceiro().atrasadas }}</span>
-      <span class="stat-rotulo">Cobranças atrasadas</span>
-      @if (auth.ehFinanceiro()) {
-        <a routerLink="/financeiro/mensalidades" [queryParams]="{ status: 'atrasado' }" class="stat-link">Ver atrasadas →</a>
-      }
     </div>
-  </div>
+  }
 
   @if (auth.ehFinanceiro()) {
     <a routerLink="/financeiro" class="faixa-saldo">
@@ -94,74 +96,77 @@
     </a>
   }
 
-  <div class="grade-principal">
-    <div class="coluna-lateral">
-      <div class="painel painel--grafico">
-        <p class="painel-titulo">Recebimentos por mês</p>
-        <p class="painel-subtitulo">Últimos 6 meses</p>
-
-        <div class="grafico-barras">
-          @for (barra of barrasControle(); track barra.chave) {
-            <div class="coluna-barra">
-              <span class="valor-barra">{{ barra.valor > 0 ? (barra.valor | number: '1.0-0') : '' }}</span>
-              <div class="barra" [class.barra--atual]="barra.atual" [style.height.%]="(barra.valor / maiorBarra()) * 100"></div>
-              <span class="rotulo-barra">{{ barra.rotulo }}</span>
-            </div>
-          }
-        </div>
-      </div>
-
-      @if (auth.ehFinanceiro()) {
-        <div class="painel">
-          <p class="painel-titulo">Balanço do mês</p>
-          <p class="painel-subtitulo">
-            Entradas e saídas já pagas neste mês@if (unidadeSelecionadaId()) {
-              — consolidado da instalação, contas não são separadas por unidade
+  <div class="grade-principal" [class.grade-principal--operacional]="!auth.ehFinanceiro()">
+    <!-- Recebimentos e balanço: só pra quem cuida do financeiro (Professor e Secretaria veem o Dashboard operacional). -->
+    @if (auth.ehFinanceiro()) {
+      <div class="coluna-lateral">
+        <div class="painel painel--grafico">
+          <p class="painel-titulo">Recebimentos por mês</p>
+          <p class="painel-subtitulo">Últimos 6 meses</p>
+  
+          <div class="grafico-barras">
+            @for (barra of barrasControle(); track barra.chave) {
+              <div class="coluna-barra">
+                <span class="valor-barra">{{ barra.valor > 0 ? (barra.valor | number: '1.0-0') : '' }}</span>
+                <div class="barra" [class.barra--atual]="barra.atual" [style.height.%]="(barra.valor / maiorBarra()) * 100"></div>
+                <span class="rotulo-barra">{{ barra.rotulo }}</span>
+              </div>
             }
-          </p>
-
-          <div class="linha-balanco">
-            <div class="item-balanco">
-              <span class="balanco-valor balanco-valor--entrada">R$ {{ balancoMes().receitas | number: '1.2-2' }}</span>
-              <span class="balanco-rotulo">Receitas</span>
-            </div>
-            <div class="item-balanco">
-              <span class="balanco-valor balanco-valor--saida">R$ {{ balancoMes().despesas | number: '1.2-2' }}</span>
-              <span class="balanco-rotulo">Despesas</span>
-            </div>
-            <div class="item-balanco">
-              <span class="balanco-valor" [class.balanco-valor--entrada]="balancoMes().saldo >= 0" [class.balanco-valor--saida]="balancoMes().saldo < 0">
-                R$ {{ balancoMes().saldo | number: '1.2-2' }}
-              </span>
-              <span class="balanco-rotulo">Saldo</span>
-            </div>
           </div>
-
-          <div class="bloco-a-pagar">
-            <p class="a-pagar-titulo">
-              A pagar nos próximos {{ diasAPagar }} dias
-              @if (contasAPagarProximas().length > 0) {
-                <span class="a-pagar-total">R$ {{ totalAPagarProximas() | number: '1.2-2' }}</span>
+        </div>
+  
+        @if (auth.ehFinanceiro()) {
+          <div class="painel">
+            <p class="painel-titulo">Balanço do mês</p>
+            <p class="painel-subtitulo">
+              Entradas e saídas já pagas neste mês@if (unidadeSelecionadaId()) {
+                — consolidado da instalação, contas não são separadas por unidade
               }
             </p>
-            @if (contasAPagarProximas().length === 0) {
-              <p class="vazio-painel">Nenhuma conta vence nesse período.</p>
-            } @else {
-              <ul class="lista-a-pagar">
-                @for (conta of contasAPagarProximas(); track conta.id) {
-                  <li>
-                    <span class="a-pagar-data">{{ formatarDataAbsoluta(conta.vencimento).slice(0, 5) }}</span>
-                    <span class="a-pagar-descricao">{{ conta.descricao }} <span class="a-pagar-fornecedor">· {{ conta.fornecedorNome }}</span></span>
-                    <span class="a-pagar-valor">R$ {{ conta.valor | number: '1.2-2' }}</span>
-                  </li>
+  
+            <div class="linha-balanco">
+              <div class="item-balanco">
+                <span class="balanco-valor balanco-valor--entrada">R$ {{ balancoMes().receitas | number: '1.2-2' }}</span>
+                <span class="balanco-rotulo">Receitas</span>
+              </div>
+              <div class="item-balanco">
+                <span class="balanco-valor balanco-valor--saida">R$ {{ balancoMes().despesas | number: '1.2-2' }}</span>
+                <span class="balanco-rotulo">Despesas</span>
+              </div>
+              <div class="item-balanco">
+                <span class="balanco-valor" [class.balanco-valor--entrada]="balancoMes().saldo >= 0" [class.balanco-valor--saida]="balancoMes().saldo < 0">
+                  R$ {{ balancoMes().saldo | number: '1.2-2' }}
+                </span>
+                <span class="balanco-rotulo">Saldo</span>
+              </div>
+            </div>
+  
+            <div class="bloco-a-pagar">
+              <p class="a-pagar-titulo">
+                A pagar nos próximos {{ diasAPagar }} dias
+                @if (contasAPagarProximas().length > 0) {
+                  <span class="a-pagar-total">R$ {{ totalAPagarProximas() | number: '1.2-2' }}</span>
                 }
-              </ul>
-              <a routerLink="/financeiro/contas-pagar" [queryParams]="{ status: 'pendente' }" class="stat-link">Ver contas a pagar →</a>
-            }
+              </p>
+              @if (contasAPagarProximas().length === 0) {
+                <p class="vazio-painel">Nenhuma conta vence nesse período.</p>
+              } @else {
+                <ul class="lista-a-pagar">
+                  @for (conta of contasAPagarProximas(); track conta.id) {
+                    <li>
+                      <span class="a-pagar-data">{{ formatarDataAbsoluta(conta.vencimento).slice(0, 5) }}</span>
+                      <span class="a-pagar-descricao">{{ conta.descricao }} <span class="a-pagar-fornecedor">· {{ conta.fornecedorNome }}</span></span>
+                      <span class="a-pagar-valor">R$ {{ conta.valor | number: '1.2-2' }}</span>
+                    </li>
+                  }
+                </ul>
+                <a routerLink="/financeiro/contas-pagar" [queryParams]="{ status: 'pendente' }" class="stat-link">Ver contas a pagar →</a>
+              }
+            </div>
           </div>
-        </div>
-      }
-    </div>
+        }
+      </div>
+    }
 
     <div class="coluna-lateral">
       @if (atencoes().length > 0) {
@@ -239,17 +244,19 @@
         <p class="painel-titulo">Ações rápidas</p>
 
         <div class="lista-atalhos">
-          @if (auth.ehFinanceiro()) {
+          @if (auth.podeReceber()) {
             <a routerLink="/financeiro" class="atalho">
               <span class="atalho-texto">Lançar cobrança</span>
               <span class="atalho-botao atalho-botao--roxo">Financeiro</span>
             </a>
           }
-          @if (auth.ehGestao()) {
+          @if (auth.podeCadastrar()) {
             <a routerLink="/matricula/novo" class="atalho">
               <span class="atalho-texto">Novo(a) {{ segmentoService.rotuloPessoa().toLowerCase() }}</span>
               <span class="atalho-botao atalho-botao--verde">{{ segmentoService.rotuloCadastro() }}</span>
             </a>
+          }
+          @if (auth.ehGestao()) {
             <a routerLink="/turmas/nova" class="atalho">
               <span class="atalho-texto">Nova turma</span>
               <span class="atalho-botao atalho-botao--azul">Turmas</span>

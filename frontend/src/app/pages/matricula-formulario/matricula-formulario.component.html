@@ -103,13 +103,17 @@
           </label>
         }
 
-        <label>Desconto na mensalidade, em % (opcional)
-          <input type="number" [(ngModel)]="descontoMensalidade" min="0" max="100" step="0.01" placeholder="0" />
-        </label>
-        @if (descontoMensalidade) {
-          <label>Motivo do desconto (opcional)
-            <input type="text" [(ngModel)]="motivoDesconto" maxlength="200" placeholder="Ex.: irmãos, bolsa parcial" />
+        @if (auth.ehFinanceiro()) {
+          <label>Desconto na mensalidade, em % (opcional)
+            <input type="number" [(ngModel)]="descontoMensalidade" min="0" max="100" step="0.01" placeholder="0" />
           </label>
+          @if (descontoMensalidade) {
+            <label>Motivo do desconto (opcional)
+              <input type="text" [(ngModel)]="motivoDesconto" maxlength="200" placeholder="Ex.: irmãos, bolsa parcial" />
+            </label>
+          }
+        } @else if (descontoMensalidade) {
+          <p class="dica">Desconto na mensalidade: <strong>{{ descontoMensalidade }}%</strong>{{ motivoDesconto ? ' (' + motivoDesconto + ')' : '' }} — só a coordenação ou o financeiro alteram.</p>
         }
 
         <label>Foto (opcional)</label>
@@ -283,12 +287,14 @@
             </ul>
           }
 
-          <div class="linha-exportar">
-            <button type="button" class="secundario" [disabled]="exportando()" (click)="exportarDados()">
-              {{ exportando() ? 'Gerando...' : '⬇️ Exportar dados pessoais (LGPD)' }}
-            </button>
-            <span class="dica">ZIP com cadastro, responsáveis, saúde (com os documentos), frequência, rotina, mensalidades, jogos, termos e histórico — para atender um pedido da família.</span>
-          </div>
+          @if (auth.ehGestao()) {
+            <div class="linha-exportar">
+              <button type="button" class="secundario" [disabled]="exportando()" (click)="exportarDados()">
+                {{ exportando() ? 'Gerando...' : '⬇️ Exportar dados pessoais (LGPD)' }}
+              </button>
+              <span class="dica">ZIP com cadastro, responsáveis, saúde (com os documentos), frequência, rotina, mensalidades, jogos, termos e histórico — para atender um pedido da família.</span>
+            </div>
+          }
         </div>
       }
     }

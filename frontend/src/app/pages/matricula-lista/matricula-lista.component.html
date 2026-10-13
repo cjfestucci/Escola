@@ -1,7 +1,7 @@
 <div class="container">
   <div class="cabecalho-pagina">
     <p class="subtitulo">{{ segmentoService.rotuloPessoaPlural() }} cadastrados{{ segmentoService.ehClube() ? '' : ' na escola' }}.</p>
-    @if (auth.ehGestao()) {
+    @if (auth.podeCadastrar()) {
       <button type="button" class="botao-primario" (click)="novo()">+ Novo(a) {{ segmentoService.rotuloPessoa() }}</button>
     }
   </div>
@@ -88,7 +88,7 @@
 
           <div class="acoes">
             <button type="button" class="botao-icone" (click)="abrirHistorico(aluno.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
-            @if (auth.ehGestao()) {
+            @if (auth.podeCadastrar()) {
               <button
                 type="button"
                 class="botao-texto"

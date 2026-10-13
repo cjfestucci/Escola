@@ -6,6 +6,7 @@ import { ConviteMatricula, POSICOES_ATLETA, PosicaoAtleta, ResponsavelResumo, Se
 import { DIAS_AVISO_ATESTADO, rotuloAtestado, situacaoAtestado } from '../../models/atestado.model';
 import { FichaSaude } from '../../models/ficha-saude.model';
 import { TermoAceite } from '../../models/termo.model';
+import { AuthService } from '../../services/auth.service';
 import { AlunoService } from '../../services/aluno.service';
 import { FichaSaudeService } from '../../services/ficha-saude.service';
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -45,6 +46,8 @@ export class MatriculaFormularioComponent implements OnInit {
   private readonly responsavelService = inject(ResponsavelService);
   private readonly termoService = inject(TermoService);
   private readonly notificacao = inject(NotificacaoService);
+  /** Desconto e exportação LGPD não são da Secretaria (ela faz a matrícula, o resto é da coordenação/financeiro). */
+  protected readonly auth = inject(AuthService);
   protected readonly segmentoService = inject(SegmentoService);
 
   protected alunoId: string | null = null;

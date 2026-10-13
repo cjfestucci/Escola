@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Aluno, Turma } from '../../models/aluno.model';
 import { Cobranca, PreviaMensalidades, FormasPagamento, PendenciaPix } from '../../models/cobranca.model';
 import { AlunoService } from '../../services/aluno.service';
+import { AuthService } from '../../services/auth.service';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
@@ -26,6 +27,8 @@ export class FinanceiroListaComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly route = inject(ActivatedRoute);
   private readonly notificacao = inject(NotificacaoService);
+  /** A Secretaria recebe no balcão (lança e marca como paga); editar valor, desmarcar, cancelar e gerar em lote ficam com o financeiro. */
+  protected readonly auth = inject(AuthService);
 
   readonly cobrancas = signal<Cobranca[]>([]);
   readonly turmas = signal<Turma[]>([]);
@@ -181,7 +184,8 @@ export class FinanceiroListaComponent implements OnInit {
 
   ngOnInit(): void {
     this.financeiroService.formasPagamento().subscribe({ next: (f) => this.formas.set(f), error: () => undefined });
-    this.financeiroService.listarPendenciasPix().subscribe({ next: (lista) => this.pendenciasPix.set(lista), error: () => undefined });
+    if (this.auth.ehFinanceiro())
+      this.financeiroService.listarPendenciasPix().subscribe({ next: (lista) => this.pendenciasPix.set(lista), error: () => undefined });
     // Atalhos do Dashboard abrem a lista já filtrada (ex.: /financeiro/mensalidades?status=atrasado).
     const status = this.route.snapshot.queryParamMap.get('status');
     if (status === 'pendente' || status === 'pago' || status === 'atrasado' || status === 'cancelada') this.filtroStatus.set(status);

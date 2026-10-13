@@ -111,6 +111,41 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
         Assert.False(lista.Permite("Educador"));
     }
 
+    /// <summary>Perfil Secretaria: decidido com o usuário em 2026-10-13 (matrícula + balcão + estoque; desconto, cancelamento, lote,
+    /// contas, configurações, equipe e LGPD ficam de fora). Mudou? Atualize a seção "Perfil Secretaria" do CLAUDE.md junto.</summary>
+    [Theory]
+    [InlineData("POST", "/api/alunos")]
+    [InlineData("PUT", "/api/alunos/{id:guid}")]
+    [InlineData("PUT", "/api/alunos/{alunoId:guid}/ficha-saude")]
+    [InlineData("POST", "/api/alunos/{alunoId:guid}/documentos-saude")]
+    [InlineData("GET", "/api/financeiro/cobrancas")]
+    [InlineData("POST", "/api/financeiro/cobrancas")]
+    [InlineData("POST", "/api/financeiro/cobrancas/{id:guid}/marcar-paga")]
+    [InlineData("POST", "/api/financeiro/cobrancas/{id:guid}/enviar-email")]
+    [InlineData("POST", "/api/estoque/movimentacoes")]
+    [InlineData("POST", "/api/estoque/produtos")]
+    public void SecretariaPode(string metodo, string rota) =>
+        Assert.True(Endpoints.Single(e => e.Metodo == metodo && e.Rota == rota).Permite("Secretaria"), $"{metodo} {rota}");
+
+    [Theory]
+    [InlineData("PUT", "/api/financeiro/cobrancas/{id:guid}")]
+    [InlineData("POST", "/api/financeiro/cobrancas/{id:guid}/cancelar")]
+    [InlineData("POST", "/api/financeiro/cobrancas/{id:guid}/reabrir")]
+    [InlineData("POST", "/api/financeiro/cobrancas/{id:guid}/desmarcar-paga")]
+    [InlineData("POST", "/api/financeiro/mensalidades/gerar")]
+    [InlineData("GET", "/api/financeiro/contas-pagar")]
+    [InlineData("GET", "/api/financeiro/contas-receber")]
+    [InlineData("PUT", "/api/financeiro/configuracao")]
+    [InlineData("GET", "/api/financeiro/pix-pendencias")]
+    [InlineData("POST", "/api/fornecedores")]
+    [InlineData("POST", "/api/turmas")]
+    [InlineData("GET", "/api/usuarios/contas")]
+    [InlineData("POST", "/api/usuarios/contas")]
+    [InlineData("GET", "/api/alunos/{alunoId:guid}/dados-pessoais/exportar")]
+    [InlineData("PUT", "/api/configuracao/escola")]
+    public void SecretariaNaoPode(string metodo, string rota) =>
+        Assert.False(Endpoints.Single(e => e.Metodo == metodo && e.Rota == rota).Permite("Secretaria"), $"{metodo} {rota}");
+
     [Fact]
     public void ResponsavelNaoEntraEmNadaDaEquipe()
     {

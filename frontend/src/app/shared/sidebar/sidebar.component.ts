@@ -36,6 +36,7 @@ const ITEM_FINANCEIRO: ItemNav = {
     { rotulo: 'Contas a Receber', rota: '/financeiro/contas-receber' }
   ]
 };
+const ITEM_MENSALIDADES: ItemNav = { rotulo: 'Mensalidades', rota: '/financeiro/mensalidades', icone: 'wallet' };
 const ITEM_COMPETICOES: ItemNav = {
   rotulo: 'Competições',
   icone: 'competicoes',
@@ -101,12 +102,16 @@ export class SidebarComponent {
     if (this.contextoService.contexto() === 'suporte') return [ITEM_PLATAFORMA, ITEM_CLIENTES, this.itemConfiguracoes()];
 
     const itens: ItemNav[] = [ITEM_DASHBOARD, ITEM_UNIDADES];
-    if (this.segmentoService.mostrarRotinaDiaria()) itens.push(ITEM_TURMA_ROTINA);
-    if (this.segmentoService.mostrarDiarioClasse()) itens.push(ITEM_DIARIO);
-    itens.push(ITEM_CHAMADA);
+    // A Secretaria não lança nada de turma (rotina, diário, chamada): esses itens nem aparecem pra ela.
+    const lancaTurma = !this.auth.ehSecretaria();
+    if (lancaTurma && this.segmentoService.mostrarRotinaDiaria()) itens.push(ITEM_TURMA_ROTINA);
+    if (lancaTurma && this.segmentoService.mostrarDiarioClasse()) itens.push(ITEM_DIARIO);
+    if (lancaTurma) itens.push(ITEM_CHAMADA);
     itens.push(ITEM_TURMAS_CADASTRO, { rotulo: this.segmentoService.rotuloCadastro(), rota: '/matricula', icone: 'matricula' });
     if (this.segmentoService.mostrarCompeticoes()) itens.push(ITEM_COMPETICOES);
     if (this.auth.ehFinanceiro()) itens.push(ITEM_FORNECEDORES, ITEM_FINANCEIRO, ITEM_ESTOQUE);
+    // Secretaria: só Mensalidades (recebimento no balcão) e Estoque — sem contas a pagar/receber nem fornecedores.
+    else if (this.auth.ehSecretaria()) itens.push(ITEM_MENSALIDADES, ITEM_ESTOQUE);
     if (this.auth.ehGestao()) itens.push(ITEM_USUARIOS, this.itemConfiguracoes());
     return itens;
   }

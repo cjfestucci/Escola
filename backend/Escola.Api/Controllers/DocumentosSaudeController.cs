@@ -59,7 +59,7 @@ public class DocumentosSaudeController(EscolaDbContext db, IDocumentoStorage sto
     }
 
     [HttpPost]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     [RequestSizeLimit(TamanhoMaximoBytes + 1024 * 1024)]
     public async Task<ActionResult<DocumentoSaudeDto>> Enviar(Guid alunoId, IFormFile arquivo, CancellationToken ct)
     {
@@ -112,7 +112,7 @@ public class DocumentosSaudeController(EscolaDbContext db, IDocumentoStorage sto
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     public async Task<IActionResult> Remover(Guid alunoId, Guid id)
     {
         var documento = await db.DocumentosSaude.FirstOrDefaultAsync(d => d.Id == id && d.AlunoId == alunoId);

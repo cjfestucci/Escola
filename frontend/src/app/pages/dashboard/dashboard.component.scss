@@ -184,6 +184,24 @@
   }
 }
 
+// Sem a coluna de recebimentos (Professor, Secretaria): duas colunas iguais em vez de deixar a terceira vazia.
+.grade-principal--operacional {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+  @media (max-width: 1180px) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+    .coluna-lateral--secundaria {
+      grid-column: auto;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 860px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .coluna-lateral {
   min-width: 0;
   display: flex;

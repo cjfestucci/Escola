@@ -26,6 +26,8 @@ export class AlunosListaComponent implements OnInit {
   readonly alunos = signal<Aluno[]>([]);
   readonly resumo = signal<ResumoDashboard | null>(null);
   readonly carregando = signal(true);
+  /** Professor sem nenhuma turma vinculada: a tela pede pra falar com a coordenação. */
+  readonly semTurmaVinculada = signal(false);
 
   readonly filtroNome = signal('');
 
@@ -60,6 +62,13 @@ export class AlunosListaComponent implements OnInit {
   }
 
   private carregarTodasTurmas(): void {
+    // Professor sem turma vinculada não vê os alunos dos outros (não poderia lançar a rotina deles).
+    if (this.sessao.ehEducador()) {
+      this.sessao.definirTurmas([]);
+      this.semTurmaVinculada.set(true);
+      this.carregando.set(false);
+      return;
+    }
     this.alunoService.listarTurmas().subscribe({
       next: (turmas) => {
         this.sessao.definirTurmas(turmas);

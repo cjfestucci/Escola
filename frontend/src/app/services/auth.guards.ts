@@ -14,11 +14,16 @@ function bloqueioDaAssinatura(): string | null {
   return inject(AssinaturaService).bloqueada() ? '/configuracoes/assinatura' : null;
 }
 
+/** Tela "de casa" da equipe: a rotina (/alunos) — menos pra Secretaria, que não lança rotina: a Matrícula. */
+function inicioDaEquipe(auth: AuthService): string {
+  return auth.ehSecretaria() ? '/matricula' : '/alunos';
+}
+
 function destinoSemAcesso(auth: AuthService): string {
   if (!auth.estaLogado()) return '/entrar';
   if (auth.ehSuporte()) return '/plataforma';
   if (auth.ehResponsavel()) return '/portal/filhos';
-  return '/alunos';
+  return inicioDaEquipe(auth);
 }
 
 /** Landing page depois do login — no clube o "Turma" (rotina diária de bebês/crianças) não existe,
@@ -31,7 +36,7 @@ export const redirecionamentoInicialGuard: CanActivateFn = () => {
   if (!auth.estaLogado()) return router.parseUrl('/entrar');
   if (auth.ehSuporte()) return router.parseUrl('/plataforma');
   if (auth.ehResponsavel()) return router.parseUrl('/portal/filhos');
-  return router.parseUrl(segmentoService.ehClube() ? '/dashboard' : '/alunos');
+  return router.parseUrl(segmentoService.ehClube() ? '/dashboard' : inicioDaEquipe(auth));
 };
 
 export const equipeGuard: CanActivateFn = () => {
@@ -51,7 +56,7 @@ export const gestaoGuard: CanActivateFn = () => {
   if (bloqueio) return router.parseUrl(bloqueio);
 
   if (auth.ehGestao()) return true;
-  return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
+  return router.parseUrl(auth.ehEquipe() ? inicioDaEquipe(auth) : destinoSemAcesso(auth));
 };
 
 /** Telas de Configurações: Gestão do cliente e Suporte (a única área de cliente que o Suporte enxerga). */
@@ -62,7 +67,7 @@ export const configuracaoGuard: CanActivateFn = () => {
   if (bloqueio) return router.parseUrl(bloqueio);
 
   if (auth.podeConfigurar()) return true;
-  return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
+  return router.parseUrl(auth.ehEquipe() ? inicioDaEquipe(auth) : destinoSemAcesso(auth));
 };
 
 export const suporteGuard: CanActivateFn = () => {
@@ -70,7 +75,7 @@ export const suporteGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (auth.ehSuporte()) return true;
-  return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
+  return router.parseUrl(auth.ehEquipe() ? inicioDaEquipe(auth) : destinoSemAcesso(auth));
 };
 
 export const financeiroGuard: CanActivateFn = () => {
@@ -80,7 +85,7 @@ export const financeiroGuard: CanActivateFn = () => {
   if (bloqueio) return router.parseUrl(bloqueio);
 
   if (auth.ehFinanceiro()) return true;
-  return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
+  return router.parseUrl(auth.ehEquipe() ? inicioDaEquipe(auth) : destinoSemAcesso(auth));
 };
 
 export const portalGuard: CanActivateFn = () => {
@@ -113,7 +118,7 @@ export const adminOuSuporteGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (auth.podeEditarIdentidade()) return true;
-  return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
+  return router.parseUrl(auth.ehEquipe() ? inicioDaEquipe(auth) : destinoSemAcesso(auth));
 };
 
 /** Qualquer pessoa logada (Minha conta). */
@@ -121,4 +126,26 @@ export const logadoGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   return auth.estaLogado() ? true : router.parseUrl('/entrar');
+};
+
+/** Matrícula (criar/editar atleta): Gestão e Secretaria. */
+export const cadastroGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const bloqueio = bloqueioDaAssinatura();
+  if (bloqueio) return router.parseUrl(bloqueio);
+
+  if (auth.podeCadastrar()) return true;
+  return router.parseUrl(auth.ehEquipe() ? inicioDaEquipe(auth) : destinoSemAcesso(auth));
+};
+
+/** Mensalidades e estoque: Financeiro e Secretaria (a Secretaria recebe no balcão e vende uniforme). */
+export const balcaoGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const bloqueio = bloqueioDaAssinatura();
+  if (bloqueio) return router.parseUrl(bloqueio);
+
+  if (auth.podeReceber()) return true;
+  return router.parseUrl(auth.ehEquipe() ? inicioDaEquipe(auth) : destinoSemAcesso(auth));
 };

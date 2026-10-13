@@ -16,7 +16,7 @@ namespace Escola.Api.Controllers;
 
 [ApiController]
 [Route("api/estoque/movimentacoes")]
-[Authorize(Roles = GruposDePapeis.Financeiro)]
+[Authorize(Roles = GruposDePapeis.Balcao)]
 public class MovimentacoesEstoqueController(EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio) : ControllerBase
 {
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");

@@ -10,7 +10,7 @@ namespace Escola.Tests;
 /// Quando classe e ação têm Roles, valem as duas (interseção) — é o comportamento do ASP.NET.</summary>
 public static class MapaDePermissoes
 {
-    public static readonly string[] TodosOsPapeis = ["Admin", "Coordenador", "Educador", "Financeiro", "Responsavel", "Suporte"];
+    public static readonly string[] TodosOsPapeis = ["Admin", "Coordenador", "Educador", "Financeiro", "Responsavel", "Suporte", "Secretaria"];
 
     public sealed record Endpoint(string Controller, string Acao, string Metodo, string Rota, bool Anonimo, bool ExigeLogin, IReadOnlySet<string> Papeis)
     {

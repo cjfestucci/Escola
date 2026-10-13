@@ -37,6 +37,7 @@ public class PresencaController(EscolaDbContext db, IAuditoriaService auditoria,
     public async Task<ActionResult<ChamadaDto>> SalvarChamada(Guid turmaId, SalvarChamadaRequest request)
     {
         if (!await db.Turmas.AnyAsync(t => t.Id == turmaId)) return NotFound("Turma não encontrada.");
+        if (!await this.PodeLancarNaTurmaAsync(db, turmaId)) return this.ForaDasSuasTurmas();
 
         if (request.Data == default || request.Data > await relogio.HojeAsync())
             return BadRequest("A chamada não pode ser de uma data futura.");

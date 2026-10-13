@@ -36,7 +36,7 @@ public class FichaSaudeController(EscolaDbContext db, IAuditoriaService auditori
     }
 
     [HttpPut]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     public async Task<ActionResult<FichaSaudeDto>> Salvar(Guid alunoId, SalvarFichaSaudeRequest request)
     {
         if (!await db.Alunos.AnyAsync(a => a.Id == alunoId))

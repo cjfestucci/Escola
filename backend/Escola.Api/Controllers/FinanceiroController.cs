@@ -23,7 +23,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
 {
     /// <summary>Visão administrativa: todas as cobranças da escola, com filtros opcionais.</summary>
     [HttpGet("cobrancas")]
-    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    [Authorize(Roles = GruposDePapeis.Balcao)]
     public async Task<ActionResult<List<CobrancaDto>>> Listar(
         [FromQuery] Guid? turmaId, [FromQuery] Guid? alunoId, [FromQuery] bool? paga)
     {
@@ -39,7 +39,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     }
 
     [HttpPost("cobrancas")]
-    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    [Authorize(Roles = GruposDePapeis.Balcao)]
     public async Task<ActionResult<CobrancaDto>> Criar(CriarCobrancaRequest request)
     {
         var erro = Validar(request.Descricao, request.Valor);
@@ -97,7 +97,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     }
 
     [HttpPost("cobrancas/{id:guid}/marcar-paga")]
-    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    [Authorize(Roles = GruposDePapeis.Balcao)]
     public async Task<ActionResult<CobrancaDto>> MarcarPaga(Guid id)
     {
         var cobranca = await db.Cobrancas.FirstOrDefaultAsync(c => c.Id == id);
@@ -235,7 +235,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
 
     /// <summary>Envia por e-mail, ao(s) responsável(is) do aluno, os detalhes da cobrança e o código Pix pra pagamento.</summary>
     [HttpPost("cobrancas/{id:guid}/enviar-email")]
-    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    [Authorize(Roles = GruposDePapeis.Balcao)]
     public async Task<IActionResult> EnviarEmail(Guid id)
     {
         if (!emailSender.Configurado)

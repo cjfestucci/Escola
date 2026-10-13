@@ -1,7 +1,9 @@
 <div class="container">
   <div class="cabecalho-pagina">
     <p class="subtitulo">Jogos e amistosos das turmas do clube.</p>
-    <button type="button" class="botao-primario" (click)="novo()">+ Novo jogo</button>
+    @if (!auth.ehSecretaria()) {
+      <button type="button" class="botao-primario" (click)="novo()">+ Novo jogo</button>
+    }
   </div>
 
   @if (!carregando() && jogos().length > 0) {
@@ -88,10 +90,12 @@
           <div class="acoes">
             <button type="button" class="botao-icone" (click)="abrirHistorico(jogo.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
             @if (jogo.status === 'Cancelado') {
-              <button type="button" class="botao-texto" [disabled]="processandoId() === jogo.id" (click)="reabrir(jogo)">Reabrir</button>
+              @if (sessao.podeLancarNaTurma(jogo.turmaId)) {
+                <button type="button" class="botao-texto" [disabled]="processandoId() === jogo.id" (click)="reabrir(jogo)">Reabrir</button>
+              }
             } @else {
               <button type="button" class="botao-icone" (click)="abrir(jogo)" aria-label="Abrir jogo" title="Abrir jogo">✏️</button>
-              @if (jogo.status === 'Agendado') {
+              @if (jogo.status === 'Agendado' && sessao.podeLancarNaTurma(jogo.turmaId)) {
                 <button type="button" class="botao-icone" (click)="pedirConfirmacaoCancelamento(jogo.id)" aria-label="Cancelar jogo" title="Cancelar jogo">🚫</button>
               }
             }

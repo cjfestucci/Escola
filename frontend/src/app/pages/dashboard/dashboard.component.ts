@@ -384,6 +384,8 @@ export class DashboardComponent implements OnInit {
       this.financeiroService.listarPendenciasPix().subscribe({ next: (lista) => this.pendenciasPix.set(lista), error: () => undefined });
     } else {
       this.carregando.set(false);
+      // Secretaria: Dashboard só operacional, mas o estoque (venda de uniforme no balcão) é dela — os alertas de estoque aparecem.
+      if (this.auth.ehSecretaria()) this.produtoService.listar().subscribe({ next: (produtos) => this.produtos.set(produtos), error: () => undefined });
     }
 
     this.presencaService.faltosos().subscribe({ next: (faltosos) => this.faltosos.set(faltosos), error: () => undefined });

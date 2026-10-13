@@ -98,6 +98,12 @@ export class ChamadaComponent implements OnInit {
   }
 
   private carregarTodasTurmas(): void {
+    // Professor sem turma vinculada não vê as turmas dos outros (não poderia lançar nelas): a tela pede pra falar com a coordenação.
+    if (this.sessao.ehEducador()) {
+      this.sessao.definirTurmas([]);
+      this.carregandoTurmas.set(false);
+      return;
+    }
     this.alunoService.listarTurmas().subscribe({
       next: (turmas) => {
         this.sessao.definirTurmas(turmas);

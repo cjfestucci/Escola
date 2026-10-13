@@ -4,8 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Jogo, LocalJogo, ROTULOS_MANDO, ROTULOS_RESULTADO, StatusJogo, resultadoDoJogo } from '../../models/competicao.model';
+import { AuthService } from '../../services/auth.service';
 import { JogoService } from '../../services/jogo.service';
 import { NotificacaoService } from '../../services/notificacao.service';
+import { SessaoService } from '../../services/sessao.service';
 import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 
@@ -21,6 +23,9 @@ export class JogosListaComponent implements OnInit {
   private readonly jogoService = inject(JogoService);
   private readonly router = inject(Router);
   private readonly notificacao = inject(NotificacaoService);
+  /** O professor só altera jogos das turmas dele (ver e abrir continua liberado). */
+  protected readonly sessao = inject(SessaoService);
+  protected readonly auth = inject(AuthService);
 
   readonly jogos = signal<Jogo[]>([]);
   readonly carregando = signal(true);
@@ -82,6 +87,7 @@ export class JogosListaComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.sessao.carregarTurmasVinculadas().subscribe();
     this.carregar();
   }
 

@@ -58,11 +58,13 @@ public class AlunosController(
     }
 
     [HttpPost]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     public async Task<ActionResult<AlunoDetalheDto>> Criar(CriarOuEditarAlunoRequest request)
     {
         var erro = await ValidarAsync(request);
         if (erro is not null) return BadRequest(erro);
+        if (!PodeDarDesconto() && (request.DescontoMensalidadePercentual != 0 || !string.IsNullOrWhiteSpace(request.MotivoDesconto)))
+            return BadRequest(SoOFinanceiroDaDesconto);
 
         var aluno = new Aluno
         {
@@ -88,7 +90,7 @@ public class AlunosController(
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     public async Task<ActionResult<AlunoDetalheDto>> Editar(Guid id, CriarOuEditarAlunoRequest request)
     {
         var erro = await ValidarAsync(request);
@@ -104,6 +106,9 @@ public class AlunosController(
         var posicaoAntes = aluno.Posicao?.Rotulo();
         var descontoAntes = aluno.DescontoMensalidadePercentual;
         var motivoDescontoAntes = aluno.MotivoDesconto;
+        var motivoPedido = string.IsNullOrWhiteSpace(request.MotivoDesconto) ? null : request.MotivoDesconto.Trim();
+        if (!PodeDarDesconto() && (request.DescontoMensalidadePercentual != descontoAntes || motivoPedido != motivoDescontoAntes))
+            return BadRequest(SoOFinanceiroDaDesconto);
 
         aluno.DescontoMensalidadePercentual = request.DescontoMensalidadePercentual;
         aluno.MotivoDesconto = string.IsNullOrWhiteSpace(request.MotivoDesconto) ? null : request.MotivoDesconto.Trim();
@@ -137,7 +142,7 @@ public class AlunosController(
     }
 
     [HttpPost("{id:guid}/desativar")]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     public async Task<ActionResult<AlunoDetalheDto>> Desativar(Guid id)
     {
         var aluno = await db.Alunos.FirstOrDefaultAsync(a => a.Id == id);
@@ -152,7 +157,7 @@ public class AlunosController(
     }
 
     [HttpPost("{id:guid}/ativar")]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     public async Task<ActionResult<AlunoDetalheDto>> Ativar(Guid id)
     {
         var aluno = await db.Alunos.FirstOrDefaultAsync(a => a.Id == id);
@@ -168,7 +173,7 @@ public class AlunosController(
 
     /// <summary>Manda de novo o e-mail da matrícula a um responsável: convite (conta ainda não ativada) ou aviso pra entrar no portal.</summary>
     [HttpPost("{id:guid}/responsaveis/{responsavelId:guid}/reenviar-convite")]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     public async Task<ActionResult<ConviteMatriculaDto>> ReenviarConvite(Guid id, Guid responsavelId)
     {
         if (!await db.AlunoResponsaveis.AnyAsync(ar => ar.AlunoId == id && ar.ResponsavelId == responsavelId))
@@ -180,6 +185,11 @@ public class AlunosController(
         await db.SaveChangesAsync();
         return Ok(resultado);
     }
+
+    /// <summary>Desconto na mensalidade é decisão do financeiro: a Secretaria faz a matrícula, mas não mexe nele (nem cancela cobrança).</summary>
+    private bool PodeDarDesconto() => !User.IsInRole(nameof(PapelUsuario.Secretaria));
+
+    private const string SoOFinanceiroDaDesconto = "Só a coordenação ou o financeiro podem definir desconto na mensalidade.";
 
     private static string SoDigitos(string? texto) => new((texto ?? string.Empty).Where(char.IsDigit).ToArray());
 

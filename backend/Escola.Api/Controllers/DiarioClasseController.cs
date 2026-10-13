@@ -52,6 +52,8 @@ public class DiarioClasseController(EscolaDbContext db, IAuditoriaService audito
     [Authorize(Roles = GruposDePapeis.Equipe)]
     public async Task<ActionResult<RegistroDiarioClasseDto>> Criar(Guid turmaId, CriarOuEditarRegistroDiarioClasseRequest request)
     {
+        if (!await this.PodeLancarNaTurmaAsync(db, turmaId)) return this.ForaDasSuasTurmas();
+
         var erro = await ValidarAsync(turmaId, request);
         if (erro is not null) return BadRequest(erro);
 
@@ -81,6 +83,8 @@ public class DiarioClasseController(EscolaDbContext db, IAuditoriaService audito
     [Authorize(Roles = GruposDePapeis.Equipe)]
     public async Task<ActionResult<RegistroDiarioClasseDto>> Editar(Guid turmaId, Guid registroId, CriarOuEditarRegistroDiarioClasseRequest request)
     {
+        if (!await this.PodeLancarNaTurmaAsync(db, turmaId)) return this.ForaDasSuasTurmas();
+
         var erro = await ValidarAsync(turmaId, request);
         if (erro is not null) return BadRequest(erro);
 
@@ -121,6 +125,8 @@ public class DiarioClasseController(EscolaDbContext db, IAuditoriaService audito
     [Authorize(Roles = GruposDePapeis.Equipe)]
     public async Task<IActionResult> Excluir(Guid turmaId, Guid registroId, [FromQuery] Guid usuarioId)
     {
+        if (!await this.PodeLancarNaTurmaAsync(db, turmaId)) return this.ForaDasSuasTurmas();
+
         if (!await db.Usuarios.AnyAsync(u => u.Id == usuarioId))
             return BadRequest("Usuário inválido.");
 

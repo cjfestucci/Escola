@@ -139,6 +139,8 @@ public class RotinaController(EscolaDbContext db, IAuditoriaService auditoria, I
     [Authorize(Roles = GruposDePapeis.Equipe)]
     public async Task<IActionResult> Excluir(Guid alunoId, Guid registroId, [FromQuery] Guid usuarioId)
     {
+        if (await ForaDasSuasTurmasAsync(alunoId) is { } proibido) return proibido;
+
         if (!await db.Usuarios.AnyAsync(u => u.Id == usuarioId))
             return BadRequest("Usuário (educador) inválido.");
 
@@ -161,6 +163,8 @@ public class RotinaController(EscolaDbContext db, IAuditoriaService auditoria, I
 
         if (!await db.Alunos.AnyAsync(a => a.Id == alunoId))
             return NotFound("Aluno não encontrado.");
+
+        if (await ForaDasSuasTurmasAsync(alunoId) is { } proibido) return proibido;
 
         if (!await db.Usuarios.AnyAsync(u => u.Id == usuarioId))
             return BadRequest("Usuário (educador) inválido.");
@@ -187,6 +191,8 @@ public class RotinaController(EscolaDbContext db, IAuditoriaService auditoria, I
         Func<T, (string Campo, object? Antes, object? Depois)[]> aplicarCampos)
         where T : RegistroRotina
     {
+        if (await ForaDasSuasTurmasAsync(alunoId) is { } proibido) return proibido;
+
         if (fotoUrls is { Count: > MaxFotos })
             return BadRequest($"No máximo {MaxFotos} fotos por registro.");
 
@@ -223,6 +229,15 @@ public class RotinaController(EscolaDbContext db, IAuditoriaService auditoria, I
         await db.Entry(registro).Reference(r => r.CriadoPor).LoadAsync();
 
         return Ok(registro.ToDto());
+    }
+
+    /// <summary>O Educador só lança rotina de atleta das turmas dele (ver <see cref="ControllerBaseExtensions.PodeLancarNaTurmaAsync"/>).
+    /// Aluno inexistente passa daqui (o 404 sai adiante).</summary>
+    private async Task<ObjectResult?> ForaDasSuasTurmasAsync(Guid alunoId)
+    {
+        var turmaId = await db.Alunos.Where(a => a.Id == alunoId).Select(a => (Guid?)a.TurmaId).FirstOrDefaultAsync();
+        if (turmaId is null || await this.PodeLancarNaTurmaAsync(db, turmaId.Value)) return null;
+        return this.ForaDasSuasTurmas();
     }
 
     private static List<FotoRegistro> MontarFotos(List<string>? urls) =>

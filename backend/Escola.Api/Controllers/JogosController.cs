@@ -59,6 +59,8 @@ public class JogosController(EscolaDbContext db, IAuditoriaService auditoria, IR
     [HttpPost]
     public async Task<ActionResult<JogoDto>> Criar(CriarOuEditarJogoRequest request)
     {
+        if (!await this.PodeLancarNaTurmaAsync(db, request.TurmaId)) return this.ForaDasSuasTurmas();
+
         var (erro, turma, campeonato) = await ValidarAsync(request, null);
         if (erro is not null) return BadRequest(erro);
 
@@ -83,6 +85,7 @@ public class JogosController(EscolaDbContext db, IAuditoriaService auditoria, IR
     {
         var jogo = await ComIncludes(comAlunos: true).FirstOrDefaultAsync(j => j.Id == id);
         if (jogo is null) return NotFound("Jogo não encontrado.");
+        if (!await this.PodeLancarNaTurmaAsync(db, jogo.TurmaId)) return this.ForaDasSuasTurmas();
         if (jogo.Status == StatusJogo.Cancelado) return BadRequest("Reabra o jogo cancelado antes de editá-lo.");
 
         var (erro, turma, campeonato) = await ValidarAsync(request, jogo);
@@ -125,6 +128,7 @@ public class JogosController(EscolaDbContext db, IAuditoriaService auditoria, IR
     {
         var jogo = await ComIncludes(comAlunos: true).FirstOrDefaultAsync(j => j.Id == id);
         if (jogo is null) return NotFound("Jogo não encontrado.");
+        if (!await this.PodeLancarNaTurmaAsync(db, jogo.TurmaId)) return this.ForaDasSuasTurmas();
         if (jogo.Status == StatusJogo.Cancelado) return BadRequest("O jogo já está cancelado.");
         if (jogo.Status == StatusJogo.Realizado)
             return BadRequest("Um jogo realizado não pode ser cancelado — volte-o para Agendado (editando) antes, se foi lançado por engano.");
@@ -141,6 +145,7 @@ public class JogosController(EscolaDbContext db, IAuditoriaService auditoria, IR
     {
         var jogo = await ComIncludes(comAlunos: true).FirstOrDefaultAsync(j => j.Id == id);
         if (jogo is null) return NotFound("Jogo não encontrado.");
+        if (!await this.PodeLancarNaTurmaAsync(db, jogo.TurmaId)) return this.ForaDasSuasTurmas();
         if (jogo.Status != StatusJogo.Cancelado) return BadRequest("Só um jogo cancelado pode ser reaberto.");
 
         jogo.Status = StatusJogo.Agendado;
@@ -156,6 +161,7 @@ public class JogosController(EscolaDbContext db, IAuditoriaService auditoria, IR
     {
         var jogo = await ComIncludes(comAlunos: true).FirstOrDefaultAsync(j => j.Id == id);
         if (jogo is null) return NotFound("Jogo não encontrado.");
+        if (!await this.PodeLancarNaTurmaAsync(db, jogo.TurmaId)) return this.ForaDasSuasTurmas();
         if (jogo.Status == StatusJogo.Cancelado) return BadRequest("Reabra o jogo cancelado antes de alterar a convocação.");
 
         var itens = request.Convocados ?? [];

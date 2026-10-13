@@ -240,7 +240,8 @@ public static class DbInitializer
         {
             ("Admin Geral", "admin@escola.dev", PapelUsuario.Admin),
             ("Coordenadora Marina", "coordenacao@escola.dev", PapelUsuario.Coordenador),
-            ("Financeiro Tatiane", "financeiro@escola.dev", PapelUsuario.Financeiro)
+            ("Financeiro Tatiane", "financeiro@escola.dev", PapelUsuario.Financeiro),
+            ("Secretaria Paula", "secretaria@escola.dev", PapelUsuario.Secretaria)
         };
         foreach (var conta in contasEquipe)
         {

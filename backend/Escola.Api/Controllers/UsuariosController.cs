@@ -133,6 +133,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria,
         PapelUsuario.Coordenador => "coordenação",
         PapelUsuario.Educador => "professor/treinador",
         PapelUsuario.Financeiro => "financeiro",
+        PapelUsuario.Secretaria => "secretaria",
         _ => papel.ToString()
     };
 
@@ -242,6 +243,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria,
 
         var turmas = await db.Turmas
             .Include(t => t.Alunos)
+            .Include(t => t.Unidade)
             .Include(t => t.Educadores).ThenInclude(te => te.Usuario)
             .Where(t => t.Educadores.Any(te => te.UsuarioId == id))
             .OrderBy(t => t.Nome)

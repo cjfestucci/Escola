@@ -10,7 +10,7 @@ const CHAVE_TOKEN = 'escola.token';
 const CHAVE_APARELHOS = 'escola.aparelhos';
 const MAXIMO_TOKENS_APARELHO = 10;
 
-const PAPEIS_EQUIPE: Papel[] = ['Admin', 'Coordenador', 'Educador', 'Financeiro'];
+const PAPEIS_EQUIPE: Papel[] = ['Admin', 'Coordenador', 'Educador', 'Financeiro', 'Secretaria'];
 
 /** Login de verdade (JWT). Token de vida longa pra não pedir senha toda hora — expira em 30 dias. */
 @Injectable({ providedIn: 'root' })
@@ -35,6 +35,12 @@ export class AuthService {
   /** Identidade da escola (nome, logo, fuso): só o Admin — o dono da conta — e o Suporte. O Coordenador mexe só na cor. */
   readonly podeEditarIdentidade = computed(() => this.papel() === 'Admin' || this.papel() === 'Suporte');
   readonly ehFinanceiro = computed(() => this.ehGestao() || this.papel() === 'Financeiro');
+  /** Recepção/secretaria: matrícula, recebimento no balcão e estoque (sem desconto, cancelamento, contas, configurações). */
+  readonly ehSecretaria = computed(() => this.papel() === 'Secretaria');
+  /** Matrícula (atletas, responsáveis, ficha de saúde, documentos): Gestão e Secretaria. */
+  readonly podeCadastrar = computed(() => this.ehGestao() || this.ehSecretaria());
+  /** Mensalidades (listar, lançar avulsa, marcar paga) e estoque: Financeiro e Secretaria. */
+  readonly podeReceber = computed(() => this.ehFinanceiro() || this.ehSecretaria());
   /** Telas de Configurações: Gestão do cliente e Suporte. */
   readonly podeConfigurar = computed(() => this.ehGestao() || this.ehSuporte());
 

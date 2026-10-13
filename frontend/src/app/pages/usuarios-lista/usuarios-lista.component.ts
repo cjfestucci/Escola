@@ -11,7 +11,8 @@ const ROTULO_PAPEL: Record<PapelEquipe, string> = {
   Admin: 'Admin',
   Coordenador: 'Coordenador',
   Educador: 'Professor',
-  Financeiro: 'Financeiro'
+  Financeiro: 'Financeiro',
+  Secretaria: 'Secretaria'
 };
 
 @Component({
@@ -42,7 +43,7 @@ export class UsuariosListaComponent implements OnInit {
   email = '';
   papel: PapelEquipe = 'Educador';
 
-  protected readonly papeis: PapelEquipe[] = ['Admin', 'Coordenador', 'Educador', 'Financeiro'];
+  protected readonly papeis: PapelEquipe[] = ['Admin', 'Coordenador', 'Educador', 'Financeiro', 'Secretaria'];
   protected readonly rotuloPapel = (papel: string): string => ROTULO_PAPEL[papel as PapelEquipe] ?? papel;
 
   get meuId(): string | null {

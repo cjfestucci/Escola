@@ -14,7 +14,7 @@ namespace Escola.Api.Controllers;
 
 [ApiController]
 [Route("api/estoque/produtos")]
-[Authorize(Roles = GruposDePapeis.Financeiro)]
+[Authorize(Roles = GruposDePapeis.Balcao)]
 public class ProdutosController(EscolaDbContext db, IAuditoriaService auditoria) : ControllerBase
 {
     [HttpGet]

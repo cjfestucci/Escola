@@ -2,7 +2,9 @@
   <div class="cabecalho-pagina">
     <p class="subtitulo">Mensalidades e cobranças por aluno.</p>
     <div class="acoes-cabecalho">
-      <button type="button" class="botao-secundario" (click)="abrirGeracao()">📅 Gerar mensalidades</button>
+      @if (auth.ehFinanceiro()) {
+        <button type="button" class="botao-secundario" (click)="abrirGeracao()">📅 Gerar mensalidades</button>
+      }
       <button type="button" class="botao-primario" (click)="abrirNova()">+ Nova cobrança</button>
     </div>
   </div>
@@ -39,18 +41,25 @@
       <div class="cartao-stat cartao-stat--pendente">
         <span class="stat-valor">{{ resumo().pendentes }}</span>
         <span class="stat-rotulo">Pendentes</span>
-        <span class="stat-valor-secundario">R$ {{ resumo().valorPendente | number: '1.2-2' }}</span>
+        @if (auth.ehFinanceiro()) {
+          <span class="stat-valor-secundario">R$ {{ resumo().valorPendente | number: '1.2-2' }}</span>
+        }
       </div>
       <div class="cartao-stat" [class.cartao-stat--atrasado]="resumo().atrasadas > 0">
         <span class="stat-valor">{{ resumo().atrasadas }}</span>
         <span class="stat-rotulo">Atrasadas</span>
-        <span class="stat-valor-secundario">R$ {{ resumo().valorAtrasado | number: '1.2-2' }}</span>
+        @if (auth.ehFinanceiro()) {
+          <span class="stat-valor-secundario">R$ {{ resumo().valorAtrasado | number: '1.2-2' }}</span>
+        }
       </div>
-      <div class="cartao-stat cartao-stat--total">
-        <span class="stat-valor">{{ resumo().totalPendente | number: '1.2-2' }}</span>
-        <span class="stat-rotulo">Total em aberto (R$)</span>
-        <span class="stat-valor-secundario">{{ resumo().totalAberto }} {{ resumo().totalAberto === 1 ? 'mensalidade' : 'mensalidades' }}</span>
-      </div>
+      <!-- Totais em reais só pro financeiro: a Secretaria vê só as quantidades (decisão de 2026-10-13). -->
+      @if (auth.ehFinanceiro()) {
+        <div class="cartao-stat cartao-stat--total">
+          <span class="stat-valor">{{ resumo().totalPendente | number: '1.2-2' }}</span>
+          <span class="stat-rotulo">Total em aberto (R$)</span>
+          <span class="stat-valor-secundario">{{ resumo().totalAberto }} {{ resumo().totalAberto === 1 ? 'mensalidade' : 'mensalidades' }}</span>
+        </div>
+      }
     </div>
   }
 
@@ -283,21 +292,25 @@
           } @else if (cobranca.cancelada) {
             <div class="acoes">
               <button type="button" class="botao-icone" (click)="abrirHistorico(cobranca.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
-              <button type="button" class="botao-texto" [disabled]="processandoId() === cobranca.id" (click)="reabrir(cobranca)">
+              @if (auth.ehFinanceiro()) {
+                <button type="button" class="botao-texto" [disabled]="processandoId() === cobranca.id" (click)="reabrir(cobranca)">
                 {{ processandoId() === cobranca.id ? 'Reabrindo...' : 'Reabrir' }}
               </button>
+              }
             </div>
           } @else {
             <div class="acoes">
               <button type="button" class="botao-icone" (click)="abrirHistorico(cobranca.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
-              <button
-                type="button"
-                class="botao-texto"
-                [disabled]="processandoId() === cobranca.id"
-                (click)="alternarPaga(cobranca)"
-              >
-                {{ cobranca.paga ? 'Marcar pendente' : 'Marcar paga' }}
-              </button>
+              @if (!cobranca.paga || auth.ehFinanceiro()) {
+                <button
+                  type="button"
+                  class="botao-texto"
+                  [disabled]="processandoId() === cobranca.id"
+                  (click)="alternarPaga(cobranca)"
+                >
+                  {{ cobranca.paga ? 'Marcar pendente' : 'Marcar paga' }}
+                </button>
+              }
               @if (!cobranca.paga && formas()?.pix) {
                 <button type="button" class="botao-icone" (click)="abrirPix(cobranca)" aria-label="Ver código Pix" title="Ver código Pix">💠</button>
               }
@@ -311,7 +324,7 @@
               >
                 {{ enviandoEmailId() === cobranca.id ? '⏳' : '✉️' }}
               </button>
-              @if (!cobranca.paga) {
+              @if (!cobranca.paga && auth.ehFinanceiro()) {
                 <button type="button" class="botao-icone" (click)="editar(cobranca)" aria-label="Editar cobrança" title="Editar cobrança">✏️</button>
                 <button type="button" class="botao-icone" (click)="pedirConfirmacaoCancelamento(cobranca.id)" aria-label="Cancelar cobrança" title="Cancelar cobrança">🚫</button>
               }

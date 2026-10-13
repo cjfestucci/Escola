@@ -21,7 +21,8 @@ public class ResponsaveisController(EscolaDbContext db, IAuditoriaService audito
     public async Task<ActionResult<List<AlunoDto>>> ListarAlunos(Guid id)
     {
         // Um responsável só pode ver os próprios filhos; a equipe pode consultar qualquer um (suporte).
-        var ehEquipe = User.IsInRole("Admin") || User.IsInRole("Coordenador") || User.IsInRole("Educador") || User.IsInRole("Financeiro");
+        var ehEquipe = User.IsInRole("Admin") || User.IsInRole("Coordenador") || User.IsInRole("Educador") || User.IsInRole("Financeiro")
+            || User.IsInRole("Secretaria");
         if (!ehEquipe && this.ResponsavelIdAtual() != id)
             return Forbid();
 
@@ -41,7 +42,7 @@ public class ResponsaveisController(EscolaDbContext db, IAuditoriaService audito
 
     /// <summary>Gera uma nova senha temporária pro login do Portal dos Pais desse responsável.</summary>
     [HttpPost("{id:guid}/redefinir-senha")]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
+    [Authorize(Roles = GruposDePapeis.Cadastro)]
     public async Task<ActionResult<SenhaGeradaDto>> RedefinirSenha(Guid id)
     {
         var responsavel = await db.Responsaveis.FirstOrDefaultAsync(r => r.Id == id);

@@ -12,6 +12,7 @@ import { FALTAS_SEGUIDAS_PARA_ALERTA, FrequenciaAluno } from '../../models/prese
 import { CampeonatoService } from '../../services/campeonato.service';
 import { JogoService } from '../../services/jogo.service';
 import { NotificacaoService } from '../../services/notificacao.service';
+import { SessaoService } from '../../services/sessao.service';
 import { TurmaService } from '../../services/turma.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
 import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
@@ -46,6 +47,7 @@ export class JogoFormularioComponent implements OnInit {
   private readonly alunoService = inject(AlunoService);
   private readonly presencaService = inject(PresencaService);
   private readonly notificacao = inject(NotificacaoService);
+  protected readonly sessao = inject(SessaoService);
 
   private jogoId: string | null = null;
 
@@ -96,7 +98,14 @@ export class JogoFormularioComponent implements OnInit {
 
   /** Turmas e campeonatos inativos só aparecem se for o que o jogo já usa. */
   get turmasDisponiveis(): Turma[] {
-    return this.turmas().filter((t) => t.ativa || t.id === this.jogo()?.turmaId);
+    // O professor só agenda jogo nas turmas dele.
+    return this.turmas().filter((t) => (t.ativa && this.sessao.podeLancarNaTurma(t.id)) || t.id === this.jogo()?.turmaId);
+  }
+
+  /** Jogo de uma turma em que o professor logado não está vinculado: dá pra ver, mas não alterar (o servidor recusaria). */
+  get somenteLeitura(): boolean {
+    const jogo = this.jogo();
+    return !!jogo && !this.sessao.podeLancarNaTurma(jogo.turmaId);
   }
 
   get campeonatosDisponiveis(): Campeonato[] {
@@ -137,13 +146,13 @@ export class JogoFormularioComponent implements OnInit {
   ngOnInit(): void {
     this.jogoId = this.route.snapshot.paramMap.get('id');
 
-    forkJoin({ turmas: this.turmaService.listar(), campeonatos: this.campeonatoService.listar() }).subscribe({
+    forkJoin({ turmas: this.turmaService.listar(), campeonatos: this.campeonatoService.listar(), vinculadas: this.sessao.carregarTurmasVinculadas() }).subscribe({
       next: ({ turmas, campeonatos }) => {
         this.turmas.set(turmas);
         this.campeonatos.set(campeonatos);
 
         if (!this.jogoId) {
-          const primeira = turmas.find((t) => t.ativa);
+          const primeira = turmas.find((t) => t.ativa && this.sessao.podeLancarNaTurma(t.id));
           if (primeira) this.turmaId = primeira.id;
           this.data = hojeIso();
           this.carregando.set(false);

@@ -13,6 +13,18 @@
       </div>
     }
 
+    @if (somenteLeitura) {
+      <div class="aviso-cancelado">
+        @if (sessao.ehEducador()) {
+          <strong>Este jogo é de uma turma em que você não é professor.</strong>
+          <span>Você pode ver os dados e a convocação, mas só a coordenação ou o professor da turma podem alterar.</span>
+        } @else {
+          <strong>Somente consulta.</strong>
+          <span>A secretaria vê os dados e a convocação; quem altera é a coordenação ou o professor da turma.</span>
+        }
+      </div>
+    }
+
     @if (ehEdicao) {
       <div class="abas">
         <button type="button" class="aba" [class.ativa]="abaAtiva() === 'dados'" (click)="abaAtiva.set('dados')">Dados do jogo</button>
@@ -112,7 +124,7 @@
 
         <div class="botoes">
           <button type="button" class="secundario" (click)="voltar()">Cancelar</button>
-          @if (!cancelado) {
+          @if (!cancelado && !somenteLeitura) {
             <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">
               {{ salvando() ? 'Salvando...' : 'Salvar' }}
             </button>
@@ -213,7 +225,7 @@
             }
           </ul>
 
-          @if (!cancelado) {
+          @if (!cancelado && !somenteLeitura) {
             <div class="botoes">
               <button type="button" class="primario" [disabled]="salvandoConvocacao()" (click)="salvarConvocacao()">
                 {{ salvandoConvocacao() ? 'Salvando...' : 'Salvar convocação' }}
