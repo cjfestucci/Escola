@@ -27,14 +27,23 @@
       <div class="campo">
         <span class="rotulo">Válido até (opcional)</span>
         <div class="linha-data">
-          <app-calendario [dataSelecionada]="validoAte || hojeIso()" (escolher)="validoAte = $event" />
+          <div class="ancora-calendario">
+            <button type="button" class="campo-data" (click)="calendarioAberto.set(!calendarioAberto())">
+              {{ validoAte ? formatarData(validoAte) : 'Sem prazo' }} 📅
+            </button>
+            @if (calendarioAberto()) {
+              <div class="popover-calendario">
+                <app-calendario [dataSelecionada]="validoAte || hojeIso()" (escolher)="escolherValidade($event)" />
+              </div>
+            }
+          </div>
           @if (validoAte) {
-            <span>{{ formatarData(validoAte) }}</span>
             <button type="button" class="botao-texto" (click)="validoAte = null">Limpar</button>
-          } @else {
-            <span class="ajuda">sem prazo</span>
           }
         </div>
+        @if (calendarioAberto()) {
+          <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
+        }
       </div>
       <label class="inteiro">Observação (opcional)
         <input type="text" maxlength="300" placeholder="Ex.: campanha de lançamento no Instagram" [(ngModel)]="observacao" />

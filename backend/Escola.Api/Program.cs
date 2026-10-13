@@ -231,7 +231,9 @@ using (var escopoCliente = app.Services.CreateScope())
 // quem tem conta em mais de um cliente escolhe a escola. Sem a configuração, fica desativada em todos. Um escopo por cliente.
 List<Guid> todosOsClientes;
 using (var escopoLista = app.Services.CreateScope())
-    todosOsClientes = await escopoLista.ServiceProvider.GetRequiredService<EscolaDbContext>().Clientes.Select(c => c.Id).ToListAsync();
+    // Cliente com os dados excluídos não ganha conta nova (senão o Suporte "renasceria" num cliente apagado a cada subida).
+    todosOsClientes = await escopoLista.ServiceProvider.GetRequiredService<EscolaDbContext>().Clientes
+        .Where(c => c.ExcluidoEm == null).Select(c => c.Id).ToListAsync();
 foreach (var idCliente in todosOsClientes)
 {
     using var escopoSuporte = app.Services.CreateScope();

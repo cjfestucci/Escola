@@ -4,9 +4,9 @@
 }
 
 .resumo {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
-  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 

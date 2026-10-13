@@ -15,4 +15,8 @@ public class Cliente
     /// cliente (config <c>Cliente:Segmento</c>) e depois só alterado por quem opera o produto, nunca pela tela de configuração.</summary>
     public SegmentoCliente Segmento { get; set; } = SegmentoCliente.Escola;
     public DateTime CriadoEm { get; set; }
+
+    /// <summary>Quando os dados do cliente foram apagados (retenção/LGPD). Cliente excluído fica só como registro anonimizado: nenhuma conta
+    /// é recriada nele (nem a do Suporte).</summary>
+    public DateTime? ExcluidoEm { get; set; }
 }

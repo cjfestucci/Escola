@@ -15,6 +15,7 @@ const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 export class SeletorHorarioComponent {
   readonly horario = input.required<string>();
   readonly horarioChange = output<string>();
+  readonly desabilitado = input(false);
 
   protected readonly horas = HORAS;
   protected readonly minutos = MINUTOS;

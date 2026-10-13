@@ -97,6 +97,7 @@ public partial class RetencaoDadosHttpTests(ApiFactory api) : IClassFixture<ApiF
             var cliente = await db.Clientes.SingleAsync(c => c.Id == clienteId);
             Assert.Equal(ExclusaoDadosCliente.NomeClienteExcluido, cliente.Nome);
             Assert.False(cliente.Ativo);
+            Assert.NotNull(cliente.ExcluidoEm); // marca pro provisionamento do Suporte não recriar conta nele
             Assert.True(await db.RegistrosAcesso.AnyAsync(r => r.Email == email)); // Marco Civil: ficam 6 meses
         }
         using (var db = api.Contexto(ApiFactory.ClienteId)) Assert.Equal(usuariosDoOutroCliente, await db.Usuarios.CountAsync());

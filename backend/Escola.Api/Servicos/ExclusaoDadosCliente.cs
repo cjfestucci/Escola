@@ -40,7 +40,8 @@ public sealed class ExclusaoDadosCliente(
                 total += await (Task<int>)ApagarDoTipo.MakeGenericMethod(tipo).Invoke(null, [db, clienteId, ct])!;
 
             await db.Clientes.Where(c => c.Id == clienteId)
-                .ExecuteUpdateAsync(s => s.SetProperty(c => c.Nome, NomeClienteExcluido).SetProperty(c => c.Ativo, false), ct);
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.Nome, NomeClienteExcluido).SetProperty(c => c.Ativo, false)
+                    .SetProperty(c => c.ExcluidoEm, DateTime.UtcNow), ct);
             await transacao.CommitAsync(ct);
         }
 

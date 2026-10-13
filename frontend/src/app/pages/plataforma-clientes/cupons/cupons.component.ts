@@ -24,6 +24,7 @@ export class CuponsComponent implements OnInit {
   readonly formularioAberto = signal(false);
   readonly salvando = signal(false);
   readonly processandoId = signal<string | null>(null);
+  readonly calendarioAberto = signal(false);
 
   codigo = '';
   percentual: number | null = 20;
@@ -47,6 +48,11 @@ export class CuponsComponent implements OnInit {
     this.usosMaximos = null;
     this.observacao = '';
     this.formularioAberto.set(true);
+  }
+
+  escolherValidade(data: string): void {
+    this.validoAte = data;
+    this.calendarioAberto.set(false);
   }
 
   salvar(): void {

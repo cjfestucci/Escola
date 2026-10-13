@@ -324,6 +324,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<DateTime>("CriadoEm")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("ExcluidoEm")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("text");

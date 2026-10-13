@@ -39,7 +39,7 @@
         <p class="legenda-obrigatorio">Campo obrigatório</p>
 
         <label>Campeonato (opcional)
-          <select [(ngModel)]="campeonatoId" [disabled]="cancelado">
+          <select [(ngModel)]="campeonatoId" [disabled]="cancelado || somenteLeitura">
             <option value="">— Amistoso (sem campeonato) —</option>
             @for (campeonato of campeonatosDisponiveis; track campeonato.id) {
               <option [value]="campeonato.id">{{ campeonato.nome }}</option>
@@ -60,12 +60,12 @@
         }
 
         <label><span class="obrigatorio">Adversário</span>
-          <input type="text" [(ngModel)]="adversario" maxlength="150" placeholder="Ex.: Escola de Futebol Estrela" [disabled]="cancelado" />
+          <input type="text" [(ngModel)]="adversario" maxlength="150" placeholder="Ex.: Escola de Futebol Estrela" [disabled]="cancelado || somenteLeitura" />
         </label>
 
         <label><span class="obrigatorio">Data</span></label>
         <div class="ancora-calendario">
-          <button type="button" class="campo-data" [disabled]="cancelado" (click)="calendarioAberto.set(!calendarioAberto())">
+          <button type="button" class="campo-data" [disabled]="cancelado || somenteLeitura" (click)="calendarioAberto.set(!calendarioAberto())">
             <span>{{ data ? formatarDataAbsoluta(data) : 'Selecionar data' }}</span>
             <svg class="icone-calendario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <rect x="4" y="5" width="16" height="16" rx="2" />
@@ -84,15 +84,15 @@
         }
 
         <label><span class="obrigatorio">Horário</span>
-          <app-seletor-horario [horario]="hora" (horarioChange)="hora = $event" />
+          <app-seletor-horario [horario]="hora" (horarioChange)="hora = $event" [desabilitado]="cancelado || somenteLeitura" />
         </label>
 
         <label>Local (opcional)
-          <input type="text" [(ngModel)]="local" maxlength="150" placeholder="Ex.: Campo do Estrela, Rua das Flores, 100" [disabled]="cancelado" />
+          <input type="text" [(ngModel)]="local" maxlength="150" placeholder="Ex.: Campo do Estrela, Rua das Flores, 100" [disabled]="cancelado || somenteLeitura" />
         </label>
 
         <label><span class="obrigatorio">Mando de campo</span>
-          <select [(ngModel)]="mando" [disabled]="cancelado">
+          <select [(ngModel)]="mando" [disabled]="cancelado || somenteLeitura">
             @for (m of mandos; track m.valor) {
               <option [value]="m.valor">{{ m.rotulo }}</option>
             }
@@ -100,7 +100,7 @@
         </label>
 
         <label><span class="obrigatorio">Situação</span>
-          <select [(ngModel)]="status" [disabled]="cancelado">
+          <select [(ngModel)]="status" [disabled]="cancelado || somenteLeitura">
             <option value="Agendado">Agendado</option>
             <option value="Realizado">Realizado</option>
           </select>
@@ -109,17 +109,17 @@
         @if (status === 'Realizado') {
           <div class="linha-placar">
             <label><span class="obrigatorio">Gols do nosso time</span>
-              <input type="number" [(ngModel)]="golsPro" min="0" max="99" step="1" placeholder="0" [disabled]="cancelado" />
+              <input type="number" [(ngModel)]="golsPro" min="0" max="99" step="1" placeholder="0" [disabled]="cancelado || somenteLeitura" />
             </label>
             <span class="x">x</span>
             <label><span class="obrigatorio">Gols do adversário</span>
-              <input type="number" [(ngModel)]="golsContra" min="0" max="99" step="1" placeholder="0" [disabled]="cancelado" />
+              <input type="number" [(ngModel)]="golsContra" min="0" max="99" step="1" placeholder="0" [disabled]="cancelado || somenteLeitura" />
             </label>
           </div>
         }
 
         <label>Observação (opcional)
-          <textarea [(ngModel)]="observacao" rows="3" maxlength="500" placeholder="Ponto de encontro, uniforme, ocorrências..." [disabled]="cancelado"></textarea>
+          <textarea [(ngModel)]="observacao" rows="3" maxlength="500" placeholder="Ponto de encontro, uniforme, ocorrências..." [disabled]="cancelado || somenteLeitura"></textarea>
         </label>
 
         <div class="botoes">
@@ -173,7 +173,7 @@
             @for (linha of linhas; track linha.alunoId) {
               <li class="atleta" [class.atleta--convocado]="linha.convocado">
                 <label class="linha-checkbox">
-                  <input type="checkbox" [(ngModel)]="linha.convocado" [disabled]="cancelado" />
+                  <input type="checkbox" [(ngModel)]="linha.convocado" [disabled]="cancelado || somenteLeitura" />
                   <span class="nome-atleta">{{ linha.nome }}</span>
                   @if (frequenciaDe(linha.alunoId); as freq) {
                     @if (freq.percentual !== null) {
@@ -199,23 +199,23 @@
                 @if (linha.convocado) {
                   <div class="detalhes-atleta">
                     <label class="linha-checkbox">
-                      <input type="checkbox" [(ngModel)]="linha.titular" [disabled]="cancelado" />
+                      <input type="checkbox" [(ngModel)]="linha.titular" [disabled]="cancelado || somenteLeitura" />
                       Titular
                     </label>
 
                     @if (sumulaLiberada) {
                       <label class="campo-pequeno">Gols
-                        <input type="number" [(ngModel)]="linha.gols" min="0" max="99" step="1" [disabled]="cancelado" />
+                        <input type="number" [(ngModel)]="linha.gols" min="0" max="99" step="1" [disabled]="cancelado || somenteLeitura" />
                       </label>
                       <label class="campo-pequeno">Amarelos
-                        <select [(ngModel)]="linha.amarelos" [disabled]="cancelado">
+                        <select [(ngModel)]="linha.amarelos" [disabled]="cancelado || somenteLeitura">
                           <option [ngValue]="0">0</option>
                           <option [ngValue]="1">1</option>
                           <option [ngValue]="2">2</option>
                         </select>
                       </label>
                       <label class="linha-checkbox">
-                        <input type="checkbox" [(ngModel)]="linha.vermelho" [disabled]="cancelado" />
+                        <input type="checkbox" [(ngModel)]="linha.vermelho" [disabled]="cancelado || somenteLeitura" />
                         Vermelho
                       </label>
                     }
