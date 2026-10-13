@@ -12,9 +12,11 @@
     <div class="painel situacao" [class]="'situacao--' + a.situacao">
       <div class="cabecalho">
         <span class="selo">{{ a.rotulo }}</span>
-        <button type="button" class="link" [disabled]="atualizando()" (click)="atualizar()">
-          {{ atualizando() ? 'Conferindo...' : 'Já paguei — conferir agora' }}
-        </button>
+        @if (!a.acessoAte) {
+          <button type="button" class="link" [disabled]="atualizando()" (click)="atualizar()">
+            {{ atualizando() ? 'Conferindo...' : 'Já paguei — conferir agora' }}
+          </button>
+        }
       </div>
 
       @switch (a.situacao) {
@@ -22,11 +24,13 @@
           <p>
             Teste grátis até <strong>{{ formatarData(a.testeAte!) }}</strong>
             ({{ a.diasRestantesTeste === 0 ? 'último dia' : 'faltam ' + a.diasRestantesTeste + (a.diasRestantesTeste === 1 ? ' dia' : ' dias') }}).
-            Para continuar usando depois disso, pague a 1ª mensalidade.
+            @if (!a.acessoAte) { Para continuar usando depois disso, pague a 1ª mensalidade. }
           </p>
         }
         @case ('Ativa') {
-          <p>Tudo em dia. Obrigado!</p>
+          @if (!a.acessoAte) {
+            <p>Tudo em dia. Obrigado!</p>
+          }
         }
         @case ('EmAtraso') {
           <p>
@@ -48,6 +52,13 @@
         }
       }
 
+      @if (a.acessoAte && a.situacao !== 'Cancelada') {
+        <p class="cancelamento-agendado">
+          Assinatura cancelada. O clube pode usar o sistema até <strong>{{ formatarData(a.acessoAte) }}</strong>; depois disso o acesso
+          é encerrado. Mudou de ideia? Fale com o suporte.
+        </p>
+      }
+
       @if (a.linkPagamento) {
         <a class="pagar" [href]="a.linkPagamento" target="_blank" rel="noopener">Pagar agora</a>
         <p class="ajuda">Pix, boleto ou cartão de crédito, na página segura do nosso parceiro de pagamentos.</p>
@@ -57,7 +68,11 @@
     <div class="painel">
       <p class="titulo-secao">Plano</p>
       <div class="linha"><span>Plano completo</span><strong>{{ formatarReais(a.valorMensal) }} por mês</strong></div>
-      <p class="ajuda">Calculado para {{ a.atletasInformados }} atletas, como informado no cadastro.</p>
+      @if (a.atletasCobrados !== null) {
+        <p class="ajuda">Calculado para os {{ a.atletasCobrados }} atletas ativos. O valor acompanha os atletas ativos e fica fixo nos 3 dias antes de cada vencimento.</p>
+      } @else {
+        <p class="ajuda">Calculado para {{ a.atletasInformados }} atletas, como informado no cadastro. Depois da 1ª mensalidade paga, o valor passa a acompanhar os atletas ativos.</p>
+      }
     </div>
 
     <div class="painel">
@@ -84,6 +99,27 @@
         </ul>
       }
     </div>
+
+    @if (!a.acessoAte && a.situacao !== 'Cancelada') {
+      <div class="painel">
+        <p class="titulo-secao">Cancelar assinatura</p>
+        @if (confirmandoCancelamento()) {
+          <p>
+            Tem certeza? O clube continua usando o sistema até o fim do período já pago (ou do teste grátis). Depois disso a equipe e
+            as famílias deixam de entrar. Não há multa. Os dados ficam guardados por 30 dias, para você pedir a exportação.
+          </p>
+          <div class="botoes-cancelar">
+            <button type="button" class="secundario" [disabled]="cancelando()" (click)="confirmandoCancelamento.set(false)">Voltar</button>
+            <button type="button" class="perigo" [disabled]="cancelando()" (click)="cancelar()">
+              {{ cancelando() ? 'Cancelando...' : 'Confirmar cancelamento' }}
+            </button>
+          </div>
+        } @else {
+          <p class="ajuda">Sem fidelidade e sem multa.</p>
+          <button type="button" class="link link--perigo" (click)="confirmandoCancelamento.set(true)">Cancelar assinatura</button>
+        }
+      </div>
+    }
   }
   }
 </div>

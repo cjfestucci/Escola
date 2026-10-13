@@ -20,6 +20,10 @@ public class Assinatura
     public decimal ValorMensal { get; set; }
     public int AtletasInformados { get; set; }
 
+    /// <summary>Atletas ativos na última atualização do valor (fase 2: depois da 1ª fatura paga, o valor segue os atletas ativos). Nulo =
+    /// ainda vale o número informado no cadastro.</summary>
+    public int? AtletasCobrados { get; set; }
+
     // Dados de quem assinou (pra criar o cliente no gateway e pra contato).
     public string CpfCnpj { get; set; } = string.Empty;
     public string Cidade { get; set; } = string.Empty;
@@ -43,6 +47,12 @@ public class Assinatura
     /// <summary>Quando entrou em <see cref="SituacaoAssinatura.Suspensa"/> pela última vez (base da limpeza de testes nunca pagos).</summary>
     public DateTime? SuspensaEm { get; set; }
     public DateTime? CanceladaEm { get; set; }
+    /// <summary>Com o cancelamento pedido, o acesso continua até este dia (fim do período pago ou do teste); depois vira Cancelada.</summary>
+    public DateOnly? AcessoAte { get; set; }
+
+    // Avisos por e-mail que só o produto sabe dar (as faturas o próprio gateway avisa). Marcados pra não repetir.
+    public DateTime? LembreteTesteEnviadoEm { get; set; }
+    public DateTime? AvisoSuspensaoEnviadoEm { get; set; }
 
     // Prova do aceite dos Termos de Uso no cadastro.
     public string TermosVersao { get; set; } = string.Empty;

@@ -30,8 +30,9 @@ public record FaturaAssinaturaDto(DateOnly Vencimento, decimal Valor, bool Paga,
 
 public record MinhaAssinaturaDto(
     string Situacao, string Rotulo, bool Bloqueada, DateOnly? TesteAte, int? DiasRestantesTeste,
-    decimal ValorMensal, int AtletasInformados, DateOnly? VencimentoEmAberto, string? LinkPagamento,
-    int DiasToleranciaAtraso, bool FaturasDisponiveis, IReadOnlyList<FaturaAssinaturaDto> Faturas);
+    decimal ValorMensal, int AtletasInformados, int? AtletasCobrados, DateOnly? VencimentoEmAberto, string? LinkPagamento,
+    int DiasToleranciaAtraso, bool FaturasDisponiveis, IReadOnlyList<FaturaAssinaturaDto> Faturas,
+    DateOnly? AcessoAte, DateTime? CanceladaEm);
 
 /// <summary>Assinatura do produto pelo site: plano e cadastro (anônimos — é como o clube vira cliente), webhook do gateway (anônimo,
 /// com token) e a tela da assinatura do próprio clube (Admin ou Suporte).</summary>
@@ -146,6 +147,16 @@ public class AssinaturasController(
         return Ok(await MontarAsync(ct));
     }
 
+    /// <summary>Cancela a assinatura. O acesso segue até o fim do período pago (ou do teste); sem multa, sem fidelidade.</summary>
+    [HttpPost("minha/cancelar")]
+    [Authorize(Roles = GruposDePapeis.AdminOuSuporte)]
+    public async Task<ActionResult<MinhaAssinaturaDto>> Cancelar(CancellationToken ct)
+    {
+        var (_, erro) = await assinaturas.CancelarAsync(clienteAtual.Id, this.UsuarioIdAtual(), ct);
+        if (erro is not null) return BadRequest(erro);
+        return Ok(await MontarAsync(ct));
+    }
+
     private async Task<MinhaAssinaturaDto?> MontarAsync(CancellationToken ct)
     {
         var a = await db.Assinaturas.AsNoTracking().FirstOrDefaultAsync(ct);
@@ -156,9 +167,10 @@ public class AssinaturasController(
         int? diasRestantes = a.Situacao == SituacaoAssinatura.EmTeste && a.TesteAte is { } ate ? Math.Max(0, ate.DayNumber - hoje.DayNumber) : null;
 
         return new MinhaAssinaturaDto(a.Situacao.ToString(), AssinaturaService.Rotulo(a.Situacao), SituacaoAssinaturaCalculo.Bloqueia(a.Situacao),
-            a.TesteAte, diasRestantes, a.ValorMensal, a.AtletasInformados, a.VencimentoEmAberto, a.LinkPagamento,
+            a.TesteAte, diasRestantes, a.ValorMensal, a.AtletasInformados, a.AtletasCobrados, a.VencimentoEmAberto, a.LinkPagamento,
             opcoes.Value.DiasToleranciaAtraso, disponivel,
-            faturas.Select(f => new FaturaAssinaturaDto(f.Vencimento, f.Valor, f.Paga, f.PagaEm, f.Paga ? null : f.LinkPagamento)).ToList());
+            faturas.Select(f => new FaturaAssinaturaDto(f.Vencimento, f.Valor, f.Paga, f.PagaEm, f.Paga || a.AcessoAte is not null ? null : f.LinkPagamento)).ToList(),
+            a.AcessoAte, a.CanceladaEm);
     }
 
     private static string SoDigitos(string? texto) => new((texto ?? string.Empty).Where(char.IsAsciiDigit).ToArray());

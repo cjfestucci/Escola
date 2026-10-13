@@ -64,6 +64,20 @@
       }
     </section>
 
+    @if (assinatura(); as a) {
+      <section class="painel-formulario">
+        <p class="titulo-painel">Assinatura</p>
+        <p class="ajuda">
+          <strong>{{ a.rotulo }}</strong> · {{ formatarReais(a.valorMensal) }} por mês
+          ({{ a.atletasCobrados ?? a.atletasInformados }} atletas{{ a.atletasCobrados !== null ? ' ativos' : ' informados' }})
+          @if (a.testeAte && a.situacao === 'EmTeste') { · teste até {{ formatarData(a.testeAte) }} }
+          @if (a.vencimentoEmAberto && !a.acessoAte) { · fatura em aberto vence em {{ formatarData(a.vencimentoEmAberto) }} }
+          @if (a.acessoAte) { · cancelada, acesso até {{ formatarData(a.acessoAte) }} }
+        </p>
+        <a class="link-assinatura" routerLink="/configuracoes/assinatura">Ver assinatura e faturas</a>
+      </section>
+    }
+
     <section class="painel-formulario">
       <p class="titulo-painel">Administradores da escola</p>
       <p class="ajuda">

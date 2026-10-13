@@ -7,6 +7,7 @@ using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Email;
 using Escola.Infrastructure.Pagamentos;
 using Escola.Infrastructure.Pagamentos.Asaas;
 using Escola.Infrastructure.Tempo;
@@ -36,6 +37,9 @@ public interface IAssinaturaService
 
     /// <summary>Faturas da assinatura do cliente da requisição; <c>Disponivel = false</c> se o gateway não respondeu.</summary>
     Task<(IReadOnlyList<FaturaAssinatura> Faturas, bool Disponivel)> FaturasAsync(Assinatura assinatura, CancellationToken ct = default);
+
+    /// <summary>Cancela: encerra a assinatura no gateway (sem faturas novas) e o acesso segue até o fim do período pago ou do teste.</summary>
+    Task<(DateOnly? AcessoAte, string? Erro)> CancelarAsync(Guid clienteId, Guid usuarioId, CancellationToken ct = default);
 }
 
 public sealed class AssinaturaService(
@@ -129,7 +133,7 @@ public sealed class AssinaturaService(
         var assinatura = await db.Assinaturas.FirstOrDefaultAsync(ct);
         if (assinatura is null) return null;
 
-        if (assinatura.Situacao != SituacaoAssinatura.Cancelada)
+        if (assinatura.Situacao != SituacaoAssinatura.Cancelada && assinatura.AcessoAte is null)
         {
             var nomeClube = await db.Clientes.Where(c => c.Id == clienteId).Select(c => c.Nome).FirstAsync(ct);
             var hoje = await escopo.ServiceProvider.GetRequiredService<IRelogioEscola>().HojeAsync();
@@ -165,7 +169,7 @@ public sealed class AssinaturaService(
     }
 
     public static string Plano(Assinatura a) =>
-        $"{Moeda(a.ValorMensal)} por mês ({a.AtletasInformados} atletas)";
+        $"{Moeda(a.ValorMensal)} por mês ({a.AtletasCobrados ?? a.AtletasInformados} atletas)";
 
     public static string Moeda(decimal valor) => valor.ToString("C", PtBr);
 
@@ -221,31 +225,162 @@ public sealed class AssinaturaService(
     /// clube em dia seria suspenso por falha nossa.</summary>
     private async Task SincronizarFaturasAsync(EscolaDbContext db, IServiceProvider sp, Assinatura a, CancellationToken ct)
     {
-        IReadOnlyList<FaturaAssinatura> faturas = [];
-        if (GatewayDaAssinatura(a))
-        {
-            var (lidas, disponivel) = await FaturasAsync(a, ct);
-            if (!disponivel) return;
-            faturas = lidas;
-        }
-
         var hoje = await sp.GetRequiredService<IRelogioEscola>().HojeAsync();
-        var nova = SituacaoAssinaturaCalculo.Calcular(hoje, a.TesteAte, a.PrimeiroVencimento, opcoes.Value.DiasToleranciaAtraso,
-            a.CanceladaEm is not null, faturas);
-        var aberta = SituacaoAssinaturaCalculo.EmAberto(faturas);
-        a.LinkPagamento = aberta?.LinkPagamento;
-        a.VencimentoEmAberto = faturas.Count > 0 ? aberta?.Vencimento : nova == SituacaoAssinatura.Ativa ? null : a.PrimeiroVencimento;
+        SituacaoAssinatura nova;
+
+        if (a.AcessoAte is { } acessoAte)
+        {
+            // Cancelamento pedido: a assinatura já saiu do gateway; até o fim do acesso nada muda, depois vira Cancelada.
+            nova = hoje > acessoAte ? SituacaoAssinatura.Cancelada : a.Situacao;
+        }
+        else
+        {
+            IReadOnlyList<FaturaAssinatura> faturas = [];
+            if (GatewayDaAssinatura(a))
+            {
+                var (lidas, disponivel) = await FaturasAsync(a, ct);
+                if (!disponivel) return;
+                faturas = lidas;
+            }
+
+            nova = SituacaoAssinaturaCalculo.Calcular(hoje, a.TesteAte, a.PrimeiroVencimento, opcoes.Value.DiasToleranciaAtraso, null, faturas);
+            var aberta = SituacaoAssinaturaCalculo.EmAberto(faturas);
+            a.LinkPagamento = aberta?.LinkPagamento;
+            a.VencimentoEmAberto = faturas.Count > 0 ? aberta?.Vencimento : nova == SituacaoAssinatura.Ativa ? null : a.PrimeiroVencimento;
+
+            if (GatewayDaAssinatura(a) && SituacaoAssinaturaCalculo.PodeAtualizarValor(hoje, faturas))
+                await AtualizarValorAsync(db, sp, a, ct);
+        }
 
         if (nova != a.Situacao)
         {
             sp.GetRequiredService<IAuditoriaService>().RegistrarSistema(nameof(Assinatura), a.Id, AcaoAuditoria.Editado,
                 $"Situação da assinatura alterada de \"{Rotulo(a.Situacao)}\" para \"{Rotulo(nova)}\"");
             if (nova == SituacaoAssinatura.Suspensa) a.SuspensaEm = DateTime.UtcNow;
+            // Voltou a pagar: uma próxima suspensão avisa de novo.
+            if (nova == SituacaoAssinatura.Ativa) a.AvisoSuspensaoEnviadoEm = null;
             a.Situacao = nova;
         }
         a.SituacaoAtualizadaEm = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
+
+        await EnviarAvisosAsync(db, sp, a, hoje, ct);
     }
+
+    /// <summary>Depois da 1ª fatura paga, o valor segue os atletas <b>ativos</b> (no teste vale o número informado). Falha no gateway só
+    /// adia: a próxima atualização tenta de novo.</summary>
+    private async Task AtualizarValorAsync(EscolaDbContext db, IServiceProvider sp, Assinatura a, CancellationToken ct)
+    {
+        var ativos = await db.Alunos.CountAsync(x => x.Ativo, ct);
+        var valor = opcoes.Value.CalcularValor(ativos);
+        if (valor == a.ValorMensal && a.AtletasCobrados == ativos) return;
+
+        try
+        {
+            if (valor != a.ValorMensal)
+                await asaas.AtualizarValorAssinaturaAsync(a.IdAssinaturaGateway!, valor, $"{MarcaProduto.Nome} — plano mensal ({ativos} atletas)", ct);
+        }
+        catch (PixProvedorException ex)
+        {
+            logger.LogWarning(ex, "Não foi possível atualizar o valor da assinatura {AssinaturaId} no gateway.", a.Id);
+            return;
+        }
+
+        if (valor != a.ValorMensal)
+            sp.GetRequiredService<IAuditoriaService>().RegistrarSistema(nameof(Assinatura), a.Id, AcaoAuditoria.Editado,
+                $"Valor do plano alterado de \"{Moeda(a.ValorMensal)}\" para \"{Moeda(valor)}\" ({ativos} atletas ativos)");
+        a.ValorMensal = valor;
+        a.AtletasCobrados = ativos;
+    }
+
+    public async Task<(DateOnly? AcessoAte, string? Erro)> CancelarAsync(Guid clienteId, Guid usuarioId, CancellationToken ct = default)
+    {
+        using var escopo = escopos.CreateScope();
+        escopo.ServiceProvider.GetRequiredService<ClienteAtual>().Definir(clienteId);
+        var db = escopo.ServiceProvider.GetRequiredService<EscolaDbContext>();
+        var a = await db.Assinaturas.FirstOrDefaultAsync(ct);
+        if (a is null) return (null, "Este clube não tem assinatura pelo site.");
+        if (a.AcessoAte is not null || a.Situacao == SituacaoAssinatura.Cancelada) return (null, "A assinatura já foi cancelada.");
+
+        IReadOnlyList<FaturaAssinatura> faturas = [];
+        if (GatewayDaAssinatura(a))
+        {
+            var (lidas, disponivel) = await FaturasAsync(a, ct);
+            if (!disponivel) return (null, "Não foi possível falar com o gateway de pagamento agora. Tente de novo em instantes.");
+            faturas = lidas;
+            try
+            {
+                await asaas.CancelarAssinaturaAsync(a.IdAssinaturaGateway!, ct);
+            }
+            catch (PixProvedorException ex)
+            {
+                logger.LogWarning(ex, "Não foi possível cancelar a assinatura {AssinaturaId} no gateway.", a.Id);
+                return (null, "Não foi possível cancelar no gateway de pagamento agora. Tente de novo em instantes.");
+            }
+        }
+
+        var hoje = await escopo.ServiceProvider.GetRequiredService<IRelogioEscola>().HojeAsync();
+        a.AcessoAte = SituacaoAssinaturaCalculo.AcessoAteAoCancelar(hoje, a.TesteAte, a.PrimeiroVencimento, faturas);
+        a.CanceladaEm = DateTime.UtcNow;
+        a.LinkPagamento = null;
+        escopo.ServiceProvider.GetRequiredService<IAuditoriaService>().Registrar(nameof(Assinatura), a.Id, AcaoAuditoria.Editado, usuarioId,
+            $"Assinatura cancelada: acesso até {a.AcessoAte:dd/MM/yyyy}");
+        await db.SaveChangesAsync(ct);
+        return (a.AcessoAte, null);
+    }
+
+    /// <summary>Os avisos que só o produto sabe dar: o teste acabando e o acesso suspenso. (Fatura gerada/vencendo/vencida o próprio Asaas
+    /// avisa ao cliente.) Sem SMTP não envia nem marca — sai quando o e-mail estiver configurado, se ainda fizer sentido.</summary>
+    private async Task EnviarAvisosAsync(EscolaDbContext db, IServiceProvider sp, Assinatura a, DateOnly hoje, CancellationToken ct)
+    {
+        var email = sp.GetRequiredService<IEmailSender>();
+        if (!email.Configurado) return;
+
+        var lembreteTeste = a.Situacao == SituacaoAssinatura.EmTeste && a.AcessoAte is null && a.LembreteTesteEnviadoEm is null
+            && a.TesteAte is { } fim && fim.DayNumber - hoje.DayNumber is >= 0 and <= DiasLembreteTeste;
+        var avisoSuspensao = a.Situacao == SituacaoAssinatura.Suspensa && a.AvisoSuspensaoEnviadoEm is null;
+        if (!lembreteTeste && !avisoSuspensao) return;
+
+        var clienteId = db.Entry(a).Property<Guid>(EscolaDbContext.ColunaCliente).CurrentValue;
+        var nomeClube = await db.Clientes.Where(c => c.Id == clienteId)
+            .Select(c => c.Nome).FirstOrDefaultAsync(ct) ?? "seu clube";
+        var urlAssinatura = $"{config["App:UrlBase"]?.TrimEnd('/')}/configuracoes/assinatura";
+        var linkPagar = a.LinkPagamento ?? urlAssinatura;
+
+        var (assunto, corpo) = lembreteTeste
+            ? ($"Seu teste grátis termina em {a.TesteAte:dd/MM} — {nomeClube}",
+               $"""
+                <p>Olá!</p>
+                <p>O teste grátis do <strong>{Html(nomeClube)}</strong> no {MarcaProduto.Nome} termina em <strong>{a.TesteAte:dd/MM/yyyy}</strong>.</p>
+                <p>Para continuar usando sem interrupção, pague a 1ª mensalidade ({Html(Moeda(a.ValorMensal))}) com Pix, boleto ou cartão:</p>
+                <p><a href="{Html(linkPagar)}">Pagar agora</a></p>
+                <p>Se não quiser continuar, não precisa fazer nada.</p>
+                """)
+            : ($"Acesso suspenso — {nomeClube}",
+               $"""
+                <p>Olá!</p>
+                <p>O acesso do <strong>{Html(nomeClube)}</strong> ao {MarcaProduto.Nome} foi <strong>suspenso</strong> por falta de pagamento.
+                A equipe e as famílias não conseguem entrar até a mensalidade ser paga. Nenhum dado foi apagado.</p>
+                <p><a href="{Html(linkPagar)}">Pagar agora</a> — assim que o pagamento for confirmado, tudo volta ao normal.</p>
+                """);
+
+        try
+        {
+            await email.EnviarAsync(a.EmailCobranca, nomeClube, assunto, corpo, ct);
+            if (lembreteTeste) a.LembreteTesteEnviadoEm = DateTime.UtcNow;
+            else a.AvisoSuspensaoEnviadoEm = DateTime.UtcNow;
+            await db.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Não foi possível enviar o aviso da assinatura {AssinaturaId}.", a.Id);
+        }
+    }
+
+    /// <summary>Dias antes do fim do teste em que sai o lembrete.</summary>
+    public const int DiasLembreteTeste = 2;
+
+    private static string Html(string texto) => System.Net.WebUtility.HtmlEncode(texto);
 
     private async Task<bool> EnviarBoasVindasAsync(EscolaDbContext db, IServiceProvider sp, Assinatura a, Usuario admin, string nomeClube, CancellationToken ct)
     {

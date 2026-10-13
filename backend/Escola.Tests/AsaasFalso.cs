@@ -35,6 +35,8 @@ public sealed class AsaasFalso
             ("POST", "/payments") => NovoPagamento(corpo!),
             ("POST", "/subscriptions") => NovaAssinatura(corpo!),
             ("GET", var c) when c.StartsWith("/subscriptions/") && c.EndsWith("/payments") => FaturasDaAssinatura(c.Split('/')[2]),
+            ("PUT", var c) when c.StartsWith("/subscriptions/") => AtualizarAssinatura(c.Split('/')[2], corpo!),
+            ("DELETE", var c) when c.StartsWith("/subscriptions/") => CancelarAssinatura(c.Split('/')[2]),
             ("GET", var c) when c.EndsWith("/pixQrCode") => new { payload = $"00020126ASAAS{c.Split('/')[2]}6304ABCD", encodedImage = "" },
             ("GET", var c) when c.StartsWith("/payments/") => Consultar(c["/payments/".Length..]),
             _ => null
@@ -73,6 +75,45 @@ public sealed class AsaasFalso
         {
             var lista = Assinaturas[assinaturaId];
             lista[indice] = (lista[indice].PagamentoId, vencimento.ToString("yyyy-MM-dd"));
+        }
+    }
+
+    /// <summary>Assinaturas canceladas (DELETE).</summary>
+    public HashSet<string> AssinaturasCanceladas { get; } = [];
+
+    /// <summary>Gera a próxima fatura da assinatura (o Asaas faz isso sozinho perto do vencimento).</summary>
+    public string GerarFatura(string assinaturaId, DateOnly vencimento, decimal valor)
+    {
+        var pagamento = $"pay_{Interlocked.Increment(ref _sequencia)}";
+        lock (Pagamentos)
+        {
+            Pagamentos[pagamento] = ("PENDING", valor, null);
+            Assinaturas[assinaturaId].Add((pagamento, vencimento.ToString("yyyy-MM-dd")));
+        }
+        return pagamento;
+    }
+
+    private object? AtualizarAssinatura(string id, JsonNode corpo)
+    {
+        lock (Pagamentos)
+        {
+            if (!Assinaturas.TryGetValue(id, out var lista)) return null;
+            // updatePendingPayments: as faturas ainda não pagas passam a ter o valor novo.
+            if (corpo["updatePendingPayments"]?.GetValue<bool>() == true)
+                foreach (var (pagamento, _) in lista.Where(f => Pagamentos[f.PagamentoId].Status == "PENDING"))
+                    Pagamentos[pagamento] = ("PENDING", corpo["value"]!.GetValue<decimal>(), null);
+            return new { id, value = corpo["value"]!.GetValue<decimal>() };
+        }
+    }
+
+    private object? CancelarAssinatura(string id)
+    {
+        lock (Pagamentos)
+        {
+            if (!Assinaturas.TryGetValue(id, out var lista)) return null;
+            AssinaturasCanceladas.Add(id);
+            lista.RemoveAll(f => Pagamentos[f.PagamentoId].Status == "PENDING");
+            return new { deleted = true, id };
         }
     }
 

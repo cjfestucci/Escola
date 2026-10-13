@@ -43,11 +43,16 @@ export interface MinhaAssinatura {
   diasRestantesTeste: number | null;
   valorMensal: number;
   atletasInformados: number;
+  /** Atletas ativos na última atualização do valor (depois da 1ª fatura paga). Nulo = vale o número informado no cadastro. */
+  atletasCobrados: number | null;
   vencimentoEmAberto: string | null;
   linkPagamento: string | null;
   diasToleranciaAtraso: number;
   faturasDisponiveis: boolean;
   faturas: FaturaAssinatura[];
+  /** Cancelamento pedido: o acesso vale até este dia. */
+  acessoAte: string | null;
+  canceladaEm: string | null;
 }
 
 export function valorDoPlano(plano: PlanoAssinatura, atletas: number): number {

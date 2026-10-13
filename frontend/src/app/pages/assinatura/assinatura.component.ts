@@ -22,6 +22,8 @@ export class AssinaturaComponent implements OnInit {
   readonly carregando = signal(true);
   readonly semAssinatura = signal(false);
   readonly atualizando = signal(false);
+  readonly confirmandoCancelamento = signal(false);
+  readonly cancelando = signal(false);
 
   ngOnInit(): void {
     this.assinaturas.carregar().subscribe({
@@ -30,6 +32,23 @@ export class AssinaturaComponent implements OnInit {
         this.carregando.set(false);
         if (erro.status === 404) this.semAssinatura.set(true);
         else this.notificacao.erro('Não foi possível carregar a assinatura.');
+      }
+    });
+  }
+
+  cancelar(): void {
+    this.cancelando.set(true);
+    this.assinaturas.cancelar().subscribe({
+      next: (a) => {
+        this.cancelando.set(false);
+        this.confirmandoCancelamento.set(false);
+        this.notificacao.sucesso(
+          a.acessoAte ? `Assinatura cancelada. O clube pode usar o sistema até ${formatarDataAbsoluta(a.acessoAte)}.` : 'Assinatura cancelada.'
+        );
+      },
+      error: (erro) => {
+        this.cancelando.set(false);
+        this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível cancelar a assinatura agora.');
       }
     });
   }

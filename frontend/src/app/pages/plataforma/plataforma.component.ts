@@ -4,10 +4,12 @@ import { RouterLink } from '@angular/router';
 
 import { AdminEscola, ClientePlataforma, DiagnosticoPlataforma, ROTULOS_SEGMENTO, ResultadoEnvioAdmin, SegmentoCliente } from '../../models/plataforma.model';
 import { FUSOS_HORARIOS } from '../../models/configuracao-escola.model';
+import { MinhaAssinatura, formatarReais } from '../../models/assinatura.model';
+import { AssinaturaService } from '../../services/assinatura.service';
 import { ConfiguracaoEscolaService } from '../../services/configuracao-escola.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { PlataformaService } from '../../services/plataforma.service';
-import { formatarDataHoraAbsoluta } from '../../shared/data-utils';
+import { formatarDataAbsoluta, formatarDataHoraAbsoluta } from '../../shared/data-utils';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 import { SeletorArquivoComponent } from '../../shared/seletor-arquivo/seletor-arquivo.component';
 import { SegmentoService } from '../../services/segmento.service';
@@ -23,6 +25,11 @@ import { SegmentoService } from '../../services/segmento.service';
 export class PlataformaComponent implements OnInit {
   private readonly plataformaService = inject(PlataformaService);
   private readonly configuracaoEscolaService = inject(ConfiguracaoEscolaService);
+  private readonly assinaturaService = inject(AssinaturaService);
+  /** Assinatura pelo site deste cliente; nula se o cliente foi criado à mão (sem assinatura). */
+  readonly assinatura = signal<MinhaAssinatura | null>(null);
+  protected readonly formatarReais = formatarReais;
+  protected readonly formatarData = formatarDataAbsoluta;
   private readonly notificacao = inject(NotificacaoService);
   protected readonly segmentoService = inject(SegmentoService);
 
@@ -86,6 +93,7 @@ export class PlataformaComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.assinaturaService.carregar().subscribe({ next: (a) => this.assinatura.set(a), error: () => undefined });
     this.configuracaoEscolaService.obter().subscribe({
       next: (config) => this.aplicarFuso(config.fusoHorario),
       error: () => this.notificacao.erro('Não foi possível carregar o fuso horário.')

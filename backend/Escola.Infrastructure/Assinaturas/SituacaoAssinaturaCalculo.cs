@@ -15,11 +15,13 @@ public static class SituacaoAssinaturaCalculo
     /// <param name="faturas">Faturas conhecidas. Vazia (gateway fora do ar ou não configurado) = considera a 1ª fatura em aberto, vencendo
     /// em <paramref name="primeiroVencimento"/> — assim o teste acaba mesmo sem gateway.</param>
     /// <param name="toleranciaDias">Dias depois do vencimento em que ainda funciona (com aviso). Passou disso, suspende.</param>
+    /// <param name="acessoAteCancelamento">Cancelamento pedido: até esse dia segue a regra normal (o período pago vale); depois, Cancelada.
+    /// Nulo = não cancelada.</param>
     public static SituacaoAssinatura Calcular(
-        DateOnly hoje, DateOnly? testeAte, DateOnly primeiroVencimento, int toleranciaDias, bool cancelada,
+        DateOnly hoje, DateOnly? testeAte, DateOnly primeiroVencimento, int toleranciaDias, DateOnly? acessoAteCancelamento,
         IReadOnlyCollection<FaturaAssinatura> faturas)
     {
-        if (cancelada) return SituacaoAssinatura.Cancelada;
+        if (acessoAteCancelamento is { } ate && hoje > ate) return SituacaoAssinatura.Cancelada;
 
         var lista = faturas.Count > 0 ? faturas : [new FaturaAssinatura("", primeiroVencimento, 0m, false, null, null)];
         var algumaPaga = lista.Any(f => f.Paga);
@@ -37,6 +39,27 @@ public static class SituacaoAssinaturaCalculo
 
         if (!algumaPaga) return semTeste ? SituacaoAssinatura.AguardandoPagamento : SituacaoAssinatura.EmTeste;
         return SituacaoAssinatura.Ativa;
+    }
+
+    /// <summary>Até quando vale o acesso de quem cancela agora: o período já pago (até o vencimento da fatura em aberto, ou o fim do teste).
+    /// Com fatura vencida em aberto não há período pago a respeitar: termina hoje.</summary>
+    public static DateOnly AcessoAteAoCancelar(DateOnly hoje, DateOnly? testeAte, DateOnly primeiroVencimento, IReadOnlyCollection<FaturaAssinatura> faturas)
+    {
+        var aberta = EmAberto(faturas);
+        var fim = aberta?.Vencimento ?? (faturas.Count == 0 ? testeAte ?? primeiroVencimento : hoje);
+        return fim < hoje ? hoje : fim;
+    }
+
+    /// <summary>Dias antes do vencimento em que o valor da fatura em aberto não muda mais (o clube pode estar pagando).</summary>
+    public const int DiasValorCongelado = 3;
+
+    /// <summary>O valor da assinatura pode seguir os atletas ativos agora? Só depois da 1ª fatura paga (no teste vale o número informado), sem
+    /// fatura vencida em aberto e longe o bastante do próximo vencimento.</summary>
+    public static bool PodeAtualizarValor(DateOnly hoje, IReadOnlyCollection<FaturaAssinatura> faturas)
+    {
+        if (!faturas.Any(f => f.Paga)) return false;
+        var aberta = EmAberto(faturas);
+        return aberta is null || aberta.Vencimento.DayNumber - hoje.DayNumber > DiasValorCongelado;
     }
 
     /// <summary>A fatura que o cliente deve pagar agora: a em aberto mais antiga.</summary>

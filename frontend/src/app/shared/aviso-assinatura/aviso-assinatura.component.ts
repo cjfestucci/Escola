@@ -49,6 +49,8 @@ export class AvisoAssinaturaComponent {
   protected readonly aviso = computed(() => {
     const a = this.assinaturas.minha();
     if (!a) return null;
+    if (a.acessoAte && a.situacao !== 'Cancelada')
+      return { texto: `Assinatura cancelada: o acesso termina em ${formatarDataAbsoluta(a.acessoAte)}.`, link: null, alerta: false };
     switch (a.situacao) {
       case 'EmTeste': {
         const dias = a.diasRestantesTeste ?? 0;
@@ -64,6 +66,8 @@ export class AvisoAssinaturaComponent {
       case 'AguardandoPagamento':
       case 'Suspensa':
         return { texto: 'O acesso do clube está suspenso até o pagamento.', link: a.linkPagamento, alerta: true };
+      case 'Cancelada':
+        return { texto: 'A assinatura do clube foi cancelada. Fale com o suporte para reativar.', link: null, alerta: true };
       default:
         return null;
     }

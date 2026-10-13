@@ -79,12 +79,21 @@ mostra **"Pagar agora"** e o e-mail de boas-vindas **só sai quando o pagamento 
 - **Site institucional**: botões "Começar teste grátis" apontam pro `/assinar` do app (`URL_APP` em `site/precos.js`), com o número de
   atletas do simulador. O `site/assinar.html` (protótipo) foi removido.
 
+## Fase 2 (desde 2026-10-13)
+
+- **Valor pelos atletas ativos**: depois da 1ª fatura paga, a cada atualização o valor vira `PrecoFixo + PrecoPorAtleta × atletas ativos` (`Aluno.Ativo`), gravado em `ValorMensal`/`AtletasCobrados` e enviado ao Asaas (`PUT /subscriptions/{id}` com `updatePendingPayments`, que corrige também a fatura gerada e não paga). **Não muda** no teste (vale o informado), com fatura **vencida** em aberto, nem nos **3 dias antes do vencimento** (`SituacaoAssinaturaCalculo.DiasValorCongelado`/`PodeAtualizarValor`). Cada mudança fica no histórico ("Valor do plano alterado… (N atletas ativos)").
+- **Cancelar** (`POST /api/assinaturas/minha/cancelar`, Admin ou Suporte, com confirmação na tela): encerra a assinatura no Asaas (`DELETE /subscriptions/{id}` — sem faturas novas, pendentes removidas) e o acesso segue até `AcessoAte` = vencimento da fatura em aberto (período pago) ou fim do teste; com fatura **vencida**, termina hoje (`AcessoAteAoCancelar`). Depois disso a situação vira `Cancelada` (bloqueia como a suspensa). Faixa no topo: "Assinatura cancelada: o acesso termina em…". **Não há "desfazer" pela tela** (reativar exige criar outra assinatura no Asaas — fale com o suporte).
+- **Forma de pagamento**: não há tela de troca — com `billingType: UNDEFINED` o clube escolhe Pix, boleto ou cartão em cada fatura, na página do Asaas.
+- **Avisos por e-mail** (`EnviarAvisosAsync`): o lembrete do **fim do teste** (`DiasLembreteTeste` = 2 dias antes, com o link de pagamento) e o aviso de **acesso suspenso**, uma vez cada (`LembreteTesteEnviadoEm`/`AvisoSuspensaoEnviadoEm`; voltar a `Ativa` rearma o aviso de suspensão). Vão para o e-mail de cobrança do cadastro. Sem SMTP não envia nem marca. Fatura gerada/vencendo/vencida fica com as notificações do **próprio Asaas** (o cliente da plataforma é criado com as notificações ligadas).
+- **Plataforma**: cartão "Assinatura" pro Suporte (situação, valor, atletas, teste/vencimento/cancelamento) com link pra tela da assinatura.
+- Migration `AddAssinaturaFase2` (só colunas nullable). Testes: `SituacaoAssinaturaCalculoTests` (cancelamento, acesso ao cancelar, congelamento do valor) e `AssinaturaHttpTests` (valor pelos ativos com a fatura pendente corrigida, Coordenador não cancela, cancelamento mantém o acesso e depois bloqueia com 402, lembrete e aviso de suspensão saem uma vez só).
+
 ## Fases
 
 | Fase | Entrega |
 |---|---|
 | **1 — MVP** ✅ | Tudo acima. |
-| **2 — Ciclo** | Recalcular o valor todo mês pelos atletas **ativos** (atualizar a assinatura no Asaas antes da fatura), cancelar pela tela, trocar forma de pagamento, e-mail antes do fim do teste e do vencimento, e o Suporte vendo a assinatura na Plataforma. |
+| **2 — Ciclo** ✅ (2026-10-13) | Valor pelos atletas **ativos** depois da 1ª fatura paga; cancelar pela tela; e-mail no fim do teste e na suspensão; cartão da assinatura na Plataforma. Ver "Fase 2" abaixo. |
 | **3 — Crescimento** | Limpeza dos testes nunca pagos (30 dias após suspender), cupons, NFS-e pelo Asaas, painel do Suporte com todos os clientes. |
 
 ## Pendências antes de produção

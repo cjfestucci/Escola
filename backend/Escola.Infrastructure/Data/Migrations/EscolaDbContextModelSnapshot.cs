@@ -103,12 +103,21 @@ namespace Escola.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("AcessoAte")
+                        .HasColumnType("date");
+
                     b.Property<string>("Ambiente")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<int?>("AtletasCobrados")
+                        .HasColumnType("integer");
+
                     b.Property<int>("AtletasInformados")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("AvisoSuspensaoEnviadoEm")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("CanceladaEm")
                         .HasColumnType("timestamp with time zone");
@@ -149,6 +158,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<string>("IdClienteGateway")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("LembreteTesteEnviadoEm")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LinkPagamento")
                         .HasMaxLength(500)

@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Escola.Api.Servicos;
+using Escola.Domain.Entities;
 using Escola.Domain.Enums;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Data;
@@ -179,6 +180,106 @@ public partial class AssinaturaHttpTests(ApiFactory api) : IClassFixture<ApiFact
         Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync("/api/turmas")).StatusCode);
         var coordenador = await api.ClienteLogadoAsync(PapelUsuario.Coordenador);
         Assert.Equal(HttpStatusCode.Forbidden, (await coordenador.GetAsync("/api/assinaturas/minha")).StatusCode);
+    }
+
+    private static DateOnly Hoje => DateOnly.FromDateTime(DateTime.Today);
+
+    private async Task<JsonElement> AtualizarAsync(HttpClient admin) =>
+        await (await admin.PostAsync("/api/assinaturas/minha/atualizar", null)).Content.ReadFromJsonAsync<JsonElement>(Json);
+
+    [Fact]
+    public async Task DepoisDaPrimeiraPagaOValorSegueOsAtletasAtivosECancelarMantemOAcessoAteOFimDoPeriodo()
+    {
+        var (clienteId, admin, _) = await AssinarEEntrarAsync();
+        string idAssinatura;
+        using (var db = api.Contexto(clienteId))
+        {
+            idAssinatura = (await db.Assinaturas.SingleAsync()).IdAssinaturaGateway!;
+            var turma = BancoDeTeste.NovaTurma(db);
+            for (var i = 0; i < 5; i++)
+                db.Alunos.Add(new Aluno { Id = Guid.NewGuid(), Nome = $"Atleta {i}", DataNascimento = new DateOnly(2014, 1, 1), TurmaId = turma.Id, MatriculaConfirmadaEm = DateTime.UtcNow });
+            db.Alunos.Add(new Aluno { Id = Guid.NewGuid(), Nome = "Atleta inativo", DataNascimento = new DateOnly(2014, 1, 1), TurmaId = turma.Id, Ativo = false });
+            await db.SaveChangesAsync();
+        }
+
+        // Ainda no teste: vale o número informado no cadastro (40 → R$ 219), mesmo com 5 atletas cadastrados.
+        var minha = await AtualizarAsync(admin);
+        Assert.Equal(219m, minha.GetProperty("valorMensal").GetDecimal());
+
+        // Pagou a 1ª; a próxima fatura vence em 20 dias: o valor passa a seguir os 5 atletas ATIVOS (99 + 3 × 5), também na fatura em aberto.
+        api.Asaas.Pagar(api.Asaas.Assinaturas[idAssinatura][0].PagamentoId);
+        var proxima = api.Asaas.GerarFatura(idAssinatura, Hoje.AddDays(20), 219m);
+        minha = await AtualizarAsync(admin);
+        Assert.Equal("Ativa", minha.GetProperty("situacao").GetString());
+        Assert.Equal(114m, minha.GetProperty("valorMensal").GetDecimal());
+        Assert.Equal(5, minha.GetProperty("atletasCobrados").GetInt32());
+        Assert.Equal(114m, api.Asaas.Pagamentos[proxima].Valor);
+
+        // Coordenador não cancela; o Admin cancela, e o acesso segue até o vencimento da fatura em aberto.
+        var coordenadorEmail = $"coord.{Guid.NewGuid():N}@clube.test";
+        api.CriarUsuario(PapelUsuario.Coordenador, coordenadorEmail, clienteId: clienteId);
+        var coordenador = api.CreateClient();
+        coordenador.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            (await (await api.EntrarAsync(coordenador, coordenadorEmail, "Senha-de-Teste-1")).Content.ReadFromJsonAsync<ApiFactory.LoginResposta>())!.Token);
+        Assert.Equal(HttpStatusCode.Forbidden, (await coordenador.PostAsync("/api/assinaturas/minha/cancelar", null)).StatusCode);
+
+        var cancelamento = await admin.PostAsync("/api/assinaturas/minha/cancelar", null);
+        cancelamento.EnsureSuccessStatusCode();
+        minha = await cancelamento.Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Equal(Hoje.AddDays(20).ToString("yyyy-MM-dd"), minha.GetProperty("acessoAte").GetString());
+        Assert.Equal("Ativa", minha.GetProperty("situacao").GetString());
+        Assert.Contains(idAssinatura, api.Asaas.AssinaturasCanceladas);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsync("/api/assinaturas/minha/cancelar", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync("/api/turmas")).StatusCode);
+
+        // Passou o fim do acesso: Cancelada, e o Admin só alcança a assinatura.
+        using (var db = api.Contexto(clienteId))
+        {
+            (await db.Assinaturas.SingleAsync()).AcessoAte = Hoje.AddDays(-1);
+            await db.SaveChangesAsync();
+        }
+        minha = await AtualizarAsync(admin);
+        Assert.Equal("Cancelada", minha.GetProperty("situacao").GetString());
+        Assert.Equal(HttpStatusCode.PaymentRequired, (await admin.GetAsync("/api/turmas")).StatusCode);
+
+        using (var db = api.Contexto(clienteId))
+        {
+            var id = (await db.Assinaturas.SingleAsync()).Id;
+            var detalhes = await db.LogsAuditoria.Where(l => l.EntidadeId == id).Select(l => l.Detalhe).ToListAsync();
+            Assert.Contains(detalhes, d => d!.StartsWith("Valor do plano alterado") && d.Contains("5 atletas ativos"));
+            Assert.Contains(detalhes, d => d!.StartsWith("Assinatura cancelada"));
+        }
+    }
+
+    [Fact]
+    public async Task LembreteDoFimDoTesteEAvisoDeSuspensaoSaemUmaVezSo()
+    {
+        var (clienteId, admin, email) = await AssinarEEntrarAsync();
+        string idAssinatura;
+        using (var db = api.Contexto(clienteId))
+        {
+            var a = await db.Assinaturas.SingleAsync();
+            idAssinatura = a.IdAssinaturaGateway!;
+            a.TesteAte = a.PrimeiroVencimento = Hoje.AddDays(1);
+            await db.SaveChangesAsync();
+        }
+        api.Asaas.MudarVencimento(idAssinatura, 0, Hoje.AddDays(1));
+
+        await AtualizarAsync(admin);
+        await AtualizarAsync(admin);
+        Assert.Single(api.Email.Enviados, e => e.Para == email && e.Assunto.StartsWith("Seu teste grátis termina"));
+
+        using (var db = api.Contexto(clienteId))
+        {
+            var a = await db.Assinaturas.SingleAsync();
+            a.TesteAte = a.PrimeiroVencimento = Hoje.AddDays(-10);
+            await db.SaveChangesAsync();
+        }
+        api.Asaas.MudarVencimento(idAssinatura, 0, Hoje.AddDays(-10));
+
+        Assert.Equal("Suspensa", (await AtualizarAsync(admin)).GetProperty("situacao").GetString());
+        await AtualizarAsync(admin);
+        Assert.Single(api.Email.Enviados, e => e.Para == email && e.Assunto.StartsWith("Acesso suspenso"));
     }
 
     [GeneratedRegex(@"token=([A-Za-z0-9_\-]+)")]

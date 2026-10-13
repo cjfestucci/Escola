@@ -221,6 +221,19 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
         return Texto(json!.RootElement, "id") ?? throw new PixProvedorException("O Asaas não devolveu o identificador da assinatura.");
     }
 
+    /// <summary>Novo valor mensal. <c>updatePendingPayments</c> também corrige a fatura já gerada e ainda não paga.</summary>
+    public async Task AtualizarValorAssinaturaAsync(string assinaturaId, decimal valor, string descricao, CancellationToken ct = default)
+    {
+        var corpo = new JsonObject { ["value"] = valor, ["description"] = descricao, ["updatePendingPayments"] = true };
+        using var _ = await EnviarAsync(_o.ApiKey, HttpMethod.Put, $"/subscriptions/{Uri.EscapeDataString(assinaturaId)}", corpo, ct);
+    }
+
+    /// <summary>Encerra a assinatura: o Asaas para de gerar faturas e remove as pendentes. Já removida = ok.</summary>
+    public async Task CancelarAssinaturaAsync(string assinaturaId, CancellationToken ct = default)
+    {
+        using var _ = await EnviarAsync(_o.ApiKey, HttpMethod.Delete, $"/subscriptions/{Uri.EscapeDataString(assinaturaId)}", null, ct, aceitar404: true);
+    }
+
     private static readonly string[] StatusPago = ["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"];
 
     /// <summary>Faturas (cobranças) geradas pela assinatura, inclusive as já pagas. Estornadas contam como não pagas.</summary>
