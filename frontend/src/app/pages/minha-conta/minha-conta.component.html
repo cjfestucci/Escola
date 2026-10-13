@@ -22,6 +22,17 @@
               Códigos de recuperação restantes: <strong>{{ e.codigosRecuperacaoRestantes }}</strong>.
               @if (e.codigosRecuperacaoRestantes <= 2) { Gere códigos novos antes que acabem. }
             </p>
+            <p class="ajuda aparelhos">
+              @if (e.aparelhosLembrados === 0) {
+                Nenhum aparelho lembrado: o código é pedido em todo login.
+              } @else {
+                <span>
+                  <strong>{{ e.aparelhosLembrados }}</strong> {{ e.aparelhosLembrados === 1 ? 'aparelho lembrado' : 'aparelhos lembrados' }}
+                  (o código não é pedido neles por até 30 dias).
+                </span>
+                <button type="button" class="link" [disabled]="enviando()" (click)="esquecerAparelhos()">Esquecer todos</button>
+              }
+            </p>
             <div class="botoes">
               <button type="button" class="secundario" (click)="abrir('novosCodigos')">Gerar novos códigos de recuperação</button>
               <button type="button" class="perigo" (click)="abrir('desativando')">Desativar</button>

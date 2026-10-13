@@ -175,3 +175,25 @@ input {
     font-weight: 700;
   }
 }
+
+// Checkbox "lembrar este aparelho": linha única ao lado do texto (os outros labels do formulário são em coluna).
+.lembrar-aparelho {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  input {
+    width: auto;
+    margin-top: 2px;
+  }
+
+  small {
+    display: block;
+    color: var(--cor-texto-suave);
+    font-weight: 400;
+  }
+}

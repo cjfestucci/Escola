@@ -110,6 +110,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria,
         if (!usuario.DoisFatoresAtivo) return BadRequest("Esta conta não usa verificação em duas etapas.");
 
         MinhaContaController.Limpar(usuario);
+        await AparelhosConfiaveis.EsquecerTodosAsync(db, usuario.Id);
         auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(),
             $"Verificação em duas etapas removida pela gestão: {usuario.Nome}");
         await db.SaveChangesAsync();

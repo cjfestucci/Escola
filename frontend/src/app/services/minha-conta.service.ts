@@ -14,6 +14,8 @@ export interface DoisFatores {
   metodo: 'App' | 'Email' | null;
   /** O ambiente envia e-mail (SMTP). */
   emailDisponivel: boolean;
+  /** Aparelhos em que o código não é pedido ("lembrar este aparelho por 30 dias"). */
+  aparelhosLembrados: number;
 }
 
 export interface EnvioCodigo {
@@ -58,6 +60,11 @@ export class MinhaContaService {
   /** Com o código por e-mail ativo: manda um código (pra desativar ou gerar novos códigos de recuperação). */
   enviarCodigo(): Observable<EnvioCodigo> {
     return this.http.post<EnvioCodigo>(`${this.baseUrl}/email/enviar-codigo`, null);
+  }
+
+  /** O código volta a ser pedido em todos os aparelhos. */
+  esquecerAparelhos(): Observable<DoisFatores> {
+    return this.http.post<DoisFatores>(`${this.baseUrl}/esquecer-aparelhos`, null);
   }
 
   desativar(senha: string, codigo: string): Observable<DoisFatores> {

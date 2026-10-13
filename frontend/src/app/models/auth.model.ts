@@ -17,6 +17,10 @@ export interface LoginResposta {
   emailMascarado?: string | null;
   /** Ex.: o e-mail não pôde ser enviado, ou já foi enviado há pouco. */
   aviso?: string | null;
+  /** Só quando a pessoa marcou "lembrar este aparelho": guardado no navegador e enviado nos próximos logins. */
+  tokenAparelho?: string | null;
+  /** A tela oferece "lembrar este aparelho" (nunca pro Suporte). */
+  podeLembrarAparelho?: boolean;
 }
 
 /** Escola em que a pessoa tem conta (todas as escolas usam a mesma tela de login). */

@@ -40,6 +40,7 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options, ICliente
     public DbSet<RedefinicaoSenha> RedefinicoesSenha => Set<RedefinicaoSenha>();
     public DbSet<TermoAceite> TermosAceite => Set<TermoAceite>();
     public DbSet<CobrancaPix> CobrancasPix => Set<CobrancaPix>();
+    public DbSet<AparelhoConfiavel> AparelhosConfiaveis => Set<AparelhoConfiavel>();
     public DbSet<ContaPagamento> ContasPagamento => Set<ContaPagamento>();
     public DbSet<Assinatura> Assinaturas => Set<Assinatura>();
     public DbSet<Cupom> Cupons => Set<Cupom>();

@@ -42,6 +42,12 @@
           Sem o celular? Use um dos códigos de recuperação (formato XXXX-XXXX).
         </p>
       }
+      @if (podeLembrarAparelho()) {
+        <label class="lembrar-aparelho">
+          <input type="checkbox" [(ngModel)]="lembrarAparelho" name="lembrarAparelho" />
+          <span>Lembrar este aparelho por 30 dias <small>(não marque em computador compartilhado)</small></span>
+        </label>
+      }
       <button type="submit" class="botao-entrar" [disabled]="entrando()">
         {{ entrando() ? 'Verificando...' : 'Verificar' }}
       </button>

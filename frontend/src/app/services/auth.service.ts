@@ -6,6 +6,9 @@ import { environment } from '../../environments/environment';
 import { IdentidadeAtual, LoginResposta, Papel } from '../models/auth.model';
 
 const CHAVE_TOKEN = 'escola.token';
+/** Tokens de "lembrar este aparelho por 30 dias". Vencidos/esquecidos o servidor só ignora; guardamos no máximo alguns. */
+const CHAVE_APARELHOS = 'escola.aparelhos';
+const MAXIMO_TOKENS_APARELHO = 10;
 
 const PAPEIS_EQUIPE: Papel[] = ['Admin', 'Coordenador', 'Educador', 'Financeiro'];
 
@@ -44,13 +47,21 @@ export class AuthService {
     return this.http.post<void>(`${this.baseUrl}/auth/redefinir-senha`, { token, novaSenha });
   }
 
-  /** Contas com segundo fator (o Suporte) respondem primeiro com <c>requerSegundoFator</c>, sem token: a tela pede o código
-   * do app autenticador e chama de novo com ele. */
-  entrar(email: string, senha: string, codigo?: string, clienteId?: string): Observable<LoginResposta> {
+  /** Contas com segundo fator respondem primeiro com <c>requerSegundoFator</c>, sem token: a tela pede o código e chama de novo
+   * com ele. Os tokens de "lembrar este aparelho" deste navegador vão sempre — o servidor só pula o código se algum for da conta. */
+  entrar(email: string, senha: string, codigo?: string, clienteId?: string, lembrarAparelho = false): Observable<LoginResposta> {
     return this.http
-      .post<LoginResposta>(`${this.baseUrl}/auth/entrar`, { email, senha, codigo: codigo || null, clienteId: clienteId || null })
+      .post<LoginResposta>(`${this.baseUrl}/auth/entrar`, {
+        email,
+        senha,
+        codigo: codigo || null,
+        clienteId: clienteId || null,
+        tokensAparelho: this.tokensAparelho(),
+        lembrarAparelho
+      })
       .pipe(
       tap((resposta) => {
+        if (resposta.tokenAparelho) this.guardarTokenAparelho(resposta.tokenAparelho);
         // Etapas intermediárias (escolher a escola, código do autenticador) ainda não trazem token.
         if (resposta.requerSegundoFator || resposta.escolherCliente?.length) return;
         this._token.set(resposta.token);
@@ -105,6 +116,21 @@ export class AuthService {
         .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
         .join('')
     );
+  }
+
+  /** Tokens de "lembrar este aparelho" (um por conta que marcou a opção neste navegador). Sair NÃO apaga — é o propósito. */
+  private tokensAparelho(): string[] {
+    try {
+      const lista = JSON.parse(this.lerStorage(CHAVE_APARELHOS) ?? '[]');
+      return Array.isArray(lista) ? lista.filter((t): t is string => typeof t === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private guardarTokenAparelho(token: string): void {
+    const lista = [token, ...this.tokensAparelho().filter((t) => t !== token)].slice(0, MAXIMO_TOKENS_APARELHO);
+    this.gravarStorage(CHAVE_APARELHOS, JSON.stringify(lista));
   }
 
   private lerStorage(chave: string): string | null {

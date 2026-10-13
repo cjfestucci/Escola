@@ -97,6 +97,48 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.ToTable("AlunoResponsaveis");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.AparelhoConfiavel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("ExpiraEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UltimoUsoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("AparelhosConfiaveis", (string)null);
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.Assinatura", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1728,6 +1770,23 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Navigation("Aluno");
 
                     b.Navigation("Responsavel");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.AparelhoConfiavel", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Escola.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.Assinatura", b =>

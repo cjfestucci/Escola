@@ -32,6 +32,9 @@ export class EntrarComponent {
   /** De onde vem o código: app autenticador ou e-mail (aí a tela diz pra onde foi e oferece reenviar). */
   readonly metodoCodigo = signal<'App' | 'Email'>('App');
   readonly emailMascarado = signal<string | null>(null);
+  /** "Lembrar este aparelho por 30 dias": desmarcado por padrão (computador da secretaria costuma ser compartilhado). */
+  lembrarAparelho = false;
+  readonly podeLembrarAparelho = signal(false);
   codigo = '';
   /** A senha confere em mais de uma escola (todas usam esta mesma tela): a pessoa escolhe em qual entrar. */
   readonly escolas = signal<OpcaoClienteLogin[]>([]);
@@ -42,6 +45,7 @@ export class EntrarComponent {
   private entrarNaEtapaCodigo(resposta: LoginResposta): void {
     this.metodoCodigo.set(resposta.metodoSegundoFator === 'Email' ? 'Email' : 'App');
     this.emailMascarado.set(resposta.emailMascarado ?? null);
+    this.podeLembrarAparelho.set(!!resposta.podeLembrarAparelho);
     this.etapaCodigo.set(true);
     if (resposta.aviso) this.notificacao.info(resposta.aviso);
   }
@@ -100,7 +104,8 @@ export class EntrarComponent {
     }
 
     this.entrando.set(true);
-    this.auth.entrar(this.email.trim(), this.senha, this.etapaCodigo() ? this.codigo.replace(/\s|-/g, '') : undefined, this.clienteEscolhido).subscribe({
+    const comCodigo = this.etapaCodigo();
+    this.auth.entrar(this.email.trim(), this.senha, comCodigo ? codigoLimpo : undefined, this.clienteEscolhido, comCodigo && this.podeLembrarAparelho() && this.lembrarAparelho).subscribe({
       next: (resposta) => {
         this.entrando.set(false);
         if (resposta.escolherCliente?.length) {

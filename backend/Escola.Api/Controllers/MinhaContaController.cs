@@ -17,7 +17,8 @@ namespace Escola.Api.Controllers;
 /// <param name="Disponivel">O ambiente tem o cofre de segredos (Segredos:Chave) — sem ele não dá pra guardar o segredo do app com segurança.</param>
 /// <param name="Metodo">"App" ou "Email" (nulo = desativada).</param>
 /// <param name="EmailDisponivel">O ambiente envia e-mail (SMTP; em desenvolvimento o código sai no log da API).</param>
-public record DoisFatoresDto(bool Ativo, DateTime? AtivadoEm, int CodigosRecuperacaoRestantes, bool Disponivel, string? Metodo, bool EmailDisponivel);
+/// <param name="AparelhosLembrados">Aparelhos em que o código não é pedido (lembrados por 30 dias).</param>
+public record DoisFatoresDto(bool Ativo, DateTime? AtivadoEm, int CodigosRecuperacaoRestantes, bool Disponivel, string? Metodo, bool EmailDisponivel, int AparelhosLembrados);
 
 /// <param name="Segredo">Pra digitar no app, se a câmera não ler o QR Code.</param>
 /// <param name="UriOtpAuth">Vira o QR Code (gerado no navegador — o segredo não vai pra nenhum serviço externo).</param>
@@ -45,7 +46,7 @@ public class MinhaContaController(EscolaDbContext db, CofreSegredos cofre, IAudi
     {
         var u = await ContaAsync();
         if (u is null) return NotFound();
-        return Ok(ParaDto(u));
+        return Ok(await ParaDtoAsync(u));
     }
 
     /// <summary>Gera um segredo novo (ainda não vale pro login): a pessoa cadastra no app e confirma com o 1º código.</summary>
@@ -142,9 +143,10 @@ public class MinhaContaController(EscolaDbContext db, CofreSegredos cofre, IAudi
         }
 
         Limpar(u);
+        await AparelhosConfiaveis.EsquecerTodosAsync(db, u.Id);
         auditoria.Registrar(nameof(Usuario), u.Id, AcaoAuditoria.Editado, u.Id, "Verificação em duas etapas desativada");
         await db.SaveChangesAsync();
-        return Ok(ParaDto(u));
+        return Ok(await ParaDtoAsync(u));
     }
 
     /// <summary>Gera códigos de recuperação novos (os antigos deixam de valer). Pede um código do app ou do e-mail.</summary>
@@ -180,13 +182,26 @@ public class MinhaContaController(EscolaDbContext db, CofreSegredos cofre, IAudi
         u.CodigosRecuperacaoHash = null;
     }
 
-    private DoisFatoresDto ParaDto(Usuario u) => new(
+    /// <summary>"Esquecer aparelhos": o próximo login em qualquer aparelho volta a pedir o código (ex.: entrou num computador que não é seu).</summary>
+    [HttpPost("esquecer-aparelhos")]
+    public async Task<ActionResult<DoisFatoresDto>> EsquecerAparelhos()
+    {
+        var u = await ContaAsync();
+        if (u is null) return NotFound();
+        await AparelhosConfiaveis.EsquecerTodosAsync(db, u.Id);
+        auditoria.Registrar(nameof(Usuario), u.Id, AcaoAuditoria.Editado, u.Id, "Aparelhos lembrados esquecidos (o código volta a ser pedido em todos)");
+        await db.SaveChangesAsync();
+        return Ok(await ParaDtoAsync(u));
+    }
+
+    private async Task<DoisFatoresDto> ParaDtoAsync(Usuario u) => new(
         u.DoisFatoresAtivo,
         u.TotpAtivadoEm ?? u.DoisFatoresEmailAtivadoEm,
         CodigosRecuperacao.Restantes(u.CodigosRecuperacaoHash),
         cofre.Disponivel,
         u.DoisFatoresPorEmail ? "Email" : u.TotpSegredoCriptografado is not null ? "App" : null,
-        codigoEmail.Disponivel);
+        codigoEmail.Disponivel,
+        u.DoisFatoresAtivo ? await AparelhosConfiaveis.ContarAsync(db, u) : 0);
 
     /// <summary>Mesmo freio do login (8 erros em 15 min): sem ele, quem tem a sessão aberta poderia testar códigos em massa.</summary>
     private const int LimiteFalhas = 8;

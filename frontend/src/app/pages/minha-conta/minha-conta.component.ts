@@ -127,6 +127,18 @@ export class MinhaContaComponent implements OnInit {
     else this.notificacao.sucesso(`Código enviado para ${envio.emailMascarado}.`);
   }
 
+  esquecerAparelhos(): void {
+    this.enviando.set(true);
+    this.servico.esquecerAparelhos().subscribe({
+      next: (e) => {
+        this.estado.set(e);
+        this.enviando.set(false);
+        this.notificacao.sucesso('Pronto: o código volta a ser pedido em todos os aparelhos.');
+      },
+      error: (erro) => this.falhou(erro, 'Não foi possível esquecer os aparelhos.')
+    });
+  }
+
   desativar(): void {
     if (!this.senha || !this.codigo.trim()) return this.notificacao.erro('Informe a senha e um código.');
     this.enviando.set(true);

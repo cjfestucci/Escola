@@ -193,3 +193,10 @@
     opacity: 0.5;
   }
 }
+
+.aparelhos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}

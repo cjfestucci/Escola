@@ -154,6 +154,57 @@ public class DoisFatoresHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         Assert.NotNull((await (await api.EntrarAsync(api.CreateClient(), email, Senha)).Content.ReadFromJsonAsync<ApiFactory.LoginResposta>())!.Token);
     }
 
+    private async Task<JsonElement> EntrarComAparelhoAsync(string email, string senha, string? codigo = null, string[]? tokens = null, bool lembrar = false)
+    {
+        var resposta = await api.CreateClient().PostAsJsonAsync("/api/auth/entrar",
+            new { email, senha, codigo, tokensAparelho = tokens, lembrarAparelho = lembrar });
+        return resposta.StatusCode == HttpStatusCode.OK
+            ? await resposta.Content.ReadFromJsonAsync<JsonElement>(Json)
+            : JsonSerializer.SerializeToElement(new { status = (int)resposta.StatusCode });
+    }
+
+    private static bool Entrou(JsonElement r) => r.TryGetProperty("token", out var t) && !string.IsNullOrEmpty(t.GetString());
+
+    [Fact]
+    public async Task LembrarOAparelhoPulaOCodigoPor30DiasMasNuncaASenha()
+    {
+        var (email, id, segredo, recuperacao) = await ContaComDoisFatoresAsync(PapelUsuario.Coordenador);
+
+        // Sem marcar "lembrar": nada de token de aparelho.
+        var semLembrar = await EntrarComAparelhoAsync(email, Senha, recuperacao[0]);
+        Assert.True(Entrou(semLembrar));
+        Assert.True(semLembrar.GetProperty("tokenAparelho").ValueKind == JsonValueKind.Null);
+
+        var lembrado = await EntrarComAparelhoAsync(email, Senha, CodigoAgora(segredo), lembrar: true);
+        var tokenAparelho = lembrado.GetProperty("tokenAparelho").GetString()!;
+        Assert.False(string.IsNullOrEmpty(tokenAparelho));
+
+        // Com o token: entra só com a senha. Senha errada continua barrada; token inventado não pula nada.
+        Assert.True(Entrou(await EntrarComAparelhoAsync(email, Senha, tokens: [tokenAparelho])));
+        Assert.Equal(401, (await EntrarComAparelhoAsync(email, "senha-errada", tokens: [tokenAparelho])).GetProperty("status").GetInt32());
+        Assert.True((await EntrarComAparelhoAsync(email, Senha, tokens: ["token-inventado"])).GetProperty("requerSegundoFator").GetBoolean());
+
+        // O token de uma conta não serve pra outra.
+        var (outroEmail, _, _, _) = await ContaComDoisFatoresAsync(PapelUsuario.Educador);
+        Assert.True((await EntrarComAparelhoAsync(outroEmail, Senha, tokens: [tokenAparelho])).GetProperty("requerSegundoFator").GetBoolean());
+
+        var http = await LogadoAsync(email, recuperacao[1]);
+        Assert.Equal(1, (await http.GetFromJsonAsync<JsonElement>("/api/minha-conta/dois-fatores", Json)).GetProperty("aparelhosLembrados").GetInt32());
+
+        // "Encerrar sessões" (Gestão) também esquece os aparelhos.
+        var admin = await api.ClienteLogadoAsync(PapelUsuario.Admin);
+        (await admin.PostAsync($"/api/usuarios/contas/{id}/encerrar-sessoes", null)).EnsureSuccessStatusCode();
+        Assert.True((await EntrarComAparelhoAsync(email, Senha, tokens: [tokenAparelho])).GetProperty("requerSegundoFator").GetBoolean());
+
+        // Lembrado de novo, e esquecido pela própria pessoa em Minha conta.
+        var novo = (await EntrarComAparelhoAsync(email, Senha, recuperacao[2], lembrar: true)).GetProperty("tokenAparelho").GetString()!;
+        Assert.True(Entrou(await EntrarComAparelhoAsync(email, Senha, tokens: [novo])));
+        http = await LogadoAsync(email, recuperacao[3]);
+        var depois = await (await http.PostAsync("/api/minha-conta/dois-fatores/esquecer-aparelhos", null)).Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Equal(0, depois.GetProperty("aparelhosLembrados").GetInt32());
+        Assert.True((await EntrarComAparelhoAsync(email, Senha, tokens: [novo])).GetProperty("requerSegundoFator").GetBoolean());
+    }
+
     [Fact]
     public async Task ErrarOCodigoMuitasVezesEmMinhaContaBloqueia()
     {

@@ -175,6 +175,8 @@ public class AuthController(
         if (usuario.Papel is not (PapelUsuario.Suporte or PapelUsuario.Admin) && await Autenticacao.AssinaturaBloqueadaAsync(db))
             return Unauthorized("O acesso deste clube está suspenso por pendência na assinatura. Fale com o administrador do clube.");
 
+        string? tokenAparelho = null;
+
         // Segundo fator (código do app autenticador): obrigatório pro Suporte. O segredo vem da configuração do deploy
         // (Suporte:TotpSegredo), nunca do banco — quem lê o banco não consegue gerar o código.
         if (usuario.Papel == PapelUsuario.Suporte)
@@ -195,19 +197,20 @@ public class AuthController(
 
             limitador.RegistrarPasso(chave, passo);
         }
-        else if (usuario.DoisFatoresAtivo)
+        // Aparelho lembrado (30 dias, depois de já ter passado pelo código aqui): pede só a senha. Não vale pro Suporte (acima).
+        else if (usuario.DoisFatoresAtivo && !await AparelhosConfiaveis.ReconheceAsync(db, usuario, request.TokensAparelho))
         {
             // Verificação em duas etapas que a própria pessoa ativou (Minha conta): código do app ou por e-mail, ou um código de recuperação.
             if (string.IsNullOrWhiteSpace(request.Codigo))
             {
                 if (!usuario.DoisFatoresPorEmail)
-                    return Ok(LoginRespostaDto.ExigeSegundoFator());
+                    return Ok(LoginRespostaDto.ExigeSegundoFator(podeLembrarAparelho: true));
 
                 // Por e-mail: senha certa sem código = manda o código (pedir de novo é o "reenviar", com intervalo mínimo).
                 var nomeEscola = await db.Clientes.Where(c => c.Id == clienteDaConta).Select(c => c.Nome).FirstOrDefaultAsync();
                 var envio = await codigoEmail.EnviarAsync(usuario, nomeEscola);
                 await db.SaveChangesAsync();
-                return Ok(LoginRespostaDto.ExigeSegundoFator("Email", CodigoEmailService.Mascarar(usuario.Email), envio.Aviso));
+                return Ok(LoginRespostaDto.ExigeSegundoFator("Email", CodigoEmailService.Mascarar(usuario.Email), envio.Aviso, podeLembrarAparelho: true));
             }
 
             if (CodigosRecuperacao.PareceCodigoDeRecuperacao(request.Codigo))
@@ -245,13 +248,22 @@ public class AuthController(
                 }
                 limitador.RegistrarPasso(chave, passo);
             }
+
+            if (request.LembrarAparelho)
+            {
+                var userAgent = Request.Headers.UserAgent.ToString();
+                tokenAparelho = await AparelhosConfiaveis.CriarAsync(db, usuario, userAgent);
+                auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, usuario.Id,
+                    $"Aparelho lembrado por {(int)AparelhosConfiaveis.Validade.TotalDays} dias ({AparelhosConfiaveis.DescreverNavegador(userAgent)})");
+            }
         }
 
         limitador.Limpar(chave);
         registroAcesso.Registrar(usuario, TipoRegistroAcesso.Login);
         await db.SaveChangesAsync();
         var token = GerarToken(usuario.Id, usuario.Nome, usuario.Papel.ToString(), usuario.ResponsavelId, clienteDaConta);
-        return Ok(new LoginRespostaDto(token, usuario.Id, usuario.Nome, usuario.Papel.ToString(), usuario.ResponsavelId, ClienteId: clienteDaConta));
+        return Ok(new LoginRespostaDto(token, usuario.Id, usuario.Nome, usuario.Papel.ToString(), usuario.ResponsavelId, ClienteId: clienteDaConta,
+            TokenAparelho: tokenAparelho));
     }
 
     private string GerarToken(Guid usuarioId, string nome, string papel, Guid? responsavelId, Guid clienteId)
