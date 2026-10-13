@@ -93,6 +93,26 @@ public class SituacaoAssinaturaCalculoTests
         Assert.False(SituacaoAssinaturaCalculo.PodeAtualizarValor(Hoje, [paga, Fatura(Hoje.AddDays(-2))])); // vencida em aberto
     }
 
+    [Fact]
+    public void QuemJaPagouNumaAssinaturaAnteriorNaoVoltaAAguardarPagamento()
+    {
+        // Reativada: a assinatura nova só tem a fatura do fim do período pago, em aberto.
+        Assert.Equal(SituacaoAssinatura.Ativa, SituacaoAssinaturaCalculo.Calcular(Hoje, null, Hoje.AddDays(10), Tolerancia, null, [Fatura(Hoje.AddDays(10))], jaPagouAntes: true));
+        Assert.Equal(SituacaoAssinatura.AguardandoPagamento, SituacaoAssinaturaCalculo.Calcular(Hoje, null, Hoje.AddDays(10), Tolerancia, null, [Fatura(Hoje.AddDays(10))]));
+    }
+
+    [Fact]
+    public void SoApagaCanceladaOuTesteQueNuncaPagou()
+    {
+        var suspensaEm = new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Utc);
+        Assert.Equal(Hoje.AddDays(30), SituacaoAssinaturaCalculo.DataExclusao(SituacaoAssinatura.Cancelada, Hoje, null, true, 30));
+        Assert.Equal(new DateOnly(2026, 10, 31), SituacaoAssinaturaCalculo.DataExclusao(SituacaoAssinatura.Suspensa, null, suspensaEm, false, 30));
+        // Suspensa que já pagou é cliente inadimplente: nunca é apagada sozinha.
+        Assert.Null(SituacaoAssinaturaCalculo.DataExclusao(SituacaoAssinatura.Suspensa, null, suspensaEm, true, 30));
+        Assert.Null(SituacaoAssinaturaCalculo.DataExclusao(SituacaoAssinatura.EmAtraso, null, null, false, 30));
+        Assert.Null(SituacaoAssinaturaCalculo.DataExclusao(SituacaoAssinatura.Ativa, Hoje, null, true, 30)); // cancelamento agendado, ainda no acesso
+    }
+
     [Theory]
     [InlineData(SituacaoAssinatura.AguardandoPagamento, true)]
     [InlineData(SituacaoAssinatura.EmTeste, false)]

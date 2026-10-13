@@ -27,13 +27,16 @@ public sealed class AssinaturasWorker(
                     try
                     {
                         await using var escopo = escopos.CreateAsyncScope();
-                        await escopo.ServiceProvider.GetRequiredService<IAssinaturaService>().AtualizarAsync(cliente, parada);
+                        var assinaturas = escopo.ServiceProvider.GetRequiredService<IAssinaturaService>();
+                        await assinaturas.AtualizarAsync(cliente, parada);
+                        await assinaturas.ProcessarRetencaoAsync(cliente, parada);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
                         logger.LogError(ex, "Falha ao atualizar a assinatura do cliente {Cliente}.", cliente);
                     }
                 }
+                await ApagarRegistrosAcessoAntigosAsync(parada);
             } while (await relogio.WaitForNextTickAsync(parada));
         }
         catch (OperationCanceledException)
@@ -42,11 +45,27 @@ public sealed class AssinaturasWorker(
         }
     }
 
+    /// <summary>Registros de acesso (Marco Civil) passados os 6 meses de guarda obrigatória.</summary>
+    private async Task ApagarRegistrosAcessoAntigosAsync(CancellationToken ct)
+    {
+        try
+        {
+            await using var escopo = escopos.CreateAsyncScope();
+            var limite = DateTime.UtcNow - RegistroAcessoService.Retencao;
+            var apagados = await escopo.ServiceProvider.GetRequiredService<EscolaDbContext>().RegistrosAcesso.IgnoreQueryFilters()
+                .Where(r => r.OcorridoEm < limite).ExecuteDeleteAsync(ct);
+            if (apagados > 0) logger.LogInformation("{Apagados} registros de acesso com mais de 6 meses apagados.", apagados);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Falha ao apagar registros de acesso antigos.");
+        }
+    }
+
     private async Task<List<Guid>> ClientesComAssinaturaAsync(CancellationToken ct)
     {
         await using var escopo = escopos.CreateAsyncScope();
         return await escopo.ServiceProvider.GetRequiredService<EscolaDbContext>().Assinaturas.IgnoreQueryFilters()
-            .Where(a => a.Situacao != SituacaoAssinatura.Cancelada)
             .Select(a => EF.Property<Guid>(a, EscolaDbContext.ColunaCliente))
             .ToListAsync(ct);
     }

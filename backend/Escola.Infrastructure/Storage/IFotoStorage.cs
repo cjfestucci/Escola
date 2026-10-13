@@ -8,4 +8,7 @@ namespace Escola.Infrastructure.Storage;
 public interface IFotoStorage
 {
     Task<string> SalvarAsync(Stream conteudo, string nomeArquivo, string contentType, CancellationToken ct = default);
+
+    /// <summary>Apaga a foto de uma URL devolvida por <see cref="SalvarAsync"/>. URL desconhecida ou que não é deste armazenamento: ignora.</summary>
+    void Excluir(string url);
 }

@@ -16,4 +16,14 @@ public class LocalFotoStorage(string pastaUploads) : IFotoStorage
 
         return $"/uploads/{nomeUnico}";
     }
+
+    public void Excluir(string url)
+    {
+        // Só o que este armazenamento gravou ("/uploads/<nome>") e nunca fora da pasta.
+        if (!url.StartsWith("/uploads/", StringComparison.Ordinal)) return;
+        var raiz = Path.GetFullPath(pastaUploads);
+        var caminho = Path.GetFullPath(Path.Combine(raiz, url["/uploads/".Length..]));
+        if (!caminho.StartsWith(raiz + Path.DirectorySeparatorChar, StringComparison.Ordinal)) return;
+        if (File.Exists(caminho)) File.Delete(caminho);
+    }
 }

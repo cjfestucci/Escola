@@ -42,6 +42,7 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options, ICliente
     public DbSet<CobrancaPix> CobrancasPix => Set<CobrancaPix>();
     public DbSet<ContaPagamento> ContasPagamento => Set<ContaPagamento>();
     public DbSet<Assinatura> Assinaturas => Set<Assinatura>();
+    public DbSet<RegistroAcesso> RegistrosAcesso => Set<RegistroAcesso>();
     public DbSet<ConfiguracaoFinanceira> ConfiguracoesFinanceiras => Set<ConfiguracaoFinanceira>();
     public DbSet<ConfiguracaoEscola> ConfiguracoesEscola => Set<ConfiguracaoEscola>();
     public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();

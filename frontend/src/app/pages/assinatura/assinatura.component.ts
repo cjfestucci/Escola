@@ -24,6 +24,7 @@ export class AssinaturaComponent implements OnInit {
   readonly atualizando = signal(false);
   readonly confirmandoCancelamento = signal(false);
   readonly cancelando = signal(false);
+  readonly reativando = signal(false);
 
   ngOnInit(): void {
     this.assinaturas.carregar().subscribe({
@@ -49,6 +50,20 @@ export class AssinaturaComponent implements OnInit {
       error: (erro) => {
         this.cancelando.set(false);
         this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível cancelar a assinatura agora.');
+      }
+    });
+  }
+
+  reativar(): void {
+    this.reativando.set(true);
+    this.assinaturas.reativar().subscribe({
+      next: (a) => {
+        this.reativando.set(false);
+        this.notificacao.sucesso(a.bloqueada ? 'Assinatura reativada. O acesso volta assim que a mensalidade for paga.' : 'Assinatura reativada.');
+      },
+      error: (erro) => {
+        this.reativando.set(false);
+        this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível reativar a assinatura agora.');
       }
     });
   }

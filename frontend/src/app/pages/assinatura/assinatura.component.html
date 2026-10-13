@@ -48,15 +48,28 @@
           </p>
         }
         @case ('Cancelada') {
-          <p>Esta assinatura foi cancelada. Fale com o suporte para reativar.</p>
+          <p>Esta assinatura foi cancelada e o acesso do clube está encerrado. Para voltar a usar, reative: a mensalidade vence hoje.</p>
         }
       }
 
       @if (a.acessoAte && a.situacao !== 'Cancelada') {
         <p class="cancelamento-agendado">
           Assinatura cancelada. O clube pode usar o sistema até <strong>{{ formatarData(a.acessoAte) }}</strong>; depois disso o acesso
-          é encerrado. Mudou de ideia? Fale com o suporte.
+          é encerrado. Mudou de ideia? Reative abaixo — nada é cobrado antes dessa data.
         </p>
+      }
+
+      @if (a.dataExclusao) {
+        <p class="aviso-exclusao">
+          ⚠️ Os dados do clube (atletas, famílias, financeiro, fotos e documentos) serão <strong>apagados a partir de
+          {{ formatarData(a.dataExclusao) }}</strong>. Para manter, {{ a.situacao === 'Cancelada' ? 'reative a assinatura' : 'pague a mensalidade' }} antes dessa data.
+        </p>
+      }
+
+      @if (a.acessoAte) {
+        <button type="button" class="pagar" [disabled]="reativando()" (click)="reativar()">
+          {{ reativando() ? 'Reativando...' : 'Reativar assinatura' }}
+        </button>
       }
 
       @if (a.linkPagamento) {

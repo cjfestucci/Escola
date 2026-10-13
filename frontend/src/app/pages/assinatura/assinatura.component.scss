@@ -175,3 +175,27 @@
     color: #fff;
   }
 }
+
+button.pagar {
+  border: none;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.aviso-exclusao {
+  background: #fdecea;
+  color: #8c1d18;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+
+.aviso-exclusao {
+  background: #fdecea;
+  color: #8c1d18;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}

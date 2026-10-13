@@ -15,9 +15,13 @@ public class OpcoesAssinatura
     /// <summary>Dias depois do vencimento até suspender o acesso.</summary>
     public int DiasToleranciaAtraso { get; set; } = 7;
 
-    /// <summary>Dias depois da suspensão de um teste que nunca pagou até apagar os dados do clube. (Ainda não aplicado: a limpeza
-    /// automática é da fase 3 — ver docs/ASSINATURA.md.)</summary>
+    /// <summary>Dias depois do fim do acesso (cancelada) ou da suspensão de um teste que nunca pagou até apagar os dados do clube. O aviso
+    /// por e-mail sai 7 dias antes.</summary>
     public int DiasRetencaoAposSuspensao { get; set; } = 30;
+
+    /// <summary>Liga a exclusão de verdade. <b>Desligada por padrão</b>: só registra no log o que seria apagado (e manda o aviso), pra quem
+    /// opera conferir antes de ligar.</summary>
+    public bool ExclusaoAutomatica { get; set; }
 
     /// <summary>Token que o Asaas manda no cabeçalho <c>asaas-access-token</c> do webhook da conta raiz. Sem ele o webhook fica desligado
     /// (a situação continua sendo atualizada pela tarefa periódica).</summary>

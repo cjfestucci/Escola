@@ -24,6 +24,10 @@ public class Assinatura
     /// ainda vale o número informado no cadastro.</summary>
     public int? AtletasCobrados { get; set; }
 
+    /// <summary>Já houve alguma fatura paga (em qualquer assinatura do clube). Uma assinatura reativada é nova no gateway e não traz as
+    /// faturas antigas — sem isto, quem pagou o mês e desistiu do cancelamento ficaria como "aguardando o 1º pagamento".</summary>
+    public bool JaPagou { get; set; }
+
     // Dados de quem assinou (pra criar o cliente no gateway e pra contato).
     public string CpfCnpj { get; set; } = string.Empty;
     public string Cidade { get; set; } = string.Empty;
@@ -53,6 +57,8 @@ public class Assinatura
     // Avisos por e-mail que só o produto sabe dar (as faturas o próprio gateway avisa). Marcados pra não repetir.
     public DateTime? LembreteTesteEnviadoEm { get; set; }
     public DateTime? AvisoSuspensaoEnviadoEm { get; set; }
+    /// <summary>Aviso de que os dados vão ser apagados (cancelada ou teste nunca pago). A exclusão só acontece 7 dias depois dele.</summary>
+    public DateTime? AvisoExclusaoEnviadoEm { get; set; }
 
     // Prova do aceite dos Termos de Uso no cadastro.
     public string TermosVersao { get; set; } = string.Empty;

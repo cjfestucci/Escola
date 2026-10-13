@@ -48,6 +48,10 @@ export class AssinaturaService {
     return this.http.get<MinhaAssinatura>(`${this.baseUrl}/minha`).pipe(tap((a) => this._minha.set(a)));
   }
 
+  reativar(): Observable<MinhaAssinatura> {
+    return this.http.post<MinhaAssinatura>(`${this.baseUrl}/minha/reativar`, null).pipe(tap((a) => this._minha.set(a)));
+  }
+
   cancelar(): Observable<MinhaAssinatura> {
     return this.http.post<MinhaAssinatura>(`${this.baseUrl}/minha/cancelar`, null).pipe(tap((a) => this._minha.set(a)));
   }

@@ -86,6 +86,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             ["Asaas:WebhookToken"] = AsaasWebhookToken,
             ["Asaas:WebhookUrlBase"] = "https://escola.teste",
             ["Assinatura:WebhookToken"] = AssinaturaWebhookToken,
+            ["Assinatura:ExclusaoAutomatica"] = "true",
         };
         foreach (var (chave, valor) in config) builder.UseSetting(chave, valor);
 

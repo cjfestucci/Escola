@@ -65,9 +65,21 @@ export class AvisoAssinaturaComponent {
         };
       case 'AguardandoPagamento':
       case 'Suspensa':
-        return { texto: 'O acesso do clube está suspenso até o pagamento.', link: a.linkPagamento, alerta: true };
+        return {
+          texto: a.dataExclusao
+            ? `O acesso do clube está suspenso. Os dados serão apagados a partir de ${formatarDataAbsoluta(a.dataExclusao)}.`
+            : 'O acesso do clube está suspenso até o pagamento.',
+          link: a.linkPagamento,
+          alerta: true
+        };
       case 'Cancelada':
-        return { texto: 'A assinatura do clube foi cancelada. Fale com o suporte para reativar.', link: null, alerta: true };
+        return {
+          texto: a.dataExclusao
+            ? `A assinatura do clube foi cancelada. Os dados serão apagados a partir de ${formatarDataAbsoluta(a.dataExclusao)}.`
+            : 'A assinatura do clube foi cancelada.',
+          link: null,
+          alerta: true
+        };
       default:
         return null;
     }

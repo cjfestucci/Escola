@@ -242,12 +242,27 @@ public partial class AssinaturaHttpTests(ApiFactory api) : IClassFixture<ApiFact
         Assert.Equal("Cancelada", minha.GetProperty("situacao").GetString());
         Assert.Equal(HttpStatusCode.PaymentRequired, (await admin.GetAsync("/api/turmas")).StatusCode);
 
+        // Reativar depois do fim do acesso: assinatura NOVA no Asaas, vencendo hoje. Já pagou antes, então volta a usar (com a fatura do dia
+        // em aberto, como qualquer mensalidade); a cancelada não é reaproveitada.
+        var reativacao = await admin.PostAsync("/api/assinaturas/minha/reativar", null);
+        reativacao.EnsureSuccessStatusCode();
+        minha = await reativacao.Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Equal("Ativa", minha.GetProperty("situacao").GetString());
+        Assert.Equal(JsonValueKind.Null, minha.GetProperty("acessoAte").ValueKind);
+        var nova = api.Asaas.Chamadas.Last(c => c.Metodo == "POST" && c.Caminho == "/subscriptions");
+        Assert.Equal(Hoje.ToString("yyyy-MM-dd"), nova.Corpo!["nextDueDate"]!.GetValue<string>());
+        using (var db = api.Contexto(clienteId))
+            Assert.NotEqual(idAssinatura, (await db.Assinaturas.SingleAsync()).IdAssinaturaGateway);
+        Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync("/api/turmas")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsync("/api/assinaturas/minha/reativar", null)).StatusCode);
+
         using (var db = api.Contexto(clienteId))
         {
             var id = (await db.Assinaturas.SingleAsync()).Id;
             var detalhes = await db.LogsAuditoria.Where(l => l.EntidadeId == id).Select(l => l.Detalhe).ToListAsync();
             Assert.Contains(detalhes, d => d!.StartsWith("Valor do plano alterado") && d.Contains("5 atletas ativos"));
             Assert.Contains(detalhes, d => d!.StartsWith("Assinatura cancelada"));
+            Assert.Contains(detalhes, d => d!.StartsWith("Assinatura reativada"));
         }
     }
 

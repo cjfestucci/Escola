@@ -78,6 +78,10 @@ acima: aqui é a plataforma cobrando o clube). Desenho completo em `docs/ASSINAT
    Webhooks), cadastre `{API}/api/assinaturas/asaas/webhook` com os eventos de cobrança e o token `ASSINATURA_WEBHOOK_TOKEN`.
    É diferente do webhook das subcontas (`/api/pagamentos/asaas/webhook`, que o sistema grava sozinho).
 4. Em `site/precos.js`, `URL_APP` = endereço público do app.
+5. **Exclusão automática** (`ASSINATURA_EXCLUSAO_AUTOMATICA`, desligada por padrão): clube cancelado tem os dados apagados 30 dias depois
+   do fim do acesso, e teste que nunca pagou, 30 dias depois da suspensão (com e-mail 7 dias antes). **Desligada, só avisa e escreve no
+   log** ("já podem ser excluídos… está desligada"); confira esses logs nas primeiras semanas antes de ligar. É irreversível — o backup do
+   banco e dos volumes é a única volta.
 
 Sem `ASAAS_API_KEY` o cadastro funciona, mas não há cobrança: o teste acaba, o clube é suspenso e não tem onde pagar.
 

@@ -17,14 +17,15 @@ public static class SituacaoAssinaturaCalculo
     /// <param name="toleranciaDias">Dias depois do vencimento em que ainda funciona (com aviso). Passou disso, suspende.</param>
     /// <param name="acessoAteCancelamento">Cancelamento pedido: até esse dia segue a regra normal (o período pago vale); depois, Cancelada.
     /// Nulo = não cancelada.</param>
+    /// <param name="jaPagouAntes">Houve fatura paga numa assinatura anterior (reativada depois de cancelar).</param>
     public static SituacaoAssinatura Calcular(
         DateOnly hoje, DateOnly? testeAte, DateOnly primeiroVencimento, int toleranciaDias, DateOnly? acessoAteCancelamento,
-        IReadOnlyCollection<FaturaAssinatura> faturas)
+        IReadOnlyCollection<FaturaAssinatura> faturas, bool jaPagouAntes = false)
     {
         if (acessoAteCancelamento is { } ate && hoje > ate) return SituacaoAssinatura.Cancelada;
 
         var lista = faturas.Count > 0 ? faturas : [new FaturaAssinatura("", primeiroVencimento, 0m, false, null, null)];
-        var algumaPaga = lista.Any(f => f.Paga);
+        var algumaPaga = jaPagouAntes || lista.Any(f => f.Paga);
         var semTeste = testeAte is null;
 
         // Fatura em aberto que já venceu (o dia do vencimento ainda não é atraso).
@@ -61,6 +62,20 @@ public static class SituacaoAssinaturaCalculo
         var aberta = EmAberto(faturas);
         return aberta is null || aberta.Vencimento.DayNumber - hoje.DayNumber > DiasValorCongelado;
     }
+
+    /// <summary>Dias antes da exclusão dos dados em que sai o aviso por e-mail (e a exclusão só acontece 7 dias depois desse aviso).</summary>
+    public const int DiasAvisoExclusao = 7;
+
+    /// <summary>Quando os dados do clube podem ser apagados: <paramref name="diasRetencao"/> dias depois do fim do acesso (cancelada) ou da
+    /// suspensão de um teste que <b>nunca pagou</b>. Nulo = nunca (clube em dia, em teste, em atraso, ou suspenso que já pagou alguma vez —
+    /// esse é cliente inadimplente, não teste abandonado).</summary>
+    public static DateOnly? DataExclusao(SituacaoAssinatura situacao, DateOnly? acessoAte, DateTime? suspensaEm, bool jaPagou, int diasRetencao) =>
+        situacao switch
+        {
+            SituacaoAssinatura.Cancelada when acessoAte is { } ate => ate.AddDays(diasRetencao),
+            SituacaoAssinatura.Suspensa when !jaPagou && suspensaEm is { } em => DateOnly.FromDateTime(em).AddDays(diasRetencao),
+            _ => null
+        };
 
     /// <summary>A fatura que o cliente deve pagar agora: a em aberto mais antiga.</summary>
     public static FaturaAssinatura? EmAberto(IEnumerable<FaturaAssinatura> faturas) =>

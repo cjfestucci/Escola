@@ -48,6 +48,7 @@ services:
       Assinatura__PrecoFixo: ${ASSINATURA_PRECO_FIXO:-99}
       Assinatura__PrecoPorAtleta: ${ASSINATURA_PRECO_POR_ATLETA:-3}
       Assinatura__DiasToleranciaAtraso: ${ASSINATURA_DIAS_TOLERANCIA:-7}
+      Assinatura__ExclusaoAutomatica: ${ASSINATURA_EXCLUSAO_AUTOMATICA:-false}
       Assinatura__WebhookToken: ${ASSINATURA_WEBHOOK_TOKEN:-}
     volumes:
       - fotos:/app/wwwroot/uploads

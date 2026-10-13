@@ -32,6 +32,7 @@ public class AuthController(
     ILinkSenhaService linkSenha,
     IAuditoriaService auditoria,
     LimitadorTentativasLogin limitador,
+    RegistroAcessoService registroAcesso,
     ILogger<AuthController> logger) : ControllerBase
 {
     /// <summary>Intervalo mínimo entre dois e-mails de redefinição pra mesma conta (evita usar o endpoint pra encher a caixa de alguém).</summary>
@@ -106,6 +107,7 @@ public class AuthController(
 
         auditoria.Registrar(nameof(Usuario), pedido.UsuarioId, AcaoAuditoria.Editado, pedido.UsuarioId,
             pedido.Convite ? "Convite aceito: e-mail confirmado e senha cadastrada" : "Senha redefinida pelo link enviado por e-mail");
+        registroAcesso.Registrar(pedido.Usuario, TipoRegistroAcesso.SenhaPeloLink);
         await db.SaveChangesAsync();
         return NoContent();
     }
@@ -193,6 +195,8 @@ public class AuthController(
         }
 
         limitador.Limpar(chave);
+        registroAcesso.Registrar(usuario, TipoRegistroAcesso.Login);
+        await db.SaveChangesAsync();
         var token = GerarToken(usuario.Id, usuario.Nome, usuario.Papel.ToString(), usuario.ResponsavelId, clienteDaConta);
         return Ok(new LoginRespostaDto(token, usuario.Id, usuario.Nome, usuario.Papel.ToString(), usuario.ResponsavelId, ClienteId: clienteDaConta));
     }

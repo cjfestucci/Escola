@@ -40,6 +40,14 @@ public interface IAssinaturaService
 
     /// <summary>Cancela: encerra a assinatura no gateway (sem faturas novas) e o acesso segue até o fim do período pago ou do teste.</summary>
     Task<(DateOnly? AcessoAte, string? Erro)> CancelarAsync(Guid clienteId, Guid usuarioId, CancellationToken ct = default);
+
+    /// <summary>Desfaz o cancelamento (ainda dentro do acesso ou já Cancelada): abre uma assinatura nova no gateway. Dentro do acesso, a próxima
+    /// fatura vence no fim do período já pago; depois dele, vence hoje.</summary>
+    Task<string?> ReativarAsync(Guid clienteId, Guid usuarioId, CancellationToken ct = default);
+
+    /// <summary>Retenção de dados (cancelada ou teste nunca pago): aviso 7 dias antes e, passado o prazo, exclusão — se
+    /// <c>Assinatura:ExclusaoAutomatica</c> estiver ligada.</summary>
+    Task ProcessarRetencaoAsync(Guid clienteId, CancellationToken ct = default);
 }
 
 public sealed class AssinaturaService(
@@ -243,7 +251,8 @@ public sealed class AssinaturaService(
                 faturas = lidas;
             }
 
-            nova = SituacaoAssinaturaCalculo.Calcular(hoje, a.TesteAte, a.PrimeiroVencimento, opcoes.Value.DiasToleranciaAtraso, null, faturas);
+            if (faturas.Any(f => f.Paga)) a.JaPagou = true;
+            nova = SituacaoAssinaturaCalculo.Calcular(hoje, a.TesteAte, a.PrimeiroVencimento, opcoes.Value.DiasToleranciaAtraso, null, faturas, a.JaPagou);
             var aberta = SituacaoAssinaturaCalculo.EmAberto(faturas);
             a.LinkPagamento = aberta?.LinkPagamento;
             a.VencimentoEmAberto = faturas.Count > 0 ? aberta?.Vencimento : nova == SituacaoAssinatura.Ativa ? null : a.PrimeiroVencimento;
@@ -320,6 +329,7 @@ public sealed class AssinaturaService(
         }
 
         var hoje = await escopo.ServiceProvider.GetRequiredService<IRelogioEscola>().HojeAsync();
+        if (faturas.Any(f => f.Paga)) a.JaPagou = true; // depois do cancelamento as faturas não são mais lidas
         a.AcessoAte = SituacaoAssinaturaCalculo.AcessoAteAoCancelar(hoje, a.TesteAte, a.PrimeiroVencimento, faturas);
         a.CanceladaEm = DateTime.UtcNow;
         a.LinkPagamento = null;
@@ -327,6 +337,116 @@ public sealed class AssinaturaService(
             $"Assinatura cancelada: acesso até {a.AcessoAte:dd/MM/yyyy}");
         await db.SaveChangesAsync(ct);
         return (a.AcessoAte, null);
+    }
+
+    public async Task<string?> ReativarAsync(Guid clienteId, Guid usuarioId, CancellationToken ct = default)
+    {
+        using var escopo = escopos.CreateScope();
+        escopo.ServiceProvider.GetRequiredService<ClienteAtual>().Definir(clienteId);
+        var sp = escopo.ServiceProvider;
+        var db = sp.GetRequiredService<EscolaDbContext>();
+        var a = await db.Assinaturas.FirstOrDefaultAsync(ct);
+        if (a is null) return "Este clube não tem assinatura pelo site.";
+        if (a.AcessoAte is not { } acessoAte) return "A assinatura não está cancelada.";
+
+        var hoje = await sp.GetRequiredService<IRelogioEscola>().HojeAsync();
+        // Ainda dentro do acesso: o período já pago (ou o teste) vale, e a próxima fatura vence quando ele acabar. Depois dele, vence hoje
+        // — e quem nunca pagou e já passou do teste volta como "aguardando pagamento" (sem um teste novo).
+        var dentroDoAcesso = hoje <= acessoAte;
+        // Quem nunca pagou e ainda está dentro do teste grátis não é cobrado antes do fim dele.
+        var vencimento = dentroDoAcesso ? acessoAte : !a.JaPagou && a.TesteAte is { } testeAte && testeAte >= hoje ? testeAte : hoje;
+        if (!dentroDoAcesso && a.TesteAte is { } fimTeste && hoje > fimTeste) a.TesteAte = null;
+
+        a.PrimeiroVencimento = vencimento;
+        a.VencimentoEmAberto = vencimento;
+        a.AcessoAte = null;
+        a.CanceladaEm = null;
+        a.LinkPagamento = null;
+        a.AvisoExclusaoEnviadoEm = null;
+        a.IdAssinaturaGateway = null; // a cancelada não volta: abre uma nova
+        sp.GetRequiredService<IAuditoriaService>().Registrar(nameof(Assinatura), a.Id, AcaoAuditoria.Editado, usuarioId,
+            $"Assinatura reativada: próxima fatura vence em {vencimento:dd/MM/yyyy}");
+        await db.SaveChangesAsync(ct);
+
+        var nomeClube = await db.Clientes.Where(c => c.Id == clienteId).Select(c => c.Nome).FirstAsync(ct);
+        await GarantirNoGatewayAsync(db, a, nomeClube, hoje, ct);
+        await SincronizarFaturasAsync(db, sp, a, ct);
+        return null;
+    }
+
+    public async Task ProcessarRetencaoAsync(Guid clienteId, CancellationToken ct = default)
+    {
+        using var escopo = escopos.CreateScope();
+        escopo.ServiceProvider.GetRequiredService<ClienteAtual>().Definir(clienteId);
+        var sp = escopo.ServiceProvider;
+        var db = sp.GetRequiredService<EscolaDbContext>();
+        var a = await db.Assinaturas.FirstOrDefaultAsync(ct);
+        if (a is null) return;
+
+        var o = opcoes.Value;
+        var data = SituacaoAssinaturaCalculo.DataExclusao(a.Situacao, a.AcessoAte, a.SuspensaEm, a.JaPagou, o.DiasRetencaoAposSuspensao);
+        if (data is not { } dataExclusao)
+        {
+            // Pagou ou reativou: o processo de exclusão para.
+            if (a.AvisoExclusaoEnviadoEm is not null)
+            {
+                a.AvisoExclusaoEnviadoEm = null;
+                await db.SaveChangesAsync(ct);
+            }
+            return;
+        }
+
+        var hoje = await sp.GetRequiredService<IRelogioEscola>().HojeAsync();
+        var nomeClube = await db.Clientes.Where(c => c.Id == clienteId).Select(c => c.Nome).FirstAsync(ct);
+
+        if (a.AvisoExclusaoEnviadoEm is null)
+        {
+            if (hoje < dataExclusao.AddDays(-SituacaoAssinaturaCalculo.DiasAvisoExclusao)) return;
+            // O relógio da exclusão começa no aviso (mesmo sem SMTP, pra não adiar pra sempre): ela só acontece 7 dias depois dele.
+            await EnviarAvisoExclusaoAsync(sp, a, nomeClube, Maior(dataExclusao, hoje.AddDays(SituacaoAssinaturaCalculo.DiasAvisoExclusao)), ct);
+            a.AvisoExclusaoEnviadoEm = DateTime.UtcNow;
+            sp.GetRequiredService<IAuditoriaService>().RegistrarSistema(nameof(Assinatura), a.Id, AcaoAuditoria.Editado,
+                $"Aviso de exclusão dos dados enviado: o clube será apagado a partir de {dataExclusao:dd/MM/yyyy}");
+            await db.SaveChangesAsync(ct);
+            return;
+        }
+
+        if (hoje < dataExclusao || a.AvisoExclusaoEnviadoEm > DateTime.UtcNow.AddDays(-SituacaoAssinaturaCalculo.DiasAvisoExclusao)) return;
+
+        if (!o.ExclusaoAutomatica)
+        {
+            logger.LogWarning("Os dados do cliente {ClienteId} ({Nome}) já podem ser excluídos ({Situacao}), mas Assinatura:ExclusaoAutomatica está desligada.",
+                clienteId, nomeClube, a.Situacao);
+            return;
+        }
+        await sp.GetRequiredService<ExclusaoDadosCliente>().ApagarAsync(clienteId, ct);
+    }
+
+    private static DateOnly Maior(DateOnly a, DateOnly b) => a > b ? a : b;
+
+    private async Task EnviarAvisoExclusaoAsync(IServiceProvider sp, Assinatura a, string nomeClube, DateOnly quando, CancellationToken ct)
+    {
+        var email = sp.GetRequiredService<IEmailSender>();
+        if (!email.Configurado) return;
+        var urlAssinatura = $"{config["App:UrlBase"]?.TrimEnd('/')}/configuracoes/assinatura";
+        var comoManter = a.Situacao == SituacaoAssinatura.Cancelada
+            ? "reative a assinatura"
+            : "pague a mensalidade em aberto";
+        try
+        {
+            await email.EnviarAsync(a.EmailCobranca, nomeClube, $"Os dados do {nomeClube} serão apagados em {quando:dd/MM}", $"""
+                <p>Olá!</p>
+                <p>Como a assinatura do <strong>{Html(nomeClube)}</strong> no {MarcaProduto.Nome} não está ativa, <strong>todos os dados do clube
+                serão apagados a partir de {quando:dd/MM/yyyy}</strong>: atletas, famílias, equipe, financeiro, jogos, fotos e documentos. Não
+                será possível recuperar depois.</p>
+                <p>Para manter os dados, {comoManter} antes dessa data: <a href="{Html(urlAssinatura)}">abrir a assinatura</a>.
+                Se quiser só guardar uma cópia, responda este e-mail pedindo a exportação.</p>
+                """, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Não foi possível enviar o aviso de exclusão da assinatura {AssinaturaId}.", a.Id);
+        }
     }
 
     /// <summary>Os avisos que só o produto sabe dar: o teste acabando e o acesso suspenso. (Fatura gerada/vencendo/vencida o próprio Asaas

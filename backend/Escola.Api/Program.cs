@@ -126,6 +126,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var conferencia = await Autenticacao.ConferirAsync(db, contexto.Principal!, clienteDoToken);
                 if (conferencia.Motivo is not null) contexto.Fail(conferencia.Motivo);
                 else if (conferencia.SoAssinatura) contexto.HttpContext.Items[Autenticacao.ItemSoAssinatura] = true;
+
+                // Registro de acesso (Marco Civil): o primeiro uso do dia de cada login aberto.
+                if (conferencia.Motivo is null && Guid.TryParse(contexto.Principal!.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var usuarioDoToken))
+                    await contexto.HttpContext.RequestServices.GetRequiredService<RegistroAcessoService>().RegistrarUsoDiarioAsync(usuarioDoToken);
             }
         };
     });
@@ -158,6 +162,9 @@ builder.Services.AddSingleton<LimitadorTentativasLogin>();
 builder.Services.AddScoped<ILinkSenhaService, LinkSenhaService>();
 builder.Services.AddScoped<IConviteMatriculaService, ConviteMatriculaService>();
 builder.Services.AddScoped<IdentidadeEscolaService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<UsoDiarioRegistrado>();
+builder.Services.AddScoped<RegistroAcessoService>();
 builder.Services.AddScoped<IRelogioEscola, RelogioEscola>();
 builder.Services.AddScoped<IBloqueioAlunoService, BloqueioAlunoService>();
 
@@ -192,6 +199,7 @@ builder.Services.AddScoped<IDisciplinaService, DisciplinaService>();
 // Assinatura pelo site (o clube vira cliente sozinho): plano em Assinatura:*, cobrança na conta raiz do Asaas.
 builder.Services.Configure<OpcoesAssinatura>(builder.Configuration.GetSection(OpcoesAssinatura.Secao));
 builder.Services.AddScoped<IAssinaturaService, AssinaturaService>();
+builder.Services.AddScoped<ExclusaoDadosCliente>();
 // Nos testes a situação é atualizada sob demanda (a tarefa de fundo correria em paralelo com o teste).
 if (!builder.Environment.IsEnvironment("Testing")) builder.Services.AddHostedService<AssinaturasWorker>();
 

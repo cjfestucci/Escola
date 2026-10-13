@@ -53,6 +53,8 @@ export interface MinhaAssinatura {
   /** Cancelamento pedido: o acesso vale até este dia. */
   acessoAte: string | null;
   canceladaEm: string | null;
+  /** Cancelada ou teste nunca pago: a partir deste dia os dados do clube podem ser apagados. */
+  dataExclusao: string | null;
 }
 
 export function valorDoPlano(plano: PlanoAssinatura, atletas: number): number {

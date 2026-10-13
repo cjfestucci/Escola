@@ -88,13 +88,27 @@ mostra **"Pagar agora"** e o e-mail de boas-vindas **só sai quando o pagamento 
 - **Plataforma**: cartão "Assinatura" pro Suporte (situação, valor, atletas, teste/vencimento/cancelamento) com link pra tela da assinatura.
 - Migration `AddAssinaturaFase2` (só colunas nullable). Testes: `SituacaoAssinaturaCalculoTests` (cancelamento, acesso ao cancelar, congelamento do valor) e `AssinaturaHttpTests` (valor pelos ativos com a fatura pendente corrigida, Coordenador não cancela, cancelamento mantém o acesso e depois bloqueia com 402, lembrete e aviso de suspensão saem uma vez só).
 
+## Reativar, retenção e registros de acesso (desde 2026-10-13)
+
+- **Reativar** (`POST /api/assinaturas/minha/reativar`, Admin/Suporte): abre uma assinatura **nova** no Asaas (a cancelada não volta).
+  Dentro do acesso, a próxima fatura vence no fim do período pago; depois dele, vence hoje — ou no fim do teste, se o clube nunca pagou
+  e o teste ainda não acabou. `Assinatura.JaPagou` registra que já houve pagamento (a assinatura nova não traz as faturas antigas).
+- **Exclusão dos dados**: `DataExclusao` = 30 dias (`DiasRetencaoAposSuspensao`) depois do fim do acesso de uma **cancelada** ou da
+  suspensão de um teste **que nunca pagou**. Suspensa que já pagou **nunca** é apagada. E-mail 7 dias antes (`AvisoExclusaoEnviadoEm`), e
+  a exclusão só acontece 7 dias depois desse aviso; pagar ou reativar interrompe. `ExclusaoDadosCliente` apaga todas as tabelas isoladas
+  por cliente (descobertas pelo modelo do EF, na ordem das chaves estrangeiras, numa transação), as fotos e os documentos, e anonimiza o
+  `Cliente`. **Desligada por padrão** (`Assinatura:ExclusaoAutomatica`): desligada, só avisa e escreve no log.
+- **Registros de acesso** (Marco Civil, art. 15): login, senha pelo link e primeiro uso do dia, com IP e navegador; sem tela; apagados
+  depois de 6 meses. Ficam mesmo depois da exclusão do clube.
+
 ## Fases
 
 | Fase | Entrega |
 |---|---|
 | **1 — MVP** ✅ | Tudo acima. |
 | **2 — Ciclo** ✅ (2026-10-13) | Valor pelos atletas **ativos** depois da 1ª fatura paga; cancelar pela tela; e-mail no fim do teste e na suspensão; cartão da assinatura na Plataforma. Ver "Fase 2" abaixo. |
-| **3 — Crescimento** | Limpeza dos testes nunca pagos (30 dias após suspender), cupons, NFS-e pelo Asaas, painel do Suporte com todos os clientes. |
+| **3 — Retenção** ✅ (2026-10-13) | Reativar pela tela; exclusão dos dados de cancelados e testes nunca pagos (desligada por padrão); registros de acesso do Marco Civil. Ver "Reativar, retenção e registros de acesso" acima. |
+| **4 — Crescimento** | Cupons, NFS-e pelo Asaas, painel do Suporte com todos os clientes. |
 
 ## Pendências antes de produção
 

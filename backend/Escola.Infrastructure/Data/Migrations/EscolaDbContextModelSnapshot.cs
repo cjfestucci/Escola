@@ -116,6 +116,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<int>("AtletasInformados")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("AvisoExclusaoEnviadoEm")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("AvisoSuspensaoEnviadoEm")
                         .HasColumnType("timestamp with time zone");
 
@@ -158,6 +161,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<string>("IdClienteGateway")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("JaPagou")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime?>("LembreteTesteEnviadoEm")
                         .HasColumnType("timestamp with time zone");
@@ -1146,6 +1152,48 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.ToTable("RedefinicoesSenha");
                 });
 
+            modelBuilder.Entity("Escola.Domain.Entities.RegistroAcesso", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Ip")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Navegador")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("OcorridoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("OcorridoEm");
+
+                    b.HasIndex("UsuarioId", "OcorridoEm");
+
+                    b.ToTable("RegistrosAcesso", (string)null);
+                });
+
             modelBuilder.Entity("Escola.Domain.Entities.RegistroDiarioClasse", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1906,6 +1954,15 @@ namespace Escola.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.RegistroAcesso", b =>
+                {
+                    b.HasOne("Escola.Domain.Entities.Cliente", null)
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.RegistroDiarioClasse", b =>
