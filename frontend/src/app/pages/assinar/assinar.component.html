@@ -92,7 +92,10 @@
             </label>
             <label class="aceite inteiro">
               <input type="checkbox" [(ngModel)]="aceite" name="aceite" />
-              <span>Li e concordo com os Termos de Uso e a Política de Privacidade do Gestor Tático.</span>
+              <span>
+                Li e concordo com os <a [href]="urlSite + '/termos.html'" target="_blank" rel="noopener">Termos de Uso</a> e a
+                <a [href]="urlSite + '/privacidade.html'" target="_blank" rel="noopener">Política de Privacidade</a> do Gestor Tático.
+              </span>
             </label>
             <div class="acoes inteiro">
               <button type="button" class="botao botao--secundario" (click)="voltar()">Voltar</button>

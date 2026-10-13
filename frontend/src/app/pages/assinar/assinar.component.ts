@@ -14,6 +14,7 @@ import { AssinaturaService } from '../../services/assinatura.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { SegmentoService } from '../../services/segmento.service';
 import { formatarDataAbsoluta } from '../../shared/data-utils';
+import { environment } from '../../../environments/environment';
 
 type Etapa = 'clube' | 'voce' | 'pronto';
 
@@ -37,6 +38,7 @@ export class AssinarComponent implements OnInit {
 
   protected readonly formatarReais = formatarReais;
   protected readonly formatarData = formatarDataAbsoluta;
+  protected readonly urlSite = environment.urlSite;
 
   readonly plano = signal<PlanoAssinatura | null>(null);
   readonly etapa = signal<Etapa>('clube');

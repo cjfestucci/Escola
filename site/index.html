@@ -246,8 +246,8 @@
       <div class="preco-card">
         <div class="preco-plano">
           <h3>Plano completo</h3>
-          <div class="valor"><span id="preco-fixo"></span> <small>/mês</small></div>
-          <div class="mais">+ <span id="preco-atleta"></span> por atleta ativo</div>
+          <div class="valor"><span class="preco-fixo"></span> <small>/mês</small></div>
+          <div class="mais">+ <span class="preco-atleta"></span> por atleta</div>
           <ul>
             <li>Todos os recursos, sem módulo pago à parte</li>
             <li>Usuários ilimitados para a equipe</li>
@@ -344,22 +344,17 @@
     <div>
       <h4>Institucional</h4>
       <ul>
-        <li><a href="#privacidade">Política de Privacidade</a></li>
-        <li><a href="#termos">Termos de Uso</a></li>
-        <li><a href="#contato">Contato</a></li>
+        <li><a href="privacidade.html">Política de Privacidade</a></li>
+        <li><a href="termos.html">Termos de Uso</a></li>
       </ul>
     </div>
-    <div class="copyright">© <span id="ano"></span> Gestor Tático. Todos os direitos reservados.</div>
+    <div class="copyright">© <span class="ano"></span> Gestor Tático. Todos os direitos reservados.</div>
   </div>
 </footer>
 
 <script src="precos.js"></script>
+<script src="paginas.js"></script>
 <script>
-  document.getElementById('ano').textContent = new Date().getFullYear();
-  document.querySelectorAll('[data-app]').forEach((a) => (a.href = URL_APP + '/' + a.dataset.app));
-  document.querySelectorAll('.dias-teste').forEach((s) => (s.textContent = DIAS_TESTE));
-  document.getElementById('preco-fixo').textContent = formatarReais(PRECO_FIXO);
-  document.getElementById('preco-atleta').textContent = formatarReais(PRECO_POR_ATLETA);
 
   const faixa = document.getElementById('atletas');
   function atualizarSimulador() {

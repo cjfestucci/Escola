@@ -104,7 +104,7 @@ migra; as outras só encontram o banco já atualizado.
 - [ ] SMTP funcionando (teste o "Esqueceu a senha?" com um e-mail real).
 - [ ] Backup do banco e dos volumes agendado **e restaurado uma vez** como teste.
 - [ ] Asaas: fluxo completo validado no **sandbox** (abrir subconta, gerar Pix, pagar pelo painel do sandbox, ver a baixa) antes de `ASAAS_AMBIENTE=Producao`; `SEGREDOS_CHAVE` no cofre.
-- [ ] Assinatura pelo site validada no **sandbox** (cadastro → assinatura criada na conta raiz → pagar a fatura pelo painel → clube vira "Ativa"); Termos de Uso e Política de Privacidade publicados.
+- [ ] Assinatura pelo site validada no **sandbox** (cadastro → assinatura criada na conta raiz → pagar a fatura pelo painel → clube vira "Ativa"); Termos de Uso e Política de Privacidade com os dados da empresa preenchidos (nada em amarelo em `site/termos.html`/`site/privacidade.html`), revisados por advogado, e `urlSite` do `environment.prod.ts` com o domínio do site.
 - [ ] Pix automático do BB: validado na **homologação do Banco do Brasil** antes de `PIX_BB_AMBIENTE=Producao` (hoje só foi testado contra um simulador).
 
 ## Limitações conhecidas

@@ -90,7 +90,7 @@ mostra **"Pagar agora"** e o e-mail de boas-vindas **só sai quando o pagamento 
 ## Pendências antes de produção
 
 1. **SMTP** — sem ele o e-mail de boas-vindas não chega.
-2. **Termos de Uso e Política de Privacidade** — o cadastro grava o aceite da versão `2026-10-rascunho`, mas os textos ainda não existem.
-   Publicou → trocar `AssinaturaService.VersaoTermosUso` e pôr os links na tela `/assinar` e no site.
+2. **Termos de Uso e Política de Privacidade** — publicados como texto-base em `site/termos.html`/`site/privacidade.html` (versão
+   `2026-10-13`, linkados no `/assinar`): falta preencher os dados da empresa (em amarelo) e a revisão jurídica.
 3. **Validar no sandbox do Asaas** e cadastrar o webhook da conta raiz no painel (ver `docs/DEPLOY.md`).
 4. `URL_APP` em `site/precos.js` com o domínio de produção.

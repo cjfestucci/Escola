@@ -3,6 +3,8 @@
 const PRECO_FIXO = 99;
 const PRECO_POR_ATLETA = 3;
 const DIAS_TESTE = 7;
+// Dias de atraso até suspender o acesso (Assinatura:DiasToleranciaAtraso).
+const DIAS_TOLERANCIA = 7;
 
 // Endereço do app (tela de cadastro e de entrar). Em produção, trocar pelo domínio do app.
 const URL_APP = 'http://localhost:4200';

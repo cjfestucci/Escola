@@ -46,8 +46,9 @@ public sealed class AssinaturaService(
     IConfiguration config,
     ILogger<AssinaturaService> logger) : IAssinaturaService
 {
-    /// <summary>Versão dos Termos de Uso aceitos no cadastro. Mudou o texto dos termos → troque a versão.</summary>
-    public const string VersaoTermosUso = "2026-10-rascunho";
+    /// <summary>Versão dos Termos de Uso e da Política de Privacidade aceitos no cadastro (publicados no site: site/termos.html e
+    /// site/privacidade.html). Mudou o texto → troque aqui e em VERSAO_DOCUMENTOS (site/paginas.js).</summary>
+    public const string VersaoTermosUso = "2026-10-13";
 
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
 
