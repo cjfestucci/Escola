@@ -10,6 +10,16 @@ export interface DoisFatores {
   codigosRecuperacaoRestantes: number;
   /** O ambiente tem o cofre de segredos configurado. */
   disponivel: boolean;
+  /** Como a pessoa recebe o código: app autenticador ou e-mail (nulo = desativada). */
+  metodo: 'App' | 'Email' | null;
+  /** O ambiente envia e-mail (SMTP). */
+  emailDisponivel: boolean;
+}
+
+export interface EnvioCodigo {
+  emailMascarado: string;
+  /** Ex.: o e-mail não pôde ser entregue. */
+  aviso: string | null;
 }
 
 export interface InicioDoisFatores {
@@ -17,7 +27,7 @@ export interface InicioDoisFatores {
   uriOtpAuth: string;
 }
 
-/** Verificação em duas etapas da própria conta (app autenticador + códigos de recuperação). */
+/** Verificação em duas etapas da própria conta (app autenticador ou código por e-mail, + códigos de recuperação). */
 @Injectable({ providedIn: 'root' })
 export class MinhaContaService {
   private readonly http = inject(HttpClient);
@@ -34,6 +44,20 @@ export class MinhaContaService {
   /** Devolve os códigos de recuperação — só aparecem esta vez. */
   confirmar(codigo: string): Observable<string[]> {
     return this.http.post<{ codigos: string[] }>(`${this.baseUrl}/confirmar`, { codigo }).pipe(map((r) => r.codigos));
+  }
+
+  /** Ativação por e-mail: manda um código pro e-mail da conta. */
+  iniciarEmail(): Observable<EnvioCodigo> {
+    return this.http.post<EnvioCodigo>(`${this.baseUrl}/email/iniciar`, null);
+  }
+
+  confirmarEmail(codigo: string): Observable<string[]> {
+    return this.http.post<{ codigos: string[] }>(`${this.baseUrl}/email/confirmar`, { codigo }).pipe(map((r) => r.codigos));
+  }
+
+  /** Com o código por e-mail ativo: manda um código (pra desativar ou gerar novos códigos de recuperação). */
+  enviarCodigo(): Observable<EnvioCodigo> {
+    return this.http.post<EnvioCodigo>(`${this.baseUrl}/email/enviar-codigo`, null);
   }
 
   desativar(senha: string, codigo: string): Observable<DoisFatores> {

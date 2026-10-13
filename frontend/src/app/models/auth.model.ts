@@ -6,11 +6,17 @@ export interface LoginResposta {
   nome: string;
   papel: Papel;
   responsavelId: string | null;
-  /** Senha certa, mas falta o código do app autenticador: nenhum token foi emitido (a tela pede o código). */
+  /** Senha certa, mas falta o código (do app autenticador ou enviado por e-mail): nenhum token foi emitido (a tela pede o código). */
   requerSegundoFator?: boolean;
   /** A senha confere em mais de uma escola: a tela pede pra escolher e chama de novo com o id escolhido. Sem token ainda. */
   escolherCliente?: OpcaoClienteLogin[] | null;
   clienteId?: string | null;
+  /** De onde vem o código: 'App' (autenticador) ou 'Email' (a tela oferece "reenviar"). */
+  metodoSegundoFator?: 'App' | 'Email' | null;
+  /** Pra onde foi o código por e-mail ("c***@escola.com"). */
+  emailMascarado?: string | null;
+  /** Ex.: o e-mail não pôde ser enviado, ou já foi enviado há pouco. */
+  aviso?: string | null;
 }
 
 /** Escola em que a pessoa tem conta (todas as escolas usam a mesma tela de login). */

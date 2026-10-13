@@ -173,6 +173,38 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         return Ok(await ComoDtoAsync(id));
     }
 
+    /// <summary>Pix recebidos que a baixa automática não resolveu (cobrança cancelada ou já paga) e ninguém conferiu ainda.</summary>
+    [HttpGet("pix-pendencias")]
+    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    public async Task<ActionResult<List<PendenciaPixDto>>> ListarPendenciasPix()
+    {
+        var pendencias = await db.CobrancasPix
+            .Where(p => p.Pendencia != null && p.PendenciaConferidaEm == null)
+            .OrderByDescending(p => p.ConcluidoEm)
+            .Select(p => new PendenciaPixDto(p.Id, p.CobrancaId, p.Cobranca.Aluno.Nome, p.Cobranca.Descricao,
+                p.ValorRecebido ?? p.Valor, p.ConcluidoEm, p.Pendencia!.Value.ToString()))
+            .ToListAsync();
+        return Ok(pendencias);
+    }
+
+    /// <summary>Marca a pendência como conferida (a escola devolveu o valor, reabriu a cobrança ou decidiu manter). Fica no histórico
+    /// da cobrança com o nome de quem conferiu.</summary>
+    [HttpPost("pix-pendencias/{id:guid}/conferir")]
+    [Authorize(Roles = GruposDePapeis.Financeiro)]
+    public async Task<IActionResult> ConferirPendenciaPix(Guid id)
+    {
+        var pix = await db.CobrancasPix.FirstOrDefaultAsync(p => p.Id == id && p.Pendencia != null);
+        if (pix is null) return NotFound("Pendência não encontrada.");
+        if (pix.PendenciaConferidaEm is not null) return NoContent();
+
+        pix.PendenciaConferidaEm = DateTime.UtcNow;
+        var valor = (pix.ValorRecebido ?? pix.Valor).ToString("N2", new System.Globalization.CultureInfo("pt-BR"));
+        auditoria.Registrar(nameof(Cobranca), pix.CobrancaId, AcaoAuditoria.Editado, this.UsuarioIdAtual(),
+            $"Pix recebido de R$ {valor} conferido (alerta resolvido)");
+        await db.SaveChangesAsync();
+        return NoContent();
+    }
+
     /// <summary>Código Pix "copia e cola" pra pagar uma cobrança específica — gerado localmente
     /// (padrão BR Code do Bacen), sem depender de nenhuma conta em processadora de pagamento.
     /// Equipe vê qualquer cobrança; um Responsável só a(s) do(s) próprio(s) filho(s).</summary>

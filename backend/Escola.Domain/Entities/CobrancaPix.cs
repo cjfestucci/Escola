@@ -34,4 +34,9 @@ public class CobrancaPix
     public DateTime? ConcluidoEm { get; set; }
     public string? EndToEndId { get; set; }
     public decimal? ValorRecebido { get; set; }
+
+    /// <summary>Preenchida quando o Pix foi recebido mas não deu baixa (cobrança cancelada ou já paga). Aparece no Dashboard até
+    /// alguém do financeiro marcar como conferida (<see cref="PendenciaConferidaEm"/>).</summary>
+    public PendenciaPix? Pendencia { get; set; }
+    public DateTime? PendenciaConferidaEm { get; set; }
 }

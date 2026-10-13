@@ -8,14 +8,16 @@
     <section class="painel">
       <p class="titulo-secao">Verificação em duas etapas</p>
       <p class="ajuda">
-        Além da senha, o login pede um código do app autenticador do seu celular (Google Authenticator, Microsoft Authenticator,
-        Authy…). Mesmo que alguém descubra a sua senha, não entra sem o celular.
+        Além da senha, o login pede um código de 6 dígitos — enviado para o seu e-mail ou mostrado num app autenticador do celular.
+        Mesmo que alguém descubra a sua senha, não entra sem o código.
       </p>
 
       @switch (etapa()) {
         @case ('status') {
           @if (e.ativo) {
-            <p class="estado estado--ativo">✅ Ativa{{ e.ativadoEm ? ' desde ' + formatarDataHora(e.ativadoEm) : '' }}</p>
+            <p class="estado estado--ativo">
+              ✅ Ativa{{ e.metodo === 'Email' ? ' — código por e-mail' : ' — app autenticador' }}{{ e.ativadoEm ? ', desde ' + formatarDataHora(e.ativadoEm) : '' }}
+            </p>
             <p class="ajuda">
               Códigos de recuperação restantes: <strong>{{ e.codigosRecuperacaoRestantes }}</strong>.
               @if (e.codigosRecuperacaoRestantes <= 2) { Gere códigos novos antes que acabem. }
@@ -24,14 +26,39 @@
               <button type="button" class="secundario" (click)="abrir('novosCodigos')">Gerar novos códigos de recuperação</button>
               <button type="button" class="perigo" (click)="abrir('desativando')">Desativar</button>
             </div>
-          } @else if (!e.disponivel) {
+          } @else if (!e.disponivel && !e.emailDisponivel) {
             <p class="ajuda">A verificação em duas etapas ainda não está disponível neste ambiente.</p>
           } @else {
-            <p class="estado">Desativada.</p>
-            <div class="botoes">
-              <button type="button" class="primario" [disabled]="enviando()" (click)="comecarAtivacao()">Ativar</button>
+            <p class="estado">Desativada. Escolha como quer receber o código:</p>
+            <div class="opcoes">
+              @if (e.emailDisponivel) {
+                <div class="opcao">
+                  <p class="titulo-opcao">✉️ Código por e-mail</p>
+                  <p class="ajuda">O mais simples: a cada login enviamos um código para o seu e-mail. Não precisa instalar nada.</p>
+                  <button type="button" class="primario" [disabled]="enviando()" (click)="comecarAtivacaoEmail()">Usar código por e-mail</button>
+                </div>
+              }
+              @if (e.disponivel) {
+                <div class="opcao">
+                  <p class="titulo-opcao">📱 App autenticador</p>
+                  <p class="ajuda">Mais seguro: o código aparece num app do celular (Google Authenticator, Microsoft Authenticator, Authy…).</p>
+                  <button type="button" class="secundario" [disabled]="enviando()" (click)="comecarAtivacao()">Usar app autenticador</button>
+                </div>
+              }
             </div>
           }
+        }
+
+        @case ('ativandoEmail') {
+          <p class="ajuda">
+            Enviamos um código de 6 dígitos para <strong>{{ emailMascarado() }}</strong>. Ele vale por 10 minutos — confira também a caixa de spam.
+          </p>
+          <input type="text" class="campo-codigo" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" [(ngModel)]="codigo" />
+          <div class="botoes">
+            <button type="button" class="secundario" (click)="voltar()">Cancelar</button>
+            <button type="button" class="secundario" [disabled]="enviando()" (click)="comecarAtivacaoEmail()">Reenviar código</button>
+            <button type="button" class="primario" [disabled]="enviando()" (click)="confirmarAtivacaoEmail()">Confirmar e ativar</button>
+          </div>
         }
 
         @case ('ativando') {
@@ -55,8 +82,8 @@
 
         @case ('codigos') {
           <p class="aviso">
-            <strong>Guarde estes códigos de recuperação</strong> num lugar seguro (fora do celular). Cada um entra uma vez, se você perder
-            o celular. Eles aparecem só agora.
+            <strong>Guarde estes códigos de recuperação</strong> num lugar seguro. Cada um entra uma vez, se você ficar sem
+            acesso ao {{ e.metodo === 'Email' ? 'e-mail' : 'celular' }}. Eles aparecem só agora.
           </p>
           <ul class="codigos">
             @for (c of codigosRecuperacao(); track c) {
@@ -73,9 +100,12 @@
           <label>Sua senha
             <input type="password" autocomplete="current-password" [(ngModel)]="senha" />
           </label>
-          <label>Código do app (ou um código de recuperação)
+          <label>{{ e.metodo === 'Email' ? 'Código enviado por e-mail' : 'Código do app' }} (ou um código de recuperação)
             <input type="text" class="campo-codigo" maxlength="9" autocomplete="one-time-code" [(ngModel)]="codigo" />
           </label>
+          @if (e.metodo === 'Email') {
+            <ng-container *ngTemplateOutlet="enviarCodigoEmail" />
+          }
           <div class="botoes">
             <button type="button" class="secundario" (click)="voltar()">Voltar</button>
             <button type="button" class="perigo" [disabled]="enviando()" (click)="desativar()">Desativar</button>
@@ -83,7 +113,13 @@
         }
 
         @case ('novosCodigos') {
-          <p class="ajuda">Os códigos de recuperação atuais deixam de valer. Digite o código que aparece agora no app:</p>
+          <p class="ajuda">
+            Os códigos de recuperação atuais deixam de valer.
+            {{ e.metodo === 'Email' ? 'Digite o código que enviamos por e-mail:' : 'Digite o código que aparece agora no app:' }}
+          </p>
+          @if (e.metodo === 'Email') {
+            <ng-container *ngTemplateOutlet="enviarCodigoEmail" />
+          }
           <input type="text" class="campo-codigo" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" [(ngModel)]="codigo" />
           <div class="botoes">
             <button type="button" class="secundario" (click)="voltar()">Voltar</button>
@@ -94,3 +130,14 @@
     </section>
   }
 </div>
+
+<ng-template #enviarCodigoEmail>
+  <p class="ajuda envio-codigo">
+    @if (emailMascarado(); as destino) {
+      Código enviado para <strong>{{ destino }}</strong>.
+    }
+    <button type="button" class="link" [disabled]="enviando()" (click)="enviarCodigo()">
+      {{ emailMascarado() ? 'Reenviar código' : 'Enviar código para o meu e-mail' }}
+    </button>
+  </p>
+</ng-template>

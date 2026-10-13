@@ -88,6 +88,88 @@ public class DoisFatoresHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         Assert.NotNull((await (await api.EntrarAsync(api.CreateClient(), email, Senha)).Content.ReadFromJsonAsync<ApiFactory.LoginResposta>())!.Token);
     }
 
+    /// <summary>O código vai no assunto do e-mail ("123456 é seu código…"): pega o do último e-mail mandado pra essa conta.</summary>
+    private string UltimoCodigoPorEmail(string email, int enviadosAntes)
+    {
+        lock (api.Email.Enviados)
+        {
+            var envios = api.Email.Enviados.Where(e => e.Para == email).ToList();
+            Assert.True(envios.Count > enviadosAntes, "Nenhum código novo foi enviado.");
+            return envios[^1].Assunto[..6];
+        }
+    }
+
+    private int EnviosPara(string email)
+    {
+        lock (api.Email.Enviados) return api.Email.Enviados.Count(e => e.Para == email);
+    }
+
+    [Fact]
+    public async Task CodigoPorEmailAtivaPedeOCodigoNoLoginVaseUmaVezENaoReenviaNaHora()
+    {
+        var email = $"coordenacao.{Guid.NewGuid():N}@escola.test";
+        api.CriarUsuario(PapelUsuario.Coordenador, email);
+        var http = await LogadoAsync(email);
+
+        // Ativar: manda um código pro próprio e-mail e confirma com ele.
+        var antes = EnviosPara(email);
+        var inicio = await (await http.PostAsync("/api/minha-conta/dois-fatores/email/iniciar", null)).Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.StartsWith("c***", inicio.GetProperty("emailMascarado").GetString());
+        var codigo = UltimoCodigoPorEmail(email, antes);
+        Assert.Equal(HttpStatusCode.BadRequest, (await http.PostAsJsonAsync("/api/minha-conta/dois-fatores/email/confirmar",
+            new { codigo = codigo == "000000" ? "111111" : "000000" })).StatusCode);
+        var confirmacao = await http.PostAsJsonAsync("/api/minha-conta/dois-fatores/email/confirmar", new { codigo });
+        confirmacao.EnsureSuccessStatusCode();
+        var recuperacao = (await confirmacao.Content.ReadFromJsonAsync<JsonElement>(Json)).GetProperty("codigos").EnumerateArray().Select(c => c.GetString()!).ToList();
+        var estado = await http.GetFromJsonAsync<JsonElement>("/api/minha-conta/dois-fatores", Json);
+        Assert.Equal("Email", estado.GetProperty("metodo").GetString());
+
+        // Login: senha certa sem código manda o código por e-mail e não emite token.
+        antes = EnviosPara(email);
+        var semCodigo = await (await api.EntrarAsync(api.CreateClient(), email, Senha)).Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.True(semCodigo.GetProperty("requerSegundoFator").GetBoolean());
+        Assert.Equal("Email", semCodigo.GetProperty("metodoSegundoFator").GetString());
+        Assert.True(string.IsNullOrEmpty(semCodigo.GetProperty("token").GetString()));
+        var codigoLogin = UltimoCodigoPorEmail(email, antes);
+
+        // Pedir de novo logo em seguida não manda outro e-mail (o anterior continua valendo).
+        var deNovo = await (await api.EntrarAsync(api.CreateClient(), email, Senha)).Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Contains("aguarde", deNovo.GetProperty("aviso").GetString());
+        Assert.Equal(antes + 1, EnviosPara(email));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await api.EntrarAsync(api.CreateClient(), email, Senha, codigoLogin == "123456" ? "654321" : "123456")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await api.EntrarAsync(api.CreateClient(), email, Senha, codigoLogin)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await api.EntrarAsync(api.CreateClient(), email, Senha, codigoLogin)).StatusCode); // uso único
+
+        // Código de recuperação também entra.
+        Assert.Equal(HttpStatusCode.OK, (await api.EntrarAsync(api.CreateClient(), email, Senha, recuperacao[0])).StatusCode);
+
+        // Desativar: pede um código novo e confirma com senha + código.
+        antes = EnviosPara(email);
+        (await http.PostAsync("/api/minha-conta/dois-fatores/email/enviar-codigo", null)).EnsureSuccessStatusCode();
+        var codigoDesativar = UltimoCodigoPorEmail(email, antes);
+        var desativada = await http.PostAsJsonAsync("/api/minha-conta/dois-fatores/desativar", new { senha = Senha, codigo = codigoDesativar });
+        desativada.EnsureSuccessStatusCode();
+        Assert.False((await desativada.Content.ReadFromJsonAsync<JsonElement>(Json)).GetProperty("ativo").GetBoolean());
+        Assert.NotNull((await (await api.EntrarAsync(api.CreateClient(), email, Senha)).Content.ReadFromJsonAsync<ApiFactory.LoginResposta>())!.Token);
+    }
+
+    [Fact]
+    public async Task ErrarOCodigoMuitasVezesEmMinhaContaBloqueia()
+    {
+        var email = $"financeiro.{Guid.NewGuid():N}@escola.test";
+        api.CriarUsuario(PapelUsuario.Financeiro, email);
+        var http = await LogadoAsync(email);
+        (await http.PostAsync("/api/minha-conta/dois-fatores/email/iniciar", null)).EnsureSuccessStatusCode();
+        var codigo = UltimoCodigoPorEmail(email, 0);
+        var errado = codigo == "000000" ? "111111" : "000000";
+
+        for (var i = 0; i < 8; i++)
+            Assert.Equal(HttpStatusCode.BadRequest, (await http.PostAsJsonAsync("/api/minha-conta/dois-fatores/email/confirmar", new { codigo = errado })).StatusCode);
+        // Bloqueado: nem o código certo passa até o tempo acabar.
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await http.PostAsJsonAsync("/api/minha-conta/dois-fatores/email/confirmar", new { codigo })).StatusCode);
+    }
+
     [Fact]
     public void CodigosDeRecuperacaoSaoUnicosEGastam()
     {

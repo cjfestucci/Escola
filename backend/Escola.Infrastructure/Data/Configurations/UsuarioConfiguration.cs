@@ -15,7 +15,9 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         builder.Property(u => u.TotpSegredoCriptografado).HasMaxLength(300);
         builder.Property(u => u.TotpSegredoPendenteCriptografado).HasMaxLength(300);
         builder.Property(u => u.CodigosRecuperacaoHash).HasMaxLength(1000);
+        builder.Property(u => u.CodigoEmailHash).HasMaxLength(64);
         builder.Ignore(u => u.DoisFatoresAtivo);
+        builder.Ignore(u => u.DoisFatoresPorEmail);
 
         builder.HasOne(u => u.Responsavel)
             .WithMany()

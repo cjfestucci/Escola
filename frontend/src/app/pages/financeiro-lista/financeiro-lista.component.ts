@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { Aluno, Turma } from '../../models/aluno.model';
-import { Cobranca, PreviaMensalidades, FormasPagamento } from '../../models/cobranca.model';
+import { Cobranca, PreviaMensalidades, FormasPagamento, PendenciaPix } from '../../models/cobranca.model';
 import { AlunoService } from '../../services/aluno.service';
 import { FinanceiroService } from '../../services/financeiro.service';
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -175,8 +175,13 @@ export class FinanceiroListaComponent implements OnInit {
   /** Formas de pagamento ativas na escola: só elas são oferecidas (nulo até carregar, pra não piscar uma opção desligada). */
   readonly formas = signal<FormasPagamento | null>(null);
 
+  /** Pix que caíram em cobrança cancelada ou já paga: a escola confere (e devolve, se for o caso) e marca como conferido. */
+  readonly pendenciasPix = signal<PendenciaPix[]>([]);
+  readonly conferindoPixId = signal<string | null>(null);
+
   ngOnInit(): void {
     this.financeiroService.formasPagamento().subscribe({ next: (f) => this.formas.set(f), error: () => undefined });
+    this.financeiroService.listarPendenciasPix().subscribe({ next: (lista) => this.pendenciasPix.set(lista), error: () => undefined });
     // Atalhos do Dashboard abrem a lista já filtrada (ex.: /financeiro/mensalidades?status=atrasado).
     const status = this.route.snapshot.queryParamMap.get('status');
     if (status === 'pendente' || status === 'pago' || status === 'atrasado' || status === 'cancelada') this.filtroStatus.set(status);
@@ -196,6 +201,21 @@ export class FinanceiroListaComponent implements OnInit {
       error: () => {
         this.carregando.set(false);
         this.notificacao.erro('Não foi possível carregar as cobranças.');
+      }
+    });
+  }
+
+  conferirPendenciaPix(pendencia: PendenciaPix): void {
+    this.conferindoPixId.set(pendencia.id);
+    this.financeiroService.conferirPendenciaPix(pendencia.id).subscribe({
+      next: () => {
+        this.conferindoPixId.set(null);
+        this.pendenciasPix.update((lista) => lista.filter((p) => p.id !== pendencia.id));
+        this.notificacao.sucesso('Pix marcado como conferido.');
+      },
+      error: () => {
+        this.conferindoPixId.set(null);
+        this.notificacao.erro('Não foi possível marcar o Pix como conferido.');
       }
     });
   }

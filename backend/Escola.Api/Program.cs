@@ -160,6 +160,7 @@ builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
 builder.Services.AddSingleton<LimitadorTentativasLogin>();
 builder.Services.AddScoped<ILinkSenhaService, LinkSenhaService>();
+builder.Services.AddScoped<CodigoEmailService>();
 builder.Services.AddScoped<IConviteMatriculaService, ConviteMatriculaService>();
 builder.Services.AddScoped<IdentidadeEscolaService>();
 builder.Services.AddHttpContextAccessor();

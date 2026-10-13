@@ -24,3 +24,6 @@ public record CobrancaDto(
     int DiasAtraso = 0,
     decimal? ValorPago = null,
     DateOnly? Competencia = null);
+
+/// <summary>Pix recebido que não deu baixa sozinho. <c>Motivo</c>: "CobrancaCancelada" ou "CobrancaJaPaga".</summary>
+public record PendenciaPixDto(Guid Id, Guid CobrancaId, string AlunoNome, string Descricao, decimal ValorRecebido, DateTime? RecebidoEm, string Motivo);

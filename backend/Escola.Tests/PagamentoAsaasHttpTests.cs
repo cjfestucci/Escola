@@ -135,6 +135,53 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task PixNumaCobrancaCanceladaViraPendenciaAteAlguemConferir()
+    {
+        await GarantirContaAsync();
+        var financeiro = await api.ClienteLogadoAsync(PapelUsuario.Financeiro);
+        var (cobrancaId, _) = await CriarCobrancaAsync(cpfResponsavel: "52998224725");
+        (await financeiro.GetAsync($"/api/financeiro/cobrancas/{cobrancaId}/pix")).EnsureSuccessStatusCode();
+        (await financeiro.PostAsync($"/api/financeiro/cobrancas/{cobrancaId}/cancelar", null)).EnsureSuccessStatusCode();
+
+        string pagamentoId;
+        using (var db = api.Contexto(ApiFactory.ClienteId))
+            pagamentoId = (await db.CobrancasPix.SingleAsync(p => p.CobrancaId == cobrancaId)).TxId;
+
+        // A família pagou o código que já tinha em mãos, depois do cancelamento.
+        lock (api.Asaas.Pagamentos) api.Asaas.Pagamentos[pagamentoId] = ("RECEIVED", 250m, "2030-01-05");
+        var aviso = new HttpRequestMessage(HttpMethod.Post, "/api/pagamentos/asaas/webhook")
+        { Content = JsonContent.Create(new { @event = "PAYMENT_RECEIVED", payment = new { id = pagamentoId } }) };
+        aviso.Headers.Add("asaas-access-token", ApiFactory.AsaasWebhookToken);
+        Assert.Equal(HttpStatusCode.OK, (await api.CreateClient().SendAsync(aviso)).StatusCode);
+
+        var educador = await api.ClienteLogadoAsync(PapelUsuario.Educador);
+        Assert.Equal(HttpStatusCode.Forbidden, (await educador.GetAsync("/api/financeiro/pix-pendencias")).StatusCode);
+
+        var pendencias = await financeiro.GetFromJsonAsync<JsonElement>("/api/financeiro/pix-pendencias", Json);
+        var pendencia = pendencias.EnumerateArray().Single(p => p.GetProperty("cobrancaId").GetGuid() == cobrancaId);
+        Assert.Equal("CobrancaCancelada", pendencia.GetProperty("motivo").GetString());
+        Assert.Equal(250m, pendencia.GetProperty("valorRecebido").GetDecimal());
+        Assert.Equal("Atleta Asaas", pendencia.GetProperty("alunoNome").GetString());
+
+        // A baixa não acontece sozinha numa cobrança cancelada.
+        using (var db = api.Contexto(ApiFactory.ClienteId))
+            Assert.False((await db.Cobrancas.SingleAsync(c => c.Id == cobrancaId)).Paga);
+
+        var id = pendencia.GetProperty("id").GetGuid();
+        Assert.Equal(HttpStatusCode.NoContent, (await financeiro.PostAsync($"/api/financeiro/pix-pendencias/{id}/conferir", null)).StatusCode);
+
+        pendencias = await financeiro.GetFromJsonAsync<JsonElement>("/api/financeiro/pix-pendencias", Json);
+        Assert.DoesNotContain(pendencias.EnumerateArray(), p => p.GetProperty("cobrancaId").GetGuid() == cobrancaId);
+        using (var db = api.Contexto(ApiFactory.ClienteId))
+        {
+            var log = await db.LogsAuditoria.Where(l => l.EntidadeId == cobrancaId).Select(l => l.Detalhe).ToListAsync();
+            Assert.Contains(log, d => d != null && d.StartsWith("ATENÇÃO") && d.Contains("cancelada"));
+            Assert.Contains(log, d => d != null && d.Contains("conferido"));
+        }
+        Assert.Equal(HttpStatusCode.NotFound, (await financeiro.PostAsync($"/api/financeiro/pix-pendencias/{Guid.NewGuid()}/conferir", null)).StatusCode);
+    }
+
+    [Fact]
     public async Task WebhookDePagamentoDesconhecidoResponde200SemMexerEmNada()
     {
         var anonimo = api.CreateClient();

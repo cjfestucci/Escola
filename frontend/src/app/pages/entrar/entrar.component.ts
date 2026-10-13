@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { environment } from '../../../environments/environment';
-import { OpcaoClienteLogin } from '../../models/auth.model';
+import { LoginResposta, OpcaoClienteLogin } from '../../models/auth.model';
 import { AuthService } from '../../services/auth.service';
 import { ConfiguracaoEscolaService } from '../../services/configuracao-escola.service';
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -29,12 +29,39 @@ export class EntrarComponent {
   readonly entrando = signal(false);
   /** Senha certa numa conta com segundo fator: a tela passa a pedir o código do app autenticador. */
   readonly etapaCodigo = signal(false);
+  /** De onde vem o código: app autenticador ou e-mail (aí a tela diz pra onde foi e oferece reenviar). */
+  readonly metodoCodigo = signal<'App' | 'Email'>('App');
+  readonly emailMascarado = signal<string | null>(null);
   codigo = '';
   /** A senha confere em mais de uma escola (todas usam esta mesma tela): a pessoa escolhe em qual entrar. */
   readonly escolas = signal<OpcaoClienteLogin[]>([]);
   /** Escola escolhida — vai junto nas próximas chamadas (inclusive na do código do autenticador). */
   private clienteEscolhido: string | undefined;
   readonly mostrarSenha = signal(false);
+
+  private entrarNaEtapaCodigo(resposta: LoginResposta): void {
+    this.metodoCodigo.set(resposta.metodoSegundoFator === 'Email' ? 'Email' : 'App');
+    this.emailMascarado.set(resposta.emailMascarado ?? null);
+    this.etapaCodigo.set(true);
+    if (resposta.aviso) this.notificacao.info(resposta.aviso);
+  }
+
+  /** Código por e-mail: pedir de novo é só repetir o login sem código (o servidor respeita um intervalo mínimo entre envios). */
+  reenviarCodigo(): void {
+    this.entrando.set(true);
+    this.auth.entrar(this.email.trim(), this.senha, undefined, this.clienteEscolhido).subscribe({
+      next: (resposta) => {
+        this.entrando.set(false);
+        this.codigo = '';
+        this.entrarNaEtapaCodigo(resposta);
+        if (!resposta.aviso) this.notificacao.sucesso('Enviamos um novo código.');
+      },
+      error: () => {
+        this.entrando.set(false);
+        this.notificacao.erro('Não foi possível reenviar o código. Tente novamente.');
+      }
+    });
+  }
 
   voltarDaEtapaCodigo(): void {
     this.etapaCodigo.set(false);
@@ -66,7 +93,9 @@ export class EntrarComponent {
     // 6 dígitos do app autenticador, ou um código de recuperação (8 letras/números, "XXXX-XXXX").
     const codigoLimpo = this.codigo.replace(/\s|-/g, '');
     if (this.etapaCodigo() && !/^\d{6}$/.test(codigoLimpo) && !/^[A-Za-z0-9]{8}$/.test(codigoLimpo)) {
-      this.notificacao.erro('Informe o código de 6 dígitos do app autenticador ou um código de recuperação.');
+      this.notificacao.erro(this.metodoCodigo() === 'Email'
+        ? 'Informe o código de 6 dígitos enviado por e-mail ou um código de recuperação.'
+        : 'Informe o código de 6 dígitos do app autenticador ou um código de recuperação.');
       return;
     }
 
@@ -79,7 +108,7 @@ export class EntrarComponent {
           return;
         }
         if (resposta.requerSegundoFator) {
-          this.etapaCodigo.set(true);
+          this.entrarNaEtapaCodigo(resposta);
           return;
         }
 

@@ -7,6 +7,33 @@
     </div>
   </div>
 
+  @if (pendenciasPix().length > 0) {
+    <div class="pendencias-pix">
+      <p class="titulo-pendencias">⚠️ Pix recebidos para conferir</p>
+      <p class="ajuda">
+        O banco confirmou estes pagamentos, mas a cobrança estava cancelada ou já paga, então nada foi baixado. Confira com a família e,
+        se for o caso, devolva o valor ou reabra a cobrança. Depois, marque como conferido.
+      </p>
+      <ul>
+        @for (p of pendenciasPix(); track p.id) {
+          <li>
+            <div class="info-pendencia">
+              <strong>{{ p.alunoNome }}</strong>
+              <span>{{ p.descricao }} · R$ {{ p.valorRecebido | number: '1.2-2' }}@if (p.recebidoEm) { em {{ formatarDataAbsoluta(p.recebidoEm.slice(0, 10)) }}}</span>
+              <span class="motivo">{{ p.motivo === 'CobrancaCancelada' ? 'A cobrança estava cancelada' : 'A cobrança já estava paga — possível duplicidade' }}</span>
+            </div>
+            <div class="acoes-pendencia">
+              <button type="button" class="botao-icone" aria-label="Ver histórico" title="Ver histórico" (click)="abrirHistorico(p.cobrancaId)">🕘</button>
+              <button type="button" class="botao-secundario" [disabled]="conferindoPixId() === p.id" (click)="conferirPendenciaPix(p)">
+                {{ conferindoPixId() === p.id ? 'Salvando...' : 'Marcar como conferido' }}
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
   @if (!carregando()) {
     <div class="grade-stats">
       <div class="cartao-stat cartao-stat--pendente">

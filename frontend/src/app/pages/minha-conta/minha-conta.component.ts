@@ -1,18 +1,20 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import QRCode from 'qrcode';
 
 import { AuthService } from '../../services/auth.service';
-import { DoisFatores, InicioDoisFatores, MinhaContaService } from '../../services/minha-conta.service';
+import { DoisFatores, EnvioCodigo, InicioDoisFatores, MinhaContaService } from '../../services/minha-conta.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { formatarDataHoraAbsoluta } from '../../shared/data-utils';
 
-type Etapa = 'status' | 'ativando' | 'codigos' | 'desativando' | 'novosCodigos';
+type Etapa = 'status' | 'ativando' | 'ativandoEmail' | 'codigos' | 'desativando' | 'novosCodigos';
 
-/** Minha conta: a verificação em duas etapas da própria pessoa. O QR Code é gerado no navegador — o segredo não sai pra nenhum serviço. */
+/** Minha conta: a verificação em duas etapas da própria pessoa, por código no e-mail ou app autenticador. O QR Code é gerado no
+ * navegador — o segredo não sai pra nenhum serviço. */
 @Component({
   selector: 'app-minha-conta',
-  imports: [FormsModule],
+  imports: [FormsModule, NgTemplateOutlet],
   templateUrl: './minha-conta.component.html',
   styleUrl: './minha-conta.component.scss'
 })
@@ -29,6 +31,8 @@ export class MinhaContaComponent implements OnInit {
   readonly qrCode = signal<string | null>(null);
   readonly codigosRecuperacao = signal<string[]>([]);
   readonly enviando = signal(false);
+  /** Pra onde foi o último código por e-mail ("c***@escola.com"). */
+  readonly emailMascarado = signal<string | null>(null);
 
   codigo = '';
   senha = '';
@@ -79,6 +83,50 @@ export class MinhaContaComponent implements OnInit {
     });
   }
 
+  /** Por e-mail: manda um código pro e-mail da conta; confirmar com ele ativa (prova que a pessoa recebe nesse endereço). */
+  comecarAtivacaoEmail(): void {
+    this.enviando.set(true);
+    this.servico.iniciarEmail().subscribe({
+      next: (envio) => {
+        this.codigo = '';
+        this.etapa.set('ativandoEmail');
+        this.tratarEnvio(envio);
+      },
+      error: (erro) => this.falhou(erro, 'Não foi possível enviar o código.')
+    });
+  }
+
+  confirmarAtivacaoEmail(): void {
+    if (!/^\d{6}$/.test(this.codigo.trim())) return this.notificacao.erro('Digite o código de 6 dígitos que enviamos por e-mail.');
+    this.enviando.set(true);
+    this.servico.confirmarEmail(this.codigo.trim()).subscribe({
+      next: (codigos) => {
+        this.codigosRecuperacao.set(codigos);
+        this.etapa.set('codigos');
+        this.enviando.set(false);
+        this.notificacao.sucesso('Verificação em duas etapas ativada.');
+        this.carregar();
+      },
+      error: (erro) => this.falhou(erro, 'Código inválido.')
+    });
+  }
+
+  /** Com o código por e-mail já ativo: pede um código pra desativar ou gerar novos códigos de recuperação. */
+  enviarCodigo(): void {
+    this.enviando.set(true);
+    this.servico.enviarCodigo().subscribe({
+      next: (envio) => this.tratarEnvio(envio),
+      error: (erro) => this.falhou(erro, 'Não foi possível enviar o código.')
+    });
+  }
+
+  private tratarEnvio(envio: EnvioCodigo): void {
+    this.enviando.set(false);
+    this.emailMascarado.set(envio.emailMascarado);
+    if (envio.aviso) this.notificacao.info(envio.aviso);
+    else this.notificacao.sucesso(`Código enviado para ${envio.emailMascarado}.`);
+  }
+
   desativar(): void {
     if (!this.senha || !this.codigo.trim()) return this.notificacao.erro('Informe a senha e um código.');
     this.enviando.set(true);
@@ -94,7 +142,8 @@ export class MinhaContaComponent implements OnInit {
   }
 
   gerarNovosCodigos(): void {
-    if (!/^\d{6}$/.test(this.codigo.trim())) return this.notificacao.erro('Digite o código de 6 dígitos que aparece no app.');
+    if (!/^\d{6}$/.test(this.codigo.trim()))
+      return this.notificacao.erro(this.estado()?.metodo === 'Email' ? 'Digite o código de 6 dígitos que enviamos por e-mail.' : 'Digite o código de 6 dígitos que aparece no app.');
     this.enviando.set(true);
     this.servico.novosCodigos(this.codigo.trim()).subscribe({
       next: (codigos) => {
@@ -110,6 +159,7 @@ export class MinhaContaComponent implements OnInit {
   abrir(etapa: Etapa): void {
     this.codigo = '';
     this.senha = '';
+    this.emailMascarado.set(null);
     this.etapa.set(etapa);
   }
 

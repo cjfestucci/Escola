@@ -189,12 +189,14 @@ public sealed class PixAutomaticoService(
 
         if (cobranca.Cancelada)
         {
+            pix.Pendencia = PendenciaPix.CobrancaCancelada;
             // Dinheiro entrou numa cobrança que a escola cancelou: não reabrimos sozinhos, mas deixamos o alerta no histórico.
             auditoria.RegistrarSistema(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado,
                 $"ATENÇÃO: Pix de R$ {valorTexto} recebido, mas a cobrança está cancelada — confira e, se for o caso, devolva o valor.");
         }
         else if (cobranca.Paga)
         {
+            pix.Pendencia = PendenciaPix.CobrancaJaPaga;
             auditoria.RegistrarSistema(nameof(Cobranca), cobranca.Id, AcaoAuditoria.Editado,
                 $"ATENÇÃO: Pix de R$ {valorTexto} recebido, mas a cobrança já estava paga — possível pagamento em duplicidade; confira e, se for o caso, devolva o valor.");
         }

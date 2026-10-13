@@ -114,7 +114,10 @@
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 10px;
+}
 
+.botoes,
+.opcao {
   button {
     border-radius: 8px;
     padding: 9px 16px;
@@ -142,5 +145,51 @@
     background: #b3261e;
     border-color: #b3261e;
     color: #fff;
+  }
+}
+
+.opcoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  padding: 12px;
+
+  .ajuda {
+    flex: 1;
+  }
+}
+
+.titulo-opcao {
+  margin: 0;
+  font-weight: 700;
+}
+
+.envio-codigo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--cor-primaria);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
   }
 }

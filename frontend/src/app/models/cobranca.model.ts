@@ -130,3 +130,14 @@ export interface FormasPagamento {
   presencial: boolean;
   instrucoesPresencial: string | null;
 }
+
+/** Pix recebido que não deu baixa sozinho (cobrança cancelada ou já paga): a escola confere e, se for o caso, devolve o valor. */
+export interface PendenciaPix {
+  id: string;
+  cobrancaId: string;
+  alunoNome: string;
+  descricao: string;
+  valorRecebido: number;
+  recebidoEm: string | null;
+  motivo: 'CobrancaCancelada' | 'CobrancaJaPaga';
+}

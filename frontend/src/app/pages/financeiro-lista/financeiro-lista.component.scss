@@ -494,3 +494,58 @@
 .detalhe--encargos {
   color: #b3261e;
 }
+
+.pendencias-pix {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--raio);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  .titulo-pendencias {
+    margin: 0 0 4px;
+    font-weight: 700;
+    color: #991b1b;
+  }
+
+  .ajuda {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    border-top: 1px solid #fecaca;
+  }
+
+  .info-pendencia {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    font-size: 0.9rem;
+  }
+
+  .motivo {
+    font-size: 0.82rem;
+    color: #b91c1c;
+  }
+
+  .acoes-pendencia {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}

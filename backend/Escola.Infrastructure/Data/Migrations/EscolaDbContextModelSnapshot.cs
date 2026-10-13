@@ -376,6 +376,12 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<DateTime>("ExpiraEm")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("Pendencia")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("PendenciaConferidaEm")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PixCopiaECola")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -406,6 +412,8 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClienteId");
+
+                    b.HasIndex("Pendencia");
 
                     b.HasIndex("Status");
 
@@ -1564,9 +1572,22 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("CodigoEmailEnviadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("CodigoEmailExpiraEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CodigoEmailHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("CodigosRecuperacaoHash")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("DoisFatoresEmailAtivadoEm")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .IsRequired()

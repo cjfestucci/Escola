@@ -13,6 +13,7 @@ import {
   GeracaoMensalidades,
   PixAutomaticoStatus,
   PixCobranca,
+  PendenciaPix,
   PreviaMensalidades,
 } from '../models/cobranca.model';
 
@@ -26,6 +27,15 @@ export class FinanceiroService {
     if (filtros.turmaId) params['turmaId'] = filtros.turmaId;
     if (filtros.paga !== undefined) params['paga'] = String(filtros.paga);
     return this.http.get<Cobranca[]>(`${this.baseUrl}/financeiro/cobrancas`, { params });
+  }
+
+  /** Pix recebidos que não deram baixa sozinhos e ninguém conferiu ainda. */
+  listarPendenciasPix(): Observable<PendenciaPix[]> {
+    return this.http.get<PendenciaPix[]>(`${this.baseUrl}/financeiro/pix-pendencias`);
+  }
+
+  conferirPendenciaPix(id: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/financeiro/pix-pendencias/${id}/conferir`, null);
   }
 
   listarDoAluno(alunoId: string): Observable<Cobranca[]> {

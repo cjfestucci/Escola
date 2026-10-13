@@ -30,10 +30,18 @@
           class="campo-codigo"
         />
       </label>
-      <p class="ajuda-codigo">
-        Abra o app autenticador (Google Authenticator, Microsoft Authenticator…) e digite o código de 6 dígitos desta conta.
-        Sem o celular? Use um dos códigos de recuperação (formato XXXX-XXXX).
-      </p>
+      @if (metodoCodigo() === 'Email') {
+        <p class="ajuda-codigo">
+          Enviamos um código de 6 dígitos para <strong>{{ emailMascarado() }}</strong> (vale por 10 minutos — confira também o spam).
+          Sem acesso ao e-mail? Use um dos códigos de recuperação (formato XXXX-XXXX).
+        </p>
+        <button type="button" class="link-esqueci" [disabled]="entrando()" (click)="reenviarCodigo()">Reenviar código</button>
+      } @else {
+        <p class="ajuda-codigo">
+          Abra o app autenticador (Google Authenticator, Microsoft Authenticator…) e digite o código de 6 dígitos desta conta.
+          Sem o celular? Use um dos códigos de recuperação (formato XXXX-XXXX).
+        </p>
+      }
       <button type="submit" class="botao-entrar" [disabled]="entrando()">
         {{ entrando() ? 'Verificando...' : 'Verificar' }}
       </button>

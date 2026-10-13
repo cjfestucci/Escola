@@ -53,10 +53,12 @@
     @for (c of cupons(); track c.id) {
       <li [class.inativo]="!c.ativo">
         <div>
-          <strong>{{ c.codigo }}</strong>
-          @if (!c.ativo) {
-            <span class="selo-inativo">Inativo</span>
-          }
+          <span>
+            <strong>{{ c.codigo }}</strong>
+            @if (!c.ativo) {
+              <span class="selo-inativo">Inativo</span>
+            }
+          </span>
           <span class="detalhe">{{ c.descricao }}</span>
           <span class="detalhe">
             {{ c.usos }}{{ c.usosMaximos ? ' de ' + c.usosMaximos : '' }} {{ c.usos === 1 ? 'uso' : 'usos' }}

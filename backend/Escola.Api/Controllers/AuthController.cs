@@ -34,6 +34,7 @@ public class AuthController(
     LimitadorTentativasLogin limitador,
     RegistroAcessoService registroAcesso,
     Escola.Infrastructure.Seguranca.CofreSegredos cofre,
+    CodigoEmailService codigoEmail,
     ILogger<AuthController> logger) : ControllerBase
 {
     /// <summary>Intervalo mínimo entre dois e-mails de redefinição pra mesma conta (evita usar o endpoint pra encher a caixa de alguém).</summary>
@@ -196,9 +197,18 @@ public class AuthController(
         }
         else if (usuario.DoisFatoresAtivo)
         {
-            // Verificação em duas etapas que a própria pessoa ativou (Minha conta): código do app ou um código de recuperação.
+            // Verificação em duas etapas que a própria pessoa ativou (Minha conta): código do app ou por e-mail, ou um código de recuperação.
             if (string.IsNullOrWhiteSpace(request.Codigo))
-                return Ok(LoginRespostaDto.ExigeSegundoFator());
+            {
+                if (!usuario.DoisFatoresPorEmail)
+                    return Ok(LoginRespostaDto.ExigeSegundoFator());
+
+                // Por e-mail: senha certa sem código = manda o código (pedir de novo é o "reenviar", com intervalo mínimo).
+                var nomeEscola = await db.Clientes.Where(c => c.Id == clienteDaConta).Select(c => c.Nome).FirstOrDefaultAsync();
+                var envio = await codigoEmail.EnviarAsync(usuario, nomeEscola);
+                await db.SaveChangesAsync();
+                return Ok(LoginRespostaDto.ExigeSegundoFator("Email", CodigoEmailService.Mascarar(usuario.Email), envio.Aviso));
+            }
 
             if (CodigosRecuperacao.PareceCodigoDeRecuperacao(request.Codigo))
             {
@@ -210,6 +220,14 @@ public class AuthController(
                 usuario.CodigosRecuperacaoHash = restantes;
                 auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, usuario.Id,
                     $"Entrou com um código de recuperação ({CodigosRecuperacao.Restantes(restantes)} restantes)");
+            }
+            else if (usuario.DoisFatoresPorEmail)
+            {
+                if (!CodigoEmailService.TentarUsar(usuario, request.Codigo))
+                {
+                    limitador.RegistrarFalha(chave);
+                    return Unauthorized("Código de verificação inválido ou expirado.");
+                }
             }
             else
             {

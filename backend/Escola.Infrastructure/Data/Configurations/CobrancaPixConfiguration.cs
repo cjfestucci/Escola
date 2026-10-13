@@ -19,5 +19,6 @@ public class CobrancaPixConfiguration : IEntityTypeConfiguration<CobrancaPix>
         builder.HasIndex(c => c.TxId).IsUnique();
         builder.HasIndex(c => new { c.CobrancaId, c.Status });
         builder.HasIndex(c => c.Status);
+        builder.HasIndex(c => c.Pendencia);
     }
 }

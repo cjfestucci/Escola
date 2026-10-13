@@ -30,7 +30,16 @@ public class Usuario
     /// <summary>Hashes (SHA-256) dos códigos de recuperação ainda não usados, separados por vírgula. Cada um vale uma vez.</summary>
     public string? CodigosRecuperacaoHash { get; set; }
 
-    public bool DoisFatoresAtivo => TotpSegredoCriptografado is not null;
+    /// <summary>Verificação em duas etapas por <b>código enviado por e-mail</b> (alternativa ao app, mais simples pro cliente). Nulo = não usa.</summary>
+    public DateTime? DoisFatoresEmailAtivadoEm { get; set; }
+    /// <summary>Hash (SHA-256, com o id da conta) do último código enviado por e-mail — de uso único, some ao ser usado.</summary>
+    public string? CodigoEmailHash { get; set; }
+    public DateTime? CodigoEmailExpiraEm { get; set; }
+    /// <summary>Quando o último código foi enviado (intervalo mínimo entre envios).</summary>
+    public DateTime? CodigoEmailEnviadoEm { get; set; }
+
+    public bool DoisFatoresPorEmail => DoisFatoresEmailAtivadoEm is not null;
+    public bool DoisFatoresAtivo => TotpSegredoCriptografado is not null || DoisFatoresPorEmail;
 
     /// <summary>Preenchido quando Papel == Responsavel, ligando o login ao cadastro do responsável.</summary>
     public Guid? ResponsavelId { get; set; }

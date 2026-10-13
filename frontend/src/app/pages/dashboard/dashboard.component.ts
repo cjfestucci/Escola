@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { Aluno, Turma } from '../../models/aluno.model';
 import { DIAS_AVISO_ATESTADO, situacaoAtestado } from '../../models/atestado.model';
-import { Cobranca } from '../../models/cobranca.model';
+import { Cobranca, PendenciaPix } from '../../models/cobranca.model';
 import { Jogo, ROTULOS_MANDO } from '../../models/competicao.model';
 import { ContaPagar } from '../../models/conta-pagar.model';
 import { ContaReceber } from '../../models/conta-receber.model';
@@ -73,6 +73,8 @@ export class DashboardComponent implements OnInit {
   readonly contasPagar = signal<ContaPagar[]>([]);
   readonly contasReceber = signal<ContaReceber[]>([]);
   readonly produtos = signal<Produto[]>([]);
+  /** Pix recebidos em cobrança cancelada ou já paga, ainda não conferidos (dinheiro entrou e talvez precise ser devolvido). */
+  readonly pendenciasPix = signal<PendenciaPix[]>([]);
   readonly jogos = signal<Jogo[]>([]);
   readonly faltosos = signal<Faltoso[]>([]);
   readonly carregando = signal(true);
@@ -257,6 +259,15 @@ export class DashboardComponent implements OnInit {
   /** Pendências que pedem uma ação, cada uma levando pra tela já filtrada. Só entra o que tem ocorrência. */
   readonly atencoes = computed<Atencao[]>(() => {
     const itens: Atencao[] = [];
+    const pix = this.pendenciasPix().length;
+    if (pix > 0) {
+      itens.push({
+        texto: `${pix} ${pix === 1 ? 'Pix recebido precisa' : 'Pix recebidos precisam'} de conferência (cobrança cancelada ou já paga)`,
+        rota: '/financeiro/mensalidades',
+        consulta: {},
+        tom: 'erro'
+      });
+    }
     const bloqueados = this.atletasBloqueados();
     if (bloqueados > 0) {
       const pessoa = this.segmentoService.rotuloPessoa().toLowerCase();
@@ -370,6 +381,7 @@ export class DashboardComponent implements OnInit {
       this.contaPagarService.listar().subscribe({ next: (contas) => this.contasPagar.set(contas), error: () => undefined });
       this.contaReceberService.listar().subscribe({ next: (contas) => this.contasReceber.set(contas), error: () => undefined });
       this.produtoService.listar().subscribe({ next: (produtos) => this.produtos.set(produtos), error: () => undefined });
+      this.financeiroService.listarPendenciasPix().subscribe({ next: (lista) => this.pendenciasPix.set(lista), error: () => undefined });
     } else {
       this.carregando.set(false);
     }
