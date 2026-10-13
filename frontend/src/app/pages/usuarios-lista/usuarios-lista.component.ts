@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { UsuarioService } from '../../services/usuario.service';
-import { CriarOuEditarUsuario, PapelEquipe, SenhaGerada, UsuarioConta } from '../../models/usuario.model';
+import { CriarOuEditarUsuario, EnvioLinkConta, PapelEquipe, UsuarioConta } from '../../models/usuario.model';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 
 const ROTULO_PAPEL: Record<PapelEquipe, string> = {
@@ -31,7 +31,8 @@ export class UsuariosListaComponent implements OnInit {
 
   readonly formularioAberto = signal(false);
   readonly contaEmEdicaoId = signal<string | null>(null);
-  readonly senhaGerada = signal<SenhaGerada | null>(null);
+  /** E-mail não saiu (sem SMTP): o link que a Gestão precisa repassar à pessoa. Mostrado uma vez. */
+  readonly linkParaRepassar = signal<EnvioLinkConta | null>(null);
 
   readonly processandoId = signal<string | null>(null);
   readonly redefinindoId = signal<string | null>(null);
@@ -67,7 +68,7 @@ export class UsuariosListaComponent implements OnInit {
   }
 
   abrirNovo(): void {
-    this.senhaGerada.set(null);
+    this.linkParaRepassar.set(null);
     this.contaEmEdicaoId.set(null);
     this.nome = '';
     this.email = '';
@@ -76,7 +77,7 @@ export class UsuariosListaComponent implements OnInit {
   }
 
   editar(conta: UsuarioConta): void {
-    this.senhaGerada.set(null);
+    this.linkParaRepassar.set(null);
     this.contaEmEdicaoId.set(conta.id);
     this.nome = conta.nome;
     this.email = conta.email;
@@ -118,7 +119,7 @@ export class UsuariosListaComponent implements OnInit {
         next: (resultado) => {
           this.salvando.set(false);
           this.formularioAberto.set(false);
-          this.senhaGerada.set(resultado);
+          this.tratarEnvio(resultado, true);
           this.carregar();
         },
         error: aoErro
@@ -126,16 +127,54 @@ export class UsuariosListaComponent implements OnInit {
     }
   }
 
-  redefinirSenha(conta: UsuarioConta): void {
+  enviarLink(conta: UsuarioConta): void {
     this.redefinindoId.set(conta.id);
-    this.usuarioService.redefinirSenha(conta.id).subscribe({
+    this.usuarioService.enviarLink(conta.id).subscribe({
       next: (resultado) => {
         this.redefinindoId.set(null);
-        this.senhaGerada.set(resultado);
+        this.tratarEnvio(resultado, false);
       },
-      error: () => {
+      error: (erro) => {
         this.redefinindoId.set(null);
-        this.notificacao.erro('Não foi possível redefinir a senha.');
+        this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível mandar o link.');
+      }
+    });
+  }
+
+  private tratarEnvio(resultado: EnvioLinkConta, contaNova: boolean): void {
+    if (resultado.emailEnviado) {
+      const oQue = resultado.conta.convitePendente ? 'Convite enviado' : 'Link de nova senha enviado';
+      this.notificacao.sucesso(`${contaNova ? 'Conta criada. ' : ''}${oQue} para ${resultado.conta.email}.`);
+    } else if (resultado.link) {
+      this.linkParaRepassar.set(resultado);
+    } else {
+      this.notificacao.erro(resultado.aviso ?? 'Não foi possível gerar o link.');
+    }
+  }
+
+  async copiarLink(link: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(link);
+      this.notificacao.sucesso('Link copiado.');
+    } catch {
+      this.notificacao.erro('Não foi possível copiar. Selecione o link e copie à mão.');
+    }
+  }
+
+  readonly confirmandoRemocao2faId = signal<string | null>(null);
+
+  removerDoisFatores(conta: UsuarioConta): void {
+    this.processandoId.set(conta.id);
+    this.usuarioService.removerDoisFatores(conta.id).subscribe({
+      next: () => {
+        this.processandoId.set(null);
+        this.confirmandoRemocao2faId.set(null);
+        this.notificacao.sucesso(`Verificação em duas etapas removida de ${conta.nome}. A pessoa pode ativar de novo em Minha conta.`);
+        this.carregar();
+      },
+      error: (erro) => {
+        this.processandoId.set(null);
+        this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível remover.');
       }
     });
   }

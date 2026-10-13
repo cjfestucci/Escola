@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Escola.Api.Auth;
 using Escola.Api.Servicos;
+using Escola.Domain.Entities;
 using Escola.Domain.Enums;
 using Escola.Infrastructure.Assinaturas;
 using Escola.Infrastructure.Auth;
@@ -18,11 +19,13 @@ using Microsoft.Extensions.Options;
 
 namespace Escola.Api.Controllers;
 
+public record CupomPublicoDto(string Codigo, int PercentualDesconto, int? Meses, string Descricao);
+
 public record PlanoAssinaturaDto(decimal PrecoFixo, decimal PrecoPorAtleta, int DiasTeste, string VersaoTermos);
 
 public record CadastroAssinaturaRequest(
     string? NomeClube, string? CpfCnpj, string? Cidade, int Atletas,
-    string? NomeAdmin, string? Email, string? Celular, bool AceiteTermos);
+    string? NomeAdmin, string? Email, string? Celular, bool AceiteTermos, string? Cupom = null);
 
 public record CadastroAssinaturaDto(string Situacao, DateOnly? TesteAte, decimal ValorMensal, string? LinkPagamento, bool EmailEnviado);
 
@@ -32,7 +35,7 @@ public record MinhaAssinaturaDto(
     string Situacao, string Rotulo, bool Bloqueada, DateOnly? TesteAte, int? DiasRestantesTeste,
     decimal ValorMensal, int AtletasInformados, int? AtletasCobrados, DateOnly? VencimentoEmAberto, string? LinkPagamento,
     int DiasToleranciaAtraso, bool FaturasDisponiveis, IReadOnlyList<FaturaAssinaturaDto> Faturas,
-    DateOnly? AcessoAte, DateTime? CanceladaEm, DateOnly? DataExclusao);
+    DateOnly? AcessoAte, DateTime? CanceladaEm, DateOnly? DataExclusao, string? CupomCodigo = null, string? CupomDescricao = null);
 
 /// <summary>Assinatura do produto pelo site: plano e cadastro (anônimos — é como o clube vira cliente), webhook do gateway (anônimo,
 /// com token) e a tela da assinatura do próprio clube (Admin ou Suporte).</summary>
@@ -57,6 +60,37 @@ public class AssinaturasController(
     {
         var o = opcoes.Value;
         return Ok(new PlanoAssinaturaDto(o.PrecoFixo, o.PrecoPorAtleta, Math.Max(0, o.DiasTeste), AssinaturaService.VersaoTermosUso));
+    }
+
+    /// <summary>Confere um cupom na tela de cadastro (antes de assinar) e diz o desconto. Com freio por IP: não serve pra adivinhar cupons.</summary>
+    [HttpGet("cupom/{codigo}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<CupomPublicoDto>> ConferirCupom(string codigo, CancellationToken ct)
+    {
+        var chave = $"cupom:{HttpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido"}";
+        if (limitador.EstaBloqueado(chave, ConsultasDeCupomPorIp, out var restante))
+            return StatusCode(StatusCodes.Status429TooManyRequests,
+                $"Muitas tentativas. Tente novamente em {Math.Max(1, (int)Math.Ceiling(restante.TotalMinutes))} minutos.");
+
+        var (cupom, motivo) = await CupomValidoAsync(codigo, ct);
+        if (motivo is not null)
+        {
+            limitador.RegistrarFalha(chave); // só os errados contam
+            return NotFound(motivo);
+        }
+        return Ok(new CupomPublicoDto(cupom!.Codigo, cupom.PercentualDesconto, cupom.Meses, CupomRegras.Descricao(cupom.PercentualDesconto, cupom.Meses)));
+    }
+
+    private const int ConsultasDeCupomPorIp = 10;
+
+    private async Task<(Cupom? Cupom, string? Motivo)> CupomValidoAsync(string codigo, CancellationToken ct)
+    {
+        var normalizado = CupomRegras.Normalizar(codigo);
+        var cupom = await db.Cupons.AsNoTracking().FirstOrDefaultAsync(c => c.Codigo == normalizado, ct);
+        var usos = cupom is null ? 0 : await db.Assinaturas.IgnoreQueryFilters().CountAsync(a => a.CupomCodigo == cupom.Codigo, ct);
+        // Sem login não há escola: o "hoje" é o do fuso padrão do produto.
+        var motivo = CupomRegras.MotivoInvalido(cupom, await relogio.HojeAsync(), usos);
+        return (motivo is null ? cupom : null, motivo);
     }
 
     [HttpPost]
@@ -86,11 +120,18 @@ public class AssinaturasController(
         if (celular.Length is not (10 or 11)) return BadRequest("Informe o celular com DDD.");
         if (!request.AceiteTermos) return BadRequest("É preciso aceitar os Termos de Uso e a Política de Privacidade.");
 
+        Cupom? cupom = null;
+        if (!string.IsNullOrWhiteSpace(request.Cupom))
+        {
+            (cupom, var motivo) = await CupomValidoAsync(request.Cupom, ct);
+            if (motivo is not null) return BadRequest(motivo);
+        }
+
         limitador.RegistrarFalha(chave); // conta todo cadastro aceito pra validação, não só os que falham
         var navegador = Request.Headers.UserAgent.ToString() is { Length: > 0 } ua ? ua[..Math.Min(ua.Length, 500)] : null;
 
         var resultado = await assinaturas.CadastrarAsync(
-            new DadosCadastroAssinatura(nomeClube, documento, cidade, request.Atletas, nomeAdmin, email, celular, ip, navegador), ct);
+            new DadosCadastroAssinatura(nomeClube, documento, cidade, request.Atletas, nomeAdmin, email, celular, ip, navegador, cupom), ct);
         logger.LogInformation("Novo cliente pela assinatura do site: {ClienteId} ({Situacao}).", resultado.ClienteId, resultado.Situacao);
 
         return Ok(new CadastroAssinaturaDto(resultado.Situacao.ToString(), resultado.TesteAte, resultado.ValorMensal,
@@ -181,7 +222,8 @@ public class AssinaturasController(
             opcoes.Value.DiasToleranciaAtraso, disponivel,
             faturas.Select(f => new FaturaAssinaturaDto(f.Vencimento, f.Valor, f.Paga, f.PagaEm, f.Paga || a.AcessoAte is not null ? null : f.LinkPagamento)).ToList(),
             a.AcessoAte, a.CanceladaEm,
-            SituacaoAssinaturaCalculo.DataExclusao(a.Situacao, a.AcessoAte, a.SuspensaEm, a.JaPagou, opcoes.Value.DiasRetencaoAposSuspensao));
+            SituacaoAssinaturaCalculo.DataExclusao(a.Situacao, a.AcessoAte, a.SuspensaEm, a.JaPagou, opcoes.Value.DiasRetencaoAposSuspensao),
+            a.CupomCodigo, a.CupomPercentual is { } pct ? CupomRegras.Descricao(pct, a.CupomMeses) : null);
     }
 
     private static string SoDigitos(string? texto) => new((texto ?? string.Empty).Where(char.IsAsciiDigit).ToArray());

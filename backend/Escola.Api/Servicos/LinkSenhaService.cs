@@ -21,7 +21,10 @@ public enum TipoLinkSenha
     ConviteMatricula,
     /// <summary>Boas-vindas de quem assinou pelo site: o Admin do clube recém-criado confirma o e-mail e cadastra a senha (link de 7 dias).
     /// O e-mail traz o resumo do plano (<c>detalhe</c>).</summary>
-    BoasVindasAssinatura
+    BoasVindasAssinatura,
+    /// <summary>Conta da equipe criada pela Gestão em Usuários (coordenação, professor, financeiro...): confirma o e-mail e cadastra a senha
+    /// (link de 7 dias). O <c>detalhe</c> traz o papel, pra o e-mail dizer que acesso é esse.</summary>
+    ConviteEquipe
 }
 
 /// <param name="Gerado">O token foi criado (se falso, não há link nenhum — ex.: falta <c>App:UrlBase</c>).</param>
@@ -64,7 +67,7 @@ public sealed class LinkSenhaService(
         var anteriores = await db.RedefinicoesSenha.Where(r => r.UsuarioId == usuario.Id && r.UsadoEm == null).ToListAsync();
         foreach (var anterior in anteriores) anterior.UsadoEm = agora;
 
-        var convite = tipo is TipoLinkSenha.Convite or TipoLinkSenha.ConviteMatricula or TipoLinkSenha.BoasVindasAssinatura;
+        var convite = tipo is TipoLinkSenha.Convite or TipoLinkSenha.ConviteMatricula or TipoLinkSenha.BoasVindasAssinatura or TipoLinkSenha.ConviteEquipe;
         db.RedefinicoesSenha.Add(new RedefinicaoSenha
         {
             Id = Guid.NewGuid(),
@@ -95,6 +98,7 @@ public sealed class LinkSenhaService(
             {
                 TipoLinkSenha.ConviteMatricula => MontarConviteMatricula(usuario.Nome, nomeCliente, nomesAlunos ?? [], link),
                 TipoLinkSenha.BoasVindasAssinatura => MontarBoasVindas(usuario.Nome, nomeCliente, detalhe, link),
+                TipoLinkSenha.ConviteEquipe => MontarConviteEquipe(usuario.Nome, nomeCliente, detalhe, link),
                 TipoLinkSenha.Convite => MontarConvite(usuario.Nome, nomeCliente, link),
                 _ => MontarRedefinicao(usuario.Nome, nomeCliente, link)
             };
@@ -152,6 +156,21 @@ public sealed class LinkSenhaService(
                 <p>Para confirmar este e-mail e criar a sua senha, clique no link abaixo. Depois é só entrar:</p>
                 <p><a href="{linkSeguro}">Confirmar e-mail e criar minha senha</a></p>
                 <p>O link vale por 7 dias e só pode ser usado uma vez. Se você não fez esse cadastro, ignore este e-mail.</p>
+                """);
+    }
+
+    private static (string Assunto, string Corpo) MontarConviteEquipe(string nome, string? nomeCliente, string? papel, string link)
+    {
+        var nomeSeguro = WebUtility.HtmlEncode(nome);
+        var clienteSeguro = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(nomeCliente) ? "sua escola" : nomeCliente);
+        var papelSeguro = string.IsNullOrWhiteSpace(papel) ? string.Empty : $" (<strong>{WebUtility.HtmlEncode(papel)}</strong>)";
+        var linkSeguro = WebUtility.HtmlEncode(link);
+        return ($"Seu acesso ao {MarcaProduto.Nome} — {nomeCliente ?? MarcaProduto.Nome}", $"""
+                <p>Olá, {nomeSeguro}!</p>
+                <p>Foi criado um acesso para você{papelSeguro} no sistema de <strong>{clienteSeguro}</strong>.</p>
+                <p>Para confirmar este e-mail e cadastrar a sua senha, clique no link abaixo:</p>
+                <p><a href="{linkSeguro}">Confirmar e cadastrar minha senha</a></p>
+                <p>O link vale por 7 dias e só pode ser usado uma vez. Se você não esperava este convite, pode ignorar este e-mail.</p>
                 """);
     }
 

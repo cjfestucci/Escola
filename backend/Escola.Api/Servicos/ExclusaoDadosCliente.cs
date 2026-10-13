@@ -60,7 +60,8 @@ public sealed class ExclusaoDadosCliente(
     public static IReadOnlyList<Type> OrdemDeExclusao(IModel modelo)
     {
         var raizes = modelo.GetEntityTypes()
-            .Where(e => e.BaseType is null && !e.IsOwned() && e.ClrType != typeof(Cliente) && e.ClrType != typeof(RegistroAcesso))
+            .Where(e => e.BaseType is null && !e.IsOwned() && e.ClrType != typeof(Cliente) && e.ClrType != typeof(RegistroAcesso)
+                && !typeof(IEntidadePlataforma).IsAssignableFrom(e.ClrType)) // do produto, não do clube (ex.: cupons)
             .ToList();
 
         // principal ← dependentes: cada tipo só sai depois de todos que apontam pra ele.

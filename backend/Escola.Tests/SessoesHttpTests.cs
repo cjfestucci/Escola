@@ -78,28 +78,18 @@ public class SessoesHttpTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task RedefinirASenhaPeloAdminDerrubaASessaoDaPessoa()
+    public async Task OLinkDeNovaSenhaMandadoPeloAdminSoDerrubaASessaoQuandoAPessoaUsa()
     {
         var (educador, usuario, _) = await EducadorLogadoAsync();
         var admin = await _api.ClienteLogadoAsync(PapelUsuario.Admin);
 
-        Assert.Equal(HttpStatusCode.OK, (await admin.PostAsync($"/api/usuarios/contas/{usuario.Id}/redefinir-senha", null)).StatusCode);
+        // A Gestão não define senha: só manda o link. Até a pessoa usar, nada muda (a senha atual segue valendo).
+        Assert.Equal(HttpStatusCode.OK, (await admin.PostAsync($"/api/usuarios/contas/{usuario.Id}/enviar-link", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, await Status(educador));
 
+        var token = System.Text.RegularExpressions.Regex.Match(_api.Email.Enviados.Last(e => e.Para == usuario.Email).Corpo, @"token=([A-Za-z0-9_\-]+)").Groups[1].Value;
+        (await _api.CreateClient().PostAsJsonAsync("/api/auth/redefinir-senha", new { token, novaSenha = "Senha-Nova-Do-Prof-1" })).EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.Unauthorized, await Status(educador));
-    }
-
-    [Fact]
-    public async Task AdminQueRedefineASenhaDeSiMesmoNaoPerdeASessaoNaMesmaHora()
-    {
-        var email = $"admin-{Guid.NewGuid():N}@teste.com";
-        var usuario = _api.CriarUsuario(PapelUsuario.Admin, email);
-        var http = _api.CreateClient();
-        var login = await _api.EntrarAsync(http, email, "Senha-de-Teste-1");
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", (await login.Content.ReadFromJsonAsync<ApiFactory.LoginResposta>())!.Token);
-
-        Assert.Equal(HttpStatusCode.OK, (await http.PostAsync($"/api/usuarios/contas/{usuario.Id}/redefinir-senha", null)).StatusCode);
-
-        Assert.Equal(HttpStatusCode.OK, await Status(http, "/api/usuarios/contas"));
     }
 
     [Fact]

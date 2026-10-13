@@ -1,0 +1,180 @@
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0 0 16px;
+}
+
+.resumo {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.cartao-resumo {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+
+  .valor {
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+
+  .rotulo {
+    font-size: 0.82rem;
+    color: var(--cor-texto-suave);
+  }
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pilula {
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  .quantidade {
+    color: var(--cor-texto-suave);
+    margin-left: 4px;
+  }
+
+  &--ativa {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+
+    .quantidade {
+      color: #fff;
+    }
+  }
+}
+
+.busca {
+  margin-left: auto;
+  min-width: 240px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+
+  @media (max-width: 640px) {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.vazio {
+  color: var(--cor-texto-suave);
+}
+
+.lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.cliente {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+
+  &--inativo {
+    opacity: 0.6;
+  }
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .detalhe {
+    font-size: 0.8rem;
+    color: var(--cor-texto-suave);
+  }
+}
+
+.dados,
+.datas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+
+  b {
+    color: var(--cor-texto);
+  }
+}
+
+.alerta {
+  color: #b3261e;
+  font-weight: 600;
+}
+
+// Cores semânticas da situação (fixas de propósito).
+.selo {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--cor-primaria-clara);
+  color: var(--cor-primaria);
+
+  &--Ativa {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  &--EmAtraso {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  &--Suspensa,
+  &--AguardandoPagamento,
+  &--Cancelada {
+    background: #fdecea;
+    color: #8c1d18;
+  }
+
+  &--manual {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+}

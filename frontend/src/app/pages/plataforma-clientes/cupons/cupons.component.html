@@ -1,0 +1,73 @@
+<section class="cupons">
+  <div class="cabecalho">
+    <div>
+      <p class="titulo">Cupons de desconto</p>
+      <p class="ajuda">O clube digita o cupom no cadastro pelo site. Mudar ou desativar um cupom não afeta quem já assinou com ele.</p>
+    </div>
+    @if (!formularioAberto()) {
+      <button type="button" class="botao-novo" (click)="abrir()">+ Novo cupom</button>
+    }
+  </div>
+
+  @if (formularioAberto()) {
+    <div class="formulario">
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+      <label><span class="obrigatorio">Código</span>
+        <input type="text" maxlength="30" placeholder="Ex.: LANCAMENTO20" [(ngModel)]="codigo" class="maiusculas" />
+      </label>
+      <label><span class="obrigatorio">Desconto (%)</span>
+        <input type="number" min="1" max="100" [(ngModel)]="percentual" />
+      </label>
+      <label>Por quantas mensalidades (opcional)
+        <input type="number" min="1" max="120" placeholder="Vazio = todas" [(ngModel)]="meses" />
+      </label>
+      <label>Limite de usos (opcional)
+        <input type="number" min="1" placeholder="Vazio = sem limite" [(ngModel)]="usosMaximos" />
+      </label>
+      <div class="campo">
+        <span class="rotulo">Válido até (opcional)</span>
+        <div class="linha-data">
+          <app-calendario [dataSelecionada]="validoAte || hojeIso()" (escolher)="validoAte = $event" />
+          @if (validoAte) {
+            <span>{{ formatarData(validoAte) }}</span>
+            <button type="button" class="botao-texto" (click)="validoAte = null">Limpar</button>
+          } @else {
+            <span class="ajuda">sem prazo</span>
+          }
+        </div>
+      </div>
+      <label class="inteiro">Observação (opcional)
+        <input type="text" maxlength="300" placeholder="Ex.: campanha de lançamento no Instagram" [(ngModel)]="observacao" />
+      </label>
+      <div class="botoes inteiro">
+        <button type="button" class="botao-texto" (click)="formularioAberto.set(false)">Cancelar</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">{{ salvando() ? 'Salvando...' : 'Criar cupom' }}</button>
+      </div>
+    </div>
+  }
+
+  @if (cupons().length === 0 && !formularioAberto()) {
+    <p class="ajuda">Nenhum cupom ainda.</p>
+  }
+  <ul class="lista">
+    @for (c of cupons(); track c.id) {
+      <li [class.inativo]="!c.ativo">
+        <div>
+          <strong>{{ c.codigo }}</strong>
+          @if (!c.ativo) {
+            <span class="selo-inativo">Inativo</span>
+          }
+          <span class="detalhe">{{ c.descricao }}</span>
+          <span class="detalhe">
+            {{ c.usos }}{{ c.usosMaximos ? ' de ' + c.usosMaximos : '' }} {{ c.usos === 1 ? 'uso' : 'usos' }}
+            @if (c.validoAte) { · até {{ formatarData(c.validoAte) }} }
+            @if (c.observacao) { · {{ c.observacao }} }
+          </span>
+        </div>
+        <button type="button" class="botao-texto" [class.botao-texto--perigo]="c.ativo" [disabled]="processandoId() === c.id" (click)="alternar(c)">
+          {{ c.ativo ? 'Desativar' : 'Ativar' }}
+        </button>
+      </li>
+    }
+  </ul>
+</section>

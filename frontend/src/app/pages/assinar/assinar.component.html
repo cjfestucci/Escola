@@ -112,7 +112,21 @@
         @if (plano(); as p) {
           <div class="linha"><span>Valor fixo</span><span>{{ formatarReais(p.precoFixo) }}</span></div>
           <div class="linha"><span>{{ atletas() }} atletas × {{ formatarReais(p.precoPorAtleta) }}</span><span>{{ formatarReais(p.precoPorAtleta * atletas()) }}</span></div>
+          @if (cupom(); as c) {
+            <div class="linha cupom">
+              <span>Cupom {{ c.codigo }} (−{{ c.percentualDesconto }}%)</span>
+              <span>−{{ formatarReais((valorCheio() ?? 0) - (valorMensal() ?? 0)) }}</span>
+            </div>
+          }
           <div class="linha total"><span>Por mês</span><span>{{ formatarReais(valorMensal() ?? 0) }}</span></div>
+          @if (cupom(); as c) {
+            <p class="nota">{{ c.descricao }}. <button type="button" class="link" (click)="removerCupom()">Remover cupom</button></p>
+          } @else {
+            <div class="campo-cupom">
+              <input type="text" placeholder="Cupom de desconto" maxlength="30" [(ngModel)]="cupomDigitado" (keydown.enter)="aplicarCupom()" />
+              <button type="button" class="botao botao--secundario" [disabled]="aplicandoCupom() || !cupomDigitado.trim()" (click)="aplicarCupom()">Aplicar</button>
+            </div>
+          }
           @if (p.diasTeste > 0) {
             <p class="nota">Os primeiros {{ p.diasTeste }} dias são grátis. Depois, você escolhe pagar com Pix, boleto ou cartão. Sem fidelidade.</p>
           } @else {

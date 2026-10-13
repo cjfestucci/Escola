@@ -59,7 +59,7 @@
           </div>
         }
       } @else {
-      <a [routerLink]="item.rota" routerLinkActive="ativo" (click)="aoNavegar()">
+      <a [routerLink]="item.rota" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: item.exato ?? false }" (click)="aoNavegar()">
         <span class="icone">
           @switch (item.icone) {
             @case ('users') {

@@ -1,0 +1,146 @@
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0;
+}
+
+.painel {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  p {
+    margin: 0;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  input {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+  }
+}
+
+.titulo-secao {
+  font-weight: 700;
+}
+
+.ajuda {
+  font-size: 0.88rem;
+  color: var(--cor-texto-suave);
+}
+
+.estado {
+  font-weight: 600;
+
+  &--ativo {
+    color: #15803d;
+  }
+}
+
+.passos {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.92rem;
+}
+
+.chave {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  word-break: break-all;
+  background: var(--cor-fundo);
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.qr {
+  align-self: center;
+  width: 200px;
+  height: 200px;
+}
+
+.campo-codigo {
+  letter-spacing: 0.2em;
+  text-align: center;
+  font-size: 1.2rem !important;
+}
+
+.aviso {
+  background: #fef3c7;
+  color: #8a4b08;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+
+.codigos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  font-family: monospace;
+  font-size: 1rem;
+
+  li {
+    background: var(--cor-fundo);
+    border-radius: 6px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+}
+
+.botoes {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  button {
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-weight: 600;
+    border: 1px solid var(--cor-borda);
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+
+  .primario {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+  }
+
+  .secundario {
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+  }
+
+  // Ação que tira uma proteção: vermelho semântico (fixo de propósito).
+  .perigo {
+    background: #b3261e;
+    border-color: #b3261e;
+    color: #fff;
+  }
+}

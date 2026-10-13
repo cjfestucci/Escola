@@ -16,6 +16,15 @@ export interface CadastroAssinaturaRequest {
   email: string;
   celular: string;
   aceiteTermos: boolean;
+  cupom?: string | null;
+}
+
+export interface CupomPublico {
+  codigo: string;
+  percentualDesconto: number;
+  /** Nulo = em todas as mensalidades. */
+  meses: number | null;
+  descricao: string;
 }
 
 export interface CadastroAssinaturaResposta {
@@ -55,6 +64,8 @@ export interface MinhaAssinatura {
   canceladaEm: string | null;
   /** Cancelada ou teste nunca pago: a partir deste dia os dados do clube podem ser apagados. */
   dataExclusao: string | null;
+  cupomCodigo: string | null;
+  cupomDescricao: string | null;
 }
 
 export function valorDoPlano(plano: PlanoAssinatura, atletas: number): number {

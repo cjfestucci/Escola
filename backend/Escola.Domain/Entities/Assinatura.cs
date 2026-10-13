@@ -24,6 +24,12 @@ public class Assinatura
     /// ainda vale o número informado no cadastro.</summary>
     public int? AtletasCobrados { get; set; }
 
+    // Cupom usado no cadastro: copiado aqui (desativar ou mudar o cupom depois não mexe em quem já assinou).
+    public string? CupomCodigo { get; set; }
+    public int? CupomPercentual { get; set; }
+    /// <summary>Por quantas mensalidades pagas o desconto vale. Nulo (com cupom) = sempre.</summary>
+    public int? CupomMeses { get; set; }
+
     /// <summary>Já houve alguma fatura paga (em qualquer assinatura do clube). Uma assinatura reativada é nova no gateway e não traz as
     /// faturas antigas — sem isto, quem pagou o mês e desistiu do cancelamento ficaria como "aguardando o 1º pagamento".</summary>
     public bool JaPagou { get; set; }

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { adminOuSuporteGuard, configuracaoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard, termoPortalGuard } from './services/auth.guards';
+import { adminOuSuporteGuard, configuracaoGuard, logadoGuard, equipeGuard, financeiroGuard, gestaoGuard, portalGuard, redirecionamentoInicialGuard, suporteGuard, termoPortalGuard } from './services/auth.guards';
 import { NOME_PRODUTO } from './services/segmento.service';
 
 export const routes: Routes = [
@@ -121,6 +121,19 @@ export const routes: Routes = [
     canActivate: [suporteGuard],
     data: { titulo: 'Plataforma' },
     loadComponent: () => import('./pages/plataforma/plataforma.component').then((m) => m.PlataformaComponent)
+  },
+  {
+    path: 'minha-conta',
+    canActivate: [logadoGuard],
+    data: { titulo: 'Minha conta' },
+    loadComponent: () => import('./pages/minha-conta/minha-conta.component').then((m) => m.MinhaContaComponent)
+  },
+  {
+    path: 'plataforma/clientes',
+    canActivate: [suporteGuard],
+    data: { titulo: 'Clientes' },
+    loadComponent: () =>
+      import('./pages/plataforma-clientes/plataforma-clientes.component').then((m) => m.PlataformaClientesComponent)
   },
   {
     path: 'configuracoes',

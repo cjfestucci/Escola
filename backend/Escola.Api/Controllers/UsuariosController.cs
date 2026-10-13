@@ -5,7 +5,9 @@ using Escola.Domain.Entities;
 using Escola.Domain.Enums;
 using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Auth;
+using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Data;
+using Escola.Api.Servicos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +17,7 @@ namespace Escola.Api.Controllers;
 [ApiController]
 [Route("api/usuarios")]
 [Authorize]
-public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria) : ControllerBase
+public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria, ILinkSenhaService linkSenha, ClienteAtual clienteAtual) : ControllerBase
 {
     /// <summary>Lista por papel — usado pra montar o seletor de professor ao cadastrar turma. Só contas
     /// ativas entram aqui (uma conta desativada não pode ser escolhida pra uma turma nova, mas continua
@@ -45,7 +47,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         var contas = await db.Usuarios
             .Where(u => u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte)
             .OrderBy(u => u.Nome)
-            .Select(u => new UsuarioContaDto(u.Id, u.Nome, u.Email, u.Papel.ToString(), u.Ativo))
+            .Select(u => new UsuarioContaDto(u.Id, u.Nome, u.Email, u.Papel.ToString(), u.Ativo, u.SenhaHash == SenhaHasher.ConvitePendente, u.TotpSegredoCriptografado != null))
             .ToListAsync();
 
         return Ok(contas);
@@ -53,7 +55,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
 
     [HttpPost("contas")]
     [Authorize(Roles = GruposDePapeis.Gestao)]
-    public async Task<ActionResult<SenhaGeradaDto>> CriarConta(CriarUsuarioRequest request)
+    public async Task<ActionResult<EnvioLinkContaDto>> CriarConta(CriarUsuarioRequest request)
     {
         if (request.Papel == PapelUsuario.Responsavel)
             return BadRequest("Contas de responsável são criadas pela Matrícula, não por aqui.");
@@ -68,18 +70,73 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         if (await db.Usuarios.AnyAsync(u => u.Email.ToLower() == email.ToLower()))
             return BadRequest("Já existe uma conta com esse e-mail.");
 
-        var senha = GeradorSenhaTemporaria.Gerar();
+        // Ninguém (nem a Gestão) conhece a senha: a conta nasce com convite pendente e a pessoa cadastra a própria senha pelo link.
         var usuario = new Usuario
         {
             Id = Guid.NewGuid(), Nome = request.Nome.Trim(), Email = email,
-            SenhaHash = SenhaHasher.Hash(senha), Papel = request.Papel
+            SenhaHash = SenhaHasher.ConvitePendente, Papel = request.Papel
         };
         db.Usuarios.Add(usuario);
-        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(), usuario.Nome);
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(), $"{usuario.Nome} (convite enviado para {usuario.Email})");
         await db.SaveChangesAsync();
 
-        return Ok(new SenhaGeradaDto(usuario.Nome, usuario.Email, senha));
+        return Ok(await EnviarLinkAsync(usuario));
     }
+
+    /// <summary>Conta com convite pendente: reenvia o convite. Conta ativa: manda um link de nova senha (1 hora). A Gestão nunca vê nem define
+    /// a senha de ninguém; a senha antiga continua valendo até a pessoa usar o link.</summary>
+    [HttpPost("contas/{id:guid}/enviar-link")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<EnvioLinkContaDto>> EnviarLink(Guid id)
+    {
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte);
+        if (usuario is null) return NotFound("Conta não encontrada.");
+        if (!usuario.Ativo) return BadRequest("Esta conta está desativada. Ative antes de mandar o link.");
+
+        var pendente = usuario.SenhaHash == SenhaHasher.ConvitePendente;
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(),
+            pendente ? $"Convite reenviado: {usuario.Nome}" : $"Link de nova senha enviado: {usuario.Nome}");
+        await db.SaveChangesAsync();
+        return Ok(await EnviarLinkAsync(usuario));
+    }
+
+    /// <summary>Pra quem perdeu o celular e os códigos de recuperação: a conta volta a entrar só com a senha (e a pessoa reativa depois).</summary>
+    [HttpPost("contas/{id:guid}/remover-dois-fatores")]
+    [Authorize(Roles = GruposDePapeis.Gestao)]
+    public async Task<ActionResult<UsuarioContaDto>> RemoverDoisFatores(Guid id)
+    {
+        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte);
+        if (usuario is null) return NotFound("Conta não encontrada.");
+        if (!usuario.DoisFatoresAtivo) return BadRequest("Esta conta não usa verificação em duas etapas.");
+
+        MinhaContaController.Limpar(usuario);
+        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(),
+            $"Verificação em duas etapas removida pela gestão: {usuario.Nome}");
+        await db.SaveChangesAsync();
+        return Ok(ParaDto(usuario));
+    }
+
+    private async Task<EnvioLinkContaDto> EnviarLinkAsync(Usuario usuario)
+    {
+        var pendente = usuario.SenhaHash == SenhaHasher.ConvitePendente;
+        var nomeCliente = await db.Clientes.Where(c => c.Id == clienteAtual.Id).Select(c => c.Nome).FirstOrDefaultAsync();
+        var resultado = await linkSenha.EnviarAsync(usuario, pendente ? TipoLinkSenha.ConviteEquipe : TipoLinkSenha.Redefinicao, nomeCliente,
+            detalhe: RotuloPapel(usuario.Papel));
+        // O link só volta pra tela quando o e-mail não saiu (sem SMTP): aí a Gestão repassa. Com o e-mail entregue, fica só com a pessoa.
+        return new EnvioLinkContaDto(ParaDto(usuario), resultado.Entregue, resultado.Entregue ? null : resultado.Link, resultado.Aviso);
+    }
+
+    private static string RotuloPapel(PapelUsuario papel) => papel switch
+    {
+        PapelUsuario.Admin => "administrador",
+        PapelUsuario.Coordenador => "coordenação",
+        PapelUsuario.Educador => "professor/treinador",
+        PapelUsuario.Financeiro => "financeiro",
+        _ => papel.ToString()
+    };
+
+    private static UsuarioContaDto ParaDto(Usuario u) =>
+        new(u.Id, u.Nome, u.Email, u.Papel.ToString(), u.Ativo, u.SenhaHash == SenhaHasher.ConvitePendente, u.DoisFatoresAtivo);
 
     [HttpPut("contas/{id:guid}")]
     [Authorize(Roles = GruposDePapeis.Gestao)]
@@ -117,23 +174,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
         await db.SaveChangesAsync();
 
-        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));
-    }
-
-    [HttpPost("contas/{id:guid}/redefinir-senha")]
-    [Authorize(Roles = GruposDePapeis.Gestao)]
-    public async Task<ActionResult<SenhaGeradaDto>> RedefinirSenha(Guid id)
-    {
-        var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.Papel != PapelUsuario.Responsavel && u.Papel != PapelUsuario.Suporte);
-        if (usuario is null) return NotFound("Conta não encontrada.");
-
-        var senha = GeradorSenhaTemporaria.Gerar();
-        usuario.SenhaHash = SenhaHasher.Hash(senha);
-        if (usuario.Id != this.UsuarioIdAtual()) usuario.EncerrarSessoes(); // a senha antiga não pode continuar com sessão aberta
-        auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Senha redefinida: {usuario.Nome}");
-        await db.SaveChangesAsync();
-
-        return Ok(new SenhaGeradaDto(usuario.Nome, usuario.Email, senha));
+        return Ok(ParaDto(usuario));
     }
 
     [HttpPost("contas/{id:guid}/desativar")]
@@ -152,7 +193,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Desativado: {usuario.Nome}");
         await db.SaveChangesAsync();
 
-        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));
+        return Ok(ParaDto(usuario));
     }
 
     /// <summary>Derruba todas as sessões abertas da conta (aparelho perdido, suspeita de acesso indevido) sem desativá-la nem trocar a senha:
@@ -168,7 +209,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Sessões encerradas: {usuario.Nome}");
         await db.SaveChangesAsync();
 
-        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));
+        return Ok(ParaDto(usuario));
     }
 
     [HttpPost("contas/{id:guid}/ativar")]
@@ -182,7 +223,7 @@ public class UsuariosController(EscolaDbContext db, IAuditoriaService auditoria)
         auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), $"Reativado: {usuario.Nome}");
         await db.SaveChangesAsync();
 
-        return Ok(new UsuarioContaDto(usuario.Id, usuario.Nome, usuario.Email, usuario.Papel.ToString(), usuario.Ativo));
+        return Ok(ParaDto(usuario));
     }
 
     /// <summary>Um educador só vê as próprias turmas; Admin/Coordenador podem consultar qualquer um.</summary>

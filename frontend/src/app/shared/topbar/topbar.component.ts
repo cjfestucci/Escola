@@ -1,5 +1,5 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
@@ -17,7 +17,7 @@ const TITULOS_CLUBE: Record<string, string> = {
 
 @Component({
   selector: 'app-topbar',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.scss'
 })

@@ -18,6 +18,7 @@ public class AssinaturaConfiguration : IEntityTypeConfiguration<Assinatura>
         builder.Property(a => a.IdAssinaturaGateway).HasMaxLength(100);
         builder.Property(a => a.LinkPagamento).HasMaxLength(500);
         builder.Property(a => a.TermosVersao).IsRequired().HasMaxLength(40);
+        builder.Property(a => a.CupomCodigo).HasMaxLength(30);
         builder.Property(a => a.TermosIp).HasMaxLength(64);
         builder.Property(a => a.TermosNavegador).HasMaxLength(500);
         // Uma assinatura por cliente; o webhook procura pelo id da assinatura no gateway.

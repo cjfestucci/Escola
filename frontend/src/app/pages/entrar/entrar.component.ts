@@ -63,8 +63,10 @@ export class EntrarComponent {
       this.notificacao.erro('Informe e-mail e senha.');
       return;
     }
-    if (this.etapaCodigo() && !/^\d{6}$/.test(this.codigo.replace(/\s|-/g, ''))) {
-      this.notificacao.erro('Informe o código de 6 dígitos do seu app autenticador.');
+    // 6 dígitos do app autenticador, ou um código de recuperação (8 letras/números, "XXXX-XXXX").
+    const codigoLimpo = this.codigo.replace(/\s|-/g, '');
+    if (this.etapaCodigo() && !/^\d{6}$/.test(codigoLimpo) && !/^[A-Za-z0-9]{8}$/.test(codigoLimpo)) {
+      this.notificacao.erro('Informe o código de 6 dígitos do app autenticador ou um código de recuperação.');
       return;
     }
 

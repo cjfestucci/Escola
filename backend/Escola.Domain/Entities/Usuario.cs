@@ -19,6 +19,19 @@ public class Usuario
     /// <summary>Invalida todos os tokens emitidos até agora (o próximo login emite um novo, que vale).</summary>
     public void EncerrarSessoes() => SessoesValidasDesde = DateTime.UtcNow;
 
+    // Verificação em duas etapas (código do app autenticador), opcional por conta. O Suporte não usa estes campos: o segredo dele vem
+    // da configuração do deploy. Segredos ficam CRIPTOGRAFADOS (CofreSegredos, chave Segredos:Chave) — quem lê o banco não gera código.
+
+    /// <summary>Segredo TOTP ativo. Nulo = sem verificação em duas etapas.</summary>
+    public string? TotpSegredoCriptografado { get; set; }
+    /// <summary>Segredo gerado ao começar a ativação, esperando a confirmação com o 1º código.</summary>
+    public string? TotpSegredoPendenteCriptografado { get; set; }
+    public DateTime? TotpAtivadoEm { get; set; }
+    /// <summary>Hashes (SHA-256) dos códigos de recuperação ainda não usados, separados por vírgula. Cada um vale uma vez.</summary>
+    public string? CodigosRecuperacaoHash { get; set; }
+
+    public bool DoisFatoresAtivo => TotpSegredoCriptografado is not null;
+
     /// <summary>Preenchido quando Papel == Responsavel, ligando o login ao cadastro do responsável.</summary>
     public Guid? ResponsavelId { get; set; }
     public Responsavel? Responsavel { get; set; }

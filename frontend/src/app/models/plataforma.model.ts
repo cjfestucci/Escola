@@ -48,3 +48,49 @@ export interface ResultadoEnvioAdmin {
   emailEnviado: boolean;
   aviso: string | null;
 }
+
+/** Um cliente do produto no painel do Suporte: só contagens e a assinatura (nada de dado de aluno). */
+export interface ClienteResumo {
+  id: string;
+  nome: string;
+  segmento: SegmentoCliente;
+  ativo: boolean;
+  criadoEm: string;
+  /** Nula = cliente sem assinatura (criado à mão). */
+  situacao: string | null;
+  rotuloSituacao: string | null;
+  valorMensal: number | null;
+  testeAte: string | null;
+  vencimentoEmAberto: string | null;
+  acessoAte: string | null;
+  dataExclusao: string | null;
+  emailCobranca: string | null;
+  atletasAtivos: number;
+  contasEquipe: number;
+  ultimoAcessoEm: string | null;
+}
+
+/** Cupom de desconto da assinatura (do produto, gerido pelo Suporte). */
+export interface Cupom {
+  id: string;
+  codigo: string;
+  percentualDesconto: number;
+  /** Nulo = em todas as mensalidades. */
+  meses: number | null;
+  validoAte: string | null;
+  usosMaximos: number | null;
+  usos: number;
+  ativo: boolean;
+  observacao: string | null;
+  descricao: string;
+  criadoEm: string;
+}
+
+export interface SalvarCupom {
+  codigo: string;
+  percentualDesconto: number;
+  meses: number | null;
+  validoAte: string | null;
+  usosMaximos: number | null;
+  observacao: string | null;
+}

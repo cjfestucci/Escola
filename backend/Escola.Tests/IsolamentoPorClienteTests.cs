@@ -96,11 +96,28 @@ public class IsolamentoPorClienteTests
         using var db = banco.Contexto(BancoDeTeste.ClienteA);
 
         var semIsolamento = db.Model.GetEntityTypes()
-            .Where(t => t.ClrType != typeof(Cliente) && t.BaseType is null)
+            .Where(t => t.ClrType != typeof(Cliente) && t.BaseType is null && !typeof(IEntidadePlataforma).IsAssignableFrom(t.ClrType))
             .Where(t => t.FindProperty("ClienteId") is null || t.GetQueryFilter() is null)
             .Select(t => t.ClrType.Name)
             .ToList();
 
         Assert.True(semIsolamento.Count == 0, "Entidades sem ClienteId/filtro: " + string.Join(", ", semIsolamento));
+    }
+
+    /// <summary>A exceção de plataforma (sem cliente) é uma lista fechada: entidade nova marcada com IEntidadePlataforma tem que entrar
+    /// aqui de propósito — dado de escola, aluno ou família nunca pode ficar fora do isolamento.</summary>
+    [Fact]
+    public void SoOsCuponsSaoDaPlataforma()
+    {
+        using var banco = new BancoDeTeste();
+        using var db = banco.Contexto(BancoDeTeste.ClienteA);
+
+        var daPlataforma = db.Model.GetEntityTypes()
+            .Where(t => typeof(IEntidadePlataforma).IsAssignableFrom(t.ClrType))
+            .Select(t => t.ClrType.Name)
+            .ToList();
+
+        Assert.Equal([nameof(Cupom)], daPlataforma);
+        Assert.Null(db.Model.FindEntityType(typeof(Cupom))!.FindProperty("ClienteId"));
     }
 }

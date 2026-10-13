@@ -3,13 +3,30 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { AdminEscola, ClientePlataforma, DiagnosticoPlataforma, EditarClientePlataforma, ResultadoEnvioAdmin } from '../models/plataforma.model';
+import { AdminEscola, ClientePlataforma, ClienteResumo, Cupom, SalvarCupom, DiagnosticoPlataforma, EditarClientePlataforma, ResultadoEnvioAdmin } from '../models/plataforma.model';
 
 /** Área da equipe do produto (papel Suporte) sobre o cliente deste ambiente. */
 @Injectable({ providedIn: 'root' })
 export class PlataformaService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/plataforma`;
+
+  listarCupons(): Observable<Cupom[]> {
+    return this.http.get<Cupom[]>(`${this.baseUrl}/cupons`);
+  }
+
+  criarCupom(dados: SalvarCupom): Observable<Cupom> {
+    return this.http.post<Cupom>(`${this.baseUrl}/cupons`, dados);
+  }
+
+  definirCupomAtivo(id: string, ativo: boolean): Observable<Cupom> {
+    return this.http.post<Cupom>(`${this.baseUrl}/cupons/${id}/${ativo ? 'ativar' : 'desativar'}`, null);
+  }
+
+  /** Todos os clientes do produto (painel do Suporte). */
+  listarClientes(): Observable<ClienteResumo[]> {
+    return this.http.get<ClienteResumo[]>(`${this.baseUrl}/clientes`);
+  }
 
   obterCliente(): Observable<ClientePlataforma> {
     return this.http.get<ClientePlataforma>(`${this.baseUrl}/cliente`);

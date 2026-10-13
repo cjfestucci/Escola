@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   CadastroAssinaturaResposta,
+  CupomPublico,
   PlanoAssinatura,
   cnpjValido,
   cpfValido,
@@ -53,11 +54,46 @@ export class AssinarComponent implements OnInit {
   email = '';
   celular = '';
   aceite = false;
+  cupomDigitado = '';
+  readonly cupom = signal<CupomPublico | null>(null);
+  readonly aplicandoCupom = signal(false);
 
-  readonly valorMensal = computed(() => {
+  /** Valor cheio do plano, antes do cupom. */
+  readonly valorCheio = computed(() => {
     const plano = this.plano();
     return plano ? valorDoPlano(plano, this.atletas()) : null;
   });
+
+  /** Com o cupom aplicado (o servidor confere de novo ao assinar). */
+  readonly valorMensal = computed(() => {
+    const cheio = this.valorCheio();
+    const cupom = this.cupom();
+    if (cheio === null) return null;
+    return cupom ? Math.round(cheio * (100 - cupom.percentualDesconto)) / 100 : cheio;
+  });
+
+  aplicarCupom(): void {
+    const codigo = this.cupomDigitado.trim();
+    if (!codigo) return;
+    this.aplicandoCupom.set(true);
+    this.assinaturas.conferirCupom(codigo).subscribe({
+      next: (cupom) => {
+        this.aplicandoCupom.set(false);
+        this.cupom.set(cupom);
+        this.notificacao.sucesso(`Cupom ${cupom.codigo} aplicado: ${cupom.descricao}.`);
+      },
+      error: (erro) => {
+        this.aplicandoCupom.set(false);
+        this.cupom.set(null);
+        this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Cupom inválido.');
+      }
+    });
+  }
+
+  removerCupom(): void {
+    this.cupom.set(null);
+    this.cupomDigitado = '';
+  }
 
   ngOnInit(): void {
     // O simulador do site institucional manda a quantidade de atletas.
@@ -105,7 +141,8 @@ export class AssinarComponent implements OnInit {
         nomeAdmin: this.nomeAdmin.trim(),
         email,
         celular: soDigitos(this.celular),
-        aceiteTermos: this.aceite
+        aceiteTermos: this.aceite,
+        cupom: this.cupom()?.codigo ?? null
       })
       .subscribe({
         next: (resultado) => {

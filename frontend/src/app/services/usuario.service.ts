@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { Turma } from '../models/aluno.model';
-import { CriarOuEditarUsuario, SenhaGerada, Usuario, UsuarioConta } from '../models/usuario.model';
+import { CriarOuEditarUsuario, EnvioLinkConta, Usuario, UsuarioConta } from '../models/usuario.model';
 
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
@@ -23,16 +23,22 @@ export class UsuarioService {
     return this.http.get<UsuarioConta[]>(`${this.baseUrl}/usuarios/contas`);
   }
 
-  criarConta(payload: CriarOuEditarUsuario): Observable<SenhaGerada> {
-    return this.http.post<SenhaGerada>(`${this.baseUrl}/usuarios/contas`, payload);
+  criarConta(payload: CriarOuEditarUsuario): Observable<EnvioLinkConta> {
+    return this.http.post<EnvioLinkConta>(`${this.baseUrl}/usuarios/contas`, payload);
   }
 
   editarConta(id: string, payload: CriarOuEditarUsuario): Observable<UsuarioConta> {
     return this.http.put<UsuarioConta>(`${this.baseUrl}/usuarios/contas/${id}`, payload);
   }
 
-  redefinirSenha(id: string): Observable<SenhaGerada> {
-    return this.http.post<SenhaGerada>(`${this.baseUrl}/usuarios/contas/${id}/redefinir-senha`, {});
+  /** Pra quem perdeu o celular e os códigos de recuperação. */
+  removerDoisFatores(id: string): Observable<UsuarioConta> {
+    return this.http.post<UsuarioConta>(`${this.baseUrl}/usuarios/contas/${id}/remover-dois-fatores`, {});
+  }
+
+  /** Convite pendente: reenvia o convite. Conta ativa: link de nova senha (1 hora). */
+  enviarLink(id: string): Observable<EnvioLinkConta> {
+    return this.http.post<EnvioLinkConta>(`${this.baseUrl}/usuarios/contas/${id}/enviar-link`, {});
   }
 
   desativarConta(id: string): Observable<UsuarioConta> {

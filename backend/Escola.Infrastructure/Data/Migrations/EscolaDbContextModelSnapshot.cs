@@ -149,6 +149,16 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<DateTime>("CriadaEm")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CupomCodigo")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int?>("CupomMeses")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CupomPercentual")
+                        .HasColumnType("integer");
+
                     b.Property<string>("EmailCobranca")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -666,6 +676,47 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.HasIndex("Vencimento");
 
                     b.ToTable("ContasReceber");
+                });
+
+            modelBuilder.Entity("Escola.Domain.Entities.Cupom", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("Meses")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("PercentualDesconto")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("UsosMaximos")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("ValidoAte")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("Cupons", (string)null);
                 });
 
             modelBuilder.Entity("Escola.Domain.Entities.DocumentoSaude", b =>
@@ -1513,6 +1564,10 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CodigosRecuperacaoHash")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -1535,6 +1590,17 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<DateTime?>("SessoesValidasDesde")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("TotpAtivadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TotpSegredoCriptografado")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("TotpSegredoPendenteCriptografado")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.HasKey("Id");
 

@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment';
 import {
   CadastroAssinaturaRequest,
   CadastroAssinaturaResposta,
+  CupomPublico,
   MinhaAssinatura,
   PlanoAssinatura
 } from '../models/assinatura.model';
@@ -38,6 +39,11 @@ export class AssinaturaService {
 
   plano(): Observable<PlanoAssinatura> {
     return this.http.get<PlanoAssinatura>(`${this.baseUrl}/plano`);
+  }
+
+  /** Confere um cupom antes de assinar (404 com o motivo, se não vale). */
+  conferirCupom(codigo: string): Observable<CupomPublico> {
+    return this.http.get<CupomPublico>(`${this.baseUrl}/cupom/${encodeURIComponent(codigo)}`);
   }
 
   cadastrar(dados: CadastroAssinaturaRequest): Observable<CadastroAssinaturaResposta> {

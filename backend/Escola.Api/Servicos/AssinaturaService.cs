@@ -19,7 +19,7 @@ namespace Escola.Api.Servicos;
 /// <summary>Cadastro pelo site. Os dados já chegam validados pelo controller.</summary>
 public sealed record DadosCadastroAssinatura(
     string NomeClube, string CpfCnpj, string Cidade, int Atletas,
-    string NomeAdmin, string Email, string Celular, string? Ip, string? Navegador);
+    string NomeAdmin, string Email, string Celular, string? Ip, string? Navegador, Cupom? Cupom = null);
 
 /// <param name="LinkPagamento">Só sem teste grátis: a página de pagamento da 1ª fatura (o acesso sai depois do pagamento).</param>
 public sealed record ResultadoCadastroAssinatura(
@@ -90,7 +90,10 @@ public sealed class AssinaturaService(
             TesteAte = testeAte,
             PrimeiroVencimento = testeAte ?? hoje,
             VencimentoEmAberto = testeAte ?? hoje,
-            ValorMensal = o.CalcularValor(dados.Atletas),
+            ValorMensal = CupomRegras.AplicarDesconto(o.CalcularValor(dados.Atletas), dados.Cupom?.PercentualDesconto),
+            CupomCodigo = dados.Cupom?.Codigo,
+            CupomPercentual = dados.Cupom?.PercentualDesconto,
+            CupomMeses = dados.Cupom?.Meses,
             AtletasInformados = dados.Atletas,
             CpfCnpj = dados.CpfCnpj,
             Cidade = dados.Cidade,
@@ -177,7 +180,8 @@ public sealed class AssinaturaService(
     }
 
     public static string Plano(Assinatura a) =>
-        $"{Moeda(a.ValorMensal)} por mês ({a.AtletasCobrados ?? a.AtletasInformados} atletas)";
+        $"{Moeda(a.ValorMensal)} por mês ({a.AtletasCobrados ?? a.AtletasInformados} atletas)"
+        + (a.CupomCodigo is not null && a.CupomPercentual is { } pct ? $", cupom {a.CupomCodigo}: {CupomRegras.Descricao(pct, a.CupomMeses)}" : string.Empty);
 
     public static string Moeda(decimal valor) => valor.ToString("C", PtBr);
 
@@ -258,7 +262,7 @@ public sealed class AssinaturaService(
             a.VencimentoEmAberto = faturas.Count > 0 ? aberta?.Vencimento : nova == SituacaoAssinatura.Ativa ? null : a.PrimeiroVencimento;
 
             if (GatewayDaAssinatura(a) && SituacaoAssinaturaCalculo.PodeAtualizarValor(hoje, faturas))
-                await AtualizarValorAsync(db, sp, a, ct);
+                await AtualizarValorAsync(db, sp, a, faturas.Count(f => f.Paga), ct);
         }
 
         if (nova != a.Situacao)
@@ -278,10 +282,13 @@ public sealed class AssinaturaService(
 
     /// <summary>Depois da 1ª fatura paga, o valor segue os atletas <b>ativos</b> (no teste vale o número informado). Falha no gateway só
     /// adia: a próxima atualização tenta de novo.</summary>
-    private async Task AtualizarValorAsync(EscolaDbContext db, IServiceProvider sp, Assinatura a, CancellationToken ct)
+    private async Task AtualizarValorAsync(EscolaDbContext db, IServiceProvider sp, Assinatura a, int mensalidadesPagas, CancellationToken ct)
     {
         var ativos = await db.Alunos.CountAsync(x => x.Ativo, ct);
         var valor = opcoes.Value.CalcularValor(ativos);
+        // Cupom: desconto nas N primeiras mensalidades (ou sempre); passou disso, o valor volta ao cheio.
+        if (CupomRegras.DescontoVigente(a.CupomPercentual, a.CupomMeses, mensalidadesPagas))
+            valor = CupomRegras.AplicarDesconto(valor, a.CupomPercentual);
         if (valor == a.ValorMensal && a.AtletasCobrados == ativos) return;
 
         try

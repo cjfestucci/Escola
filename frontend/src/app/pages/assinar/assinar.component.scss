@@ -255,3 +255,30 @@ h2 {
   color: #0e2a3a;
   font-weight: 700;
 }
+
+.resumo .cupom {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.campo-cupom {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--cor-borda);
+    text-transform: uppercase;
+  }
+
+  .botao {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+}

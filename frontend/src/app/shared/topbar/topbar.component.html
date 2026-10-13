@@ -13,8 +13,10 @@
 
   <div class="usuario-topbar">
     @if (contextoService.contexto() === 'educador' && sessao.educadorNome(); as nome) {
-      <span class="avatar-topbar">{{ nome.charAt(0) }}</span>
-      <span class="nome-topbar">{{ nome }}</span>
+      <a class="link-conta" routerLink="/minha-conta" title="Minha conta">
+        <span class="avatar-topbar">{{ nome.charAt(0) }}</span>
+        <span class="nome-topbar">{{ nome }}</span>
+      </a>
       <button type="button" class="botao-trocar" (click)="sair()">Sair</button>
     }
     @if (contextoService.contexto() === 'suporte' && sessao.suporteNome(); as nome) {
@@ -24,8 +26,10 @@
       <button type="button" class="botao-trocar" (click)="sair()">Sair</button>
     }
     @if (contextoService.contexto() === 'portal' && sessao.responsavelNome(); as nome) {
-      <span class="avatar-topbar">{{ nome.charAt(0) }}</span>
-      <span class="nome-topbar">{{ nome }}</span>
+      <a class="link-conta" routerLink="/minha-conta" title="Minha conta">
+        <span class="avatar-topbar">{{ nome.charAt(0) }}</span>
+        <span class="nome-topbar">{{ nome }}</span>
+      </a>
       <button type="button" class="botao-trocar" (click)="sair()">Sair</button>
     }
   </div>

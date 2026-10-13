@@ -22,8 +22,7 @@
       <label><span class="obrigatorio">Código de verificação</span>
         <input
           type="text"
-          inputmode="numeric"
-          maxlength="7"
+          maxlength="9"
           [(ngModel)]="codigo"
           name="codigo"
           placeholder="000000"
@@ -31,7 +30,10 @@
           class="campo-codigo"
         />
       </label>
-      <p class="ajuda-codigo">Abra o app autenticador (Google Authenticator, Microsoft Authenticator…) e digite o código de 6 dígitos desta conta.</p>
+      <p class="ajuda-codigo">
+        Abra o app autenticador (Google Authenticator, Microsoft Authenticator…) e digite o código de 6 dígitos desta conta.
+        Sem o celular? Use um dos códigos de recuperação (formato XXXX-XXXX).
+      </p>
       <button type="submit" class="botao-entrar" [disabled]="entrando()">
         {{ entrando() ? 'Verificando...' : 'Verificar' }}
       </button>

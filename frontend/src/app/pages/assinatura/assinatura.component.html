@@ -86,6 +86,9 @@
       } @else {
         <p class="ajuda">Calculado para {{ a.atletasInformados }} atletas, como informado no cadastro. Depois da 1ª mensalidade paga, o valor passa a acompanhar os atletas ativos.</p>
       }
+      @if (a.cupomCodigo) {
+        <p class="ajuda">🏷️ Cupom <strong>{{ a.cupomCodigo }}</strong>: {{ a.cupomDescricao }}.</p>
+      }
     </div>
 
     <div class="painel">

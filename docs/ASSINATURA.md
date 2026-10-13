@@ -108,7 +108,25 @@ mostra **"Pagar agora"** e o e-mail de boas-vindas **só sai quando o pagamento 
 | **1 — MVP** ✅ | Tudo acima. |
 | **2 — Ciclo** ✅ (2026-10-13) | Valor pelos atletas **ativos** depois da 1ª fatura paga; cancelar pela tela; e-mail no fim do teste e na suspensão; cartão da assinatura na Plataforma. Ver "Fase 2" abaixo. |
 | **3 — Retenção** ✅ (2026-10-13) | Reativar pela tela; exclusão dos dados de cancelados e testes nunca pagos (desligada por padrão); registros de acesso do Marco Civil. Ver "Reativar, retenção e registros de acesso" acima. |
-| **4 — Crescimento** | Cupons, NFS-e pelo Asaas, painel do Suporte com todos os clientes. |
+| **4 — Crescimento** (em parte, 2026-10-13) | ✅ Cupons de desconto; ✅ painel do Suporte com todos os clientes. Falta: NFS-e pelo Asaas. Ver "Cupons" abaixo. |
+
+## Cupons de desconto (desde 2026-10-13)
+
+- **Criados pelo Suporte** em Plataforma → Clientes (`PlataformaCuponsController`, `api/plataforma/cupons`, só `Suporte`): código
+  (único, guardado em maiúsculas), desconto de 1–100%, por quantas mensalidades (vazio = todas), validade e limite de usos opcionais,
+  observação. Sem exclusão: desativar/ativar. Mudanças vão pro **log da aplicação**, não pro histórico de um cliente (o cupom não é
+  de nenhum cliente).
+- **`Cupom` é a única entidade da plataforma** (`IEntidadePlataforma`): fica fora do isolamento por cliente (sem `ClienteId`, sem filtro
+  global) e fora da exclusão de dados. A lista é fechada — `IsolamentoPorClienteTests.SoOsCuponsSaoDaPlataforma` falha se outra
+  entidade ganhar o marcador.
+- **No `/assinar`**: campo "Cupom" no resumo; `GET /api/assinaturas/cupom/{codigo}` (anônimo, freio de 10 falhas por IP) confere e
+  mostra o desconto. O `POST /api/assinaturas` valida de novo (ativo, dentro da validade, abaixo do limite de usos — contado nas
+  assinaturas de todos os clientes).
+- **Na assinatura**: código, percentual e meses são **copiados** pra `Assinatura` (`CupomCodigo`/`CupomPercentual`/`CupomMeses`) —
+  mudar ou desativar o cupom depois não afeta quem já assinou. A 1ª fatura sai com desconto; depois, o valor pelos atletas ativos
+  (`AtualizarValorAsync`) continua com desconto enquanto as mensalidades pagas forem menos que `CupomMeses` (`CupomRegras`, puro e
+  testado). Aparece na tela Assinatura do clube.
+- **Limitação**: reativar abre uma assinatura nova no Asaas e a contagem de mensalidades pagas recomeça (o desconto pode valer de novo).
 
 ## Pendências antes de produção
 

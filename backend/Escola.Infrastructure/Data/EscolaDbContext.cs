@@ -42,6 +42,7 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options, ICliente
     public DbSet<CobrancaPix> CobrancasPix => Set<CobrancaPix>();
     public DbSet<ContaPagamento> ContasPagamento => Set<ContaPagamento>();
     public DbSet<Assinatura> Assinaturas => Set<Assinatura>();
+    public DbSet<Cupom> Cupons => Set<Cupom>();
     public DbSet<RegistroAcesso> RegistrosAcesso => Set<RegistroAcesso>();
     public DbSet<ConfiguracaoFinanceira> ConfiguracoesFinanceiras => Set<ConfiguracaoFinanceira>();
     public DbSet<ConfiguracaoEscola> ConfiguracoesEscola => Set<ConfiguracaoEscola>();
@@ -68,8 +69,10 @@ public class EscolaDbContext(DbContextOptions<EscolaDbContext> options, ICliente
     /// (ex.: índices únicos de e-mail por cliente).</summary>
     private void AplicarIsolamentoPorCliente(ModelBuilder modelBuilder)
     {
+        // Fora: o próprio Cliente e as entidades do produto (IEntidadePlataforma, ex.: cupom) — essas não são de cliente nenhum.
         var raizes = modelBuilder.Model.GetEntityTypes()
-            .Where(e => e.BaseType is null && e.ClrType != typeof(Cliente) && !e.IsOwned())
+            .Where(e => e.BaseType is null && e.ClrType != typeof(Cliente) && !e.IsOwned()
+                && !typeof(IEntidadePlataforma).IsAssignableFrom(e.ClrType))
             .Select(e => e.ClrType)
             .ToList();
 

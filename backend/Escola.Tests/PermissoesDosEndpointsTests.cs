@@ -20,6 +20,7 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
 
         Assert.Equal(
         [
+            "GET /api/assinaturas/cupom/{codigo}",
             "GET /api/assinaturas/plano",
             "GET /api/configuracao/escola",
             "POST /api/assinaturas",
@@ -77,7 +78,8 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
 
         var foraDaConfiguracao = doSuporte.Where(t =>
             !t.Contains("/api/plataforma") && !t.Contains("/api/configuracao/escola") && !t.Contains("/api/financeiro/configuracao")
-            && !t.Contains("/api/pix/") && !t.Contains("/api/pagamentos/conta") && !t.Contains("/api/assinaturas/minha") && !t.Contains("/api/logs")).ToList();
+            && !t.Contains("/api/pix/") && !t.Contains("/api/pagamentos/conta") && !t.Contains("/api/assinaturas/minha") && !t.Contains("/api/logs")
+            && !t.Contains("/api/minha-conta/")).ToList(); // só a própria conta (e o Suporte é recusado ao tentar ativar)
 
         Assert.True(foraDaConfiguracao.Count == 0, "O Suporte alcança dado do cliente: " + string.Join("; ", foraDaConfiguracao));
     }
@@ -117,7 +119,8 @@ public class PermissoesDosEndpointsTests(ITestOutputHelper saida)
         var alcance = Endpoints.Where(e => !e.Anonimo && e.Permite("Responsavel")).Select(e => e.Rota).ToList();
         var forasDoPortal = alcance.Where(r => !r.StartsWith("/api/alunos/") && !r.StartsWith("/api/responsaveis/")
             && !r.StartsWith("/api/turmas/") && !r.StartsWith("/api/financeiro/cobrancas/") && r != "/api/financeiro/formas-pagamento" && !r.StartsWith("/api/logs")
-            && !r.StartsWith("/api/portal/")).ToList();
+            && !r.StartsWith("/api/portal/")
+            && !r.StartsWith("/api/minha-conta/")).ToList(); // a própria conta (verificação em duas etapas)
         foreach (var r in forasDoPortal) saida.WriteLine(r);
 
         Assert.True(forasDoPortal.Count == 0, "Responsável alcança: " + string.Join("; ", forasDoPortal));

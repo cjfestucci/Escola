@@ -12,6 +12,10 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         builder.Property(u => u.Email).IsRequired().HasMaxLength(256);
         // Único por cliente (a coluna ClienteId é definida pelo EscolaDbContext): a mesma pessoa pode ter conta em dois clientes.
         builder.HasIndex("ClienteId", nameof(Usuario.Email)).IsUnique();
+        builder.Property(u => u.TotpSegredoCriptografado).HasMaxLength(300);
+        builder.Property(u => u.TotpSegredoPendenteCriptografado).HasMaxLength(300);
+        builder.Property(u => u.CodigosRecuperacaoHash).HasMaxLength(1000);
+        builder.Ignore(u => u.DoisFatoresAtivo);
 
         builder.HasOne(u => u.Responsavel)
             .WithMany()

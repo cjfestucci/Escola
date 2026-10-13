@@ -33,6 +33,7 @@ public class AuthController(
     IAuditoriaService auditoria,
     LimitadorTentativasLogin limitador,
     RegistroAcessoService registroAcesso,
+    Escola.Infrastructure.Seguranca.CofreSegredos cofre,
     ILogger<AuthController> logger) : ControllerBase
 {
     /// <summary>Intervalo mínimo entre dois e-mails de redefinição pra mesma conta (evita usar o endpoint pra encher a caixa de alguém).</summary>
@@ -192,6 +193,40 @@ public class AuthController(
             }
 
             limitador.RegistrarPasso(chave, passo);
+        }
+        else if (usuario.DoisFatoresAtivo)
+        {
+            // Verificação em duas etapas que a própria pessoa ativou (Minha conta): código do app ou um código de recuperação.
+            if (string.IsNullOrWhiteSpace(request.Codigo))
+                return Ok(LoginRespostaDto.ExigeSegundoFator());
+
+            if (CodigosRecuperacao.PareceCodigoDeRecuperacao(request.Codigo))
+            {
+                if (!CodigosRecuperacao.TentarUsar(usuario.CodigosRecuperacaoHash, request.Codigo, out var restantes))
+                {
+                    limitador.RegistrarFalha(chave);
+                    return Unauthorized("Código de verificação inválido ou já utilizado.");
+                }
+                usuario.CodigosRecuperacaoHash = restantes;
+                auditoria.Registrar(nameof(Usuario), usuario.Id, AcaoAuditoria.Editado, usuario.Id,
+                    $"Entrou com um código de recuperação ({CodigosRecuperacao.Restantes(restantes)} restantes)");
+            }
+            else
+            {
+                string segredo;
+                try { segredo = cofre.Descriptografar(usuario.TotpSegredoCriptografado!); }
+                catch (Exception ex) when (ex is InvalidOperationException or System.Security.Cryptography.CryptographicException or FormatException)
+                {
+                    logger.LogError(ex, "Não foi possível ler o segredo da verificação em duas etapas da conta {UsuarioId}.", usuario.Id);
+                    return Unauthorized("Não foi possível conferir o código agora. Use um código de recuperação ou fale com o administrador.");
+                }
+                if (!Totp.TentarValidar(segredo, request.Codigo, DateTime.UtcNow, limitador.UltimoPasso(chave), out var passo))
+                {
+                    limitador.RegistrarFalha(chave);
+                    return Unauthorized("Código de verificação inválido ou já utilizado.");
+                }
+                limitador.RegistrarPasso(chave, passo);
+            }
         }
 
         limitador.Limpar(chave);

@@ -1,0 +1,83 @@
+<div class="container container--largo">
+  <p class="subtitulo">
+    Todos os clientes do produto: assinatura e uso. Para agir num cliente, entre nele escolhendo a escola no login.
+  </p>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  } @else {
+    <div class="resumo">
+      <div class="cartao-resumo">
+        <span class="valor">{{ clientes().length }}</span>
+        <span class="rotulo">clientes</span>
+      </div>
+      <div class="cartao-resumo">
+        <span class="valor">{{ formatarReais(receitaMensal()) }}</span>
+        <span class="rotulo">por mês em assinaturas pagantes</span>
+      </div>
+    </div>
+
+    <app-cupons />
+
+    <div class="filtros">
+      @for (f of filtros; track f.valor) {
+        <button type="button" class="pilula" [class.pilula--ativa]="filtro() === f.valor" (click)="filtro.set(f.valor)">
+          {{ f.rotulo }} <span class="quantidade">{{ contagem().get(f.valor) }}</span>
+        </button>
+      }
+      <input type="text" class="busca" placeholder="Buscar por nome ou e-mail" [ngModel]="busca()" (ngModelChange)="busca.set($event)" />
+    </div>
+
+    @if (visiveis().length === 0) {
+      <p class="vazio">Nenhum cliente neste filtro.</p>
+    }
+
+    <ul class="lista">
+      @for (c of visiveis(); track c.id) {
+        <li class="cliente" [class.cliente--inativo]="!c.ativo">
+          <div class="cabecalho">
+            <div>
+              <strong>{{ c.nome }}</strong>
+              <span class="detalhe">{{ rotulosSegmento[c.segmento] }} · desde {{ formatarDataHora(c.criadoEm).slice(0, 10) }}</span>
+            </div>
+            @if (c.situacao) {
+              <span class="selo" [class]="'selo selo--' + c.situacao">{{ c.rotuloSituacao }}</span>
+            } @else {
+              <span class="selo selo--manual">Sem assinatura</span>
+            }
+          </div>
+
+          <div class="dados">
+            @if (c.valorMensal !== null) {
+              <span><b>{{ formatarReais(c.valorMensal) }}</b>/mês</span>
+            }
+            <span>{{ c.atletasAtivos }} atletas ativos</span>
+            <span>{{ c.contasEquipe }} {{ c.contasEquipe === 1 ? 'conta' : 'contas' }} da equipe</span>
+            <span>Último acesso: {{ c.ultimoAcessoEm ? formatarDataHora(c.ultimoAcessoEm) : 'nunca' }}</span>
+            @if (c.emailCobranca) {
+              <span>{{ c.emailCobranca }}</span>
+            }
+          </div>
+
+          <div class="datas">
+            @if (c.situacao === 'EmTeste' && c.testeAte) {
+              <span>Teste até {{ formatarData(c.testeAte) }}</span>
+            }
+            @if (c.vencimentoEmAberto && !c.acessoAte) {
+              <span>Fatura em aberto vence em {{ formatarData(c.vencimentoEmAberto) }}</span>
+            }
+            @if (c.acessoAte) {
+              <span>Cancelada · acesso até {{ formatarData(c.acessoAte) }}</span>
+            }
+            @if (c.dataExclusao) {
+              <span class="alerta">Dados apagados a partir de {{ formatarData(c.dataExclusao) }}</span>
+            }
+            @if (!c.ativo) {
+              <span class="alerta">Acesso do cliente desligado</span>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

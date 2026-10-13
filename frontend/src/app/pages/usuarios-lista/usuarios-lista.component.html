@@ -4,12 +4,18 @@
     <button type="button" class="botao-primario" (click)="abrirNovo()">+ Nova Conta</button>
   </div>
 
-  @if (senhaGerada(); as sg) {
+  @if (linkParaRepassar(); as envio) {
     <div class="aviso-senha">
-      <strong>Conta pronta — anote a senha, ela só aparece esta vez:</strong>
-      <p>{{ sg.nome }} ({{ sg.email }})</p>
-      <p class="senha">{{ sg.senha }}</p>
-      <button type="button" class="botao-texto" (click)="senhaGerada.set(null)">Entendi</button>
+      <strong>O e-mail não pôde ser enviado. Repasse este link para {{ envio.conta.nome }} ({{ envio.conta.email }}):</strong>
+      <p class="link-convite">{{ envio.link }}</p>
+      <p>
+        {{ envio.conta.convitePendente ? 'Com ele a pessoa confirma o e-mail e cria a própria senha (vale 7 dias).' : 'Com ele a pessoa cria uma senha nova (vale 1 hora).' }}
+        O link só aparece agora e só pode ser usado uma vez.
+      </p>
+      <div class="acoes-link">
+        <button type="button" class="botao-texto" (click)="copiarLink(envio.link!)">Copiar link</button>
+        <button type="button" class="botao-texto" (click)="linkParaRepassar.set(null)">Entendi</button>
+      </div>
     </div>
   }
 
@@ -52,6 +58,12 @@
             <strong>{{ conta.nome }}</strong>
             <span class="detalhe">
               {{ conta.email }} · {{ rotuloPapel(conta.papel) }}
+              @if (conta.doisFatores) {
+                <span class="status status--dois-fatores" title="Entra com senha + código do app autenticador">2 etapas</span>
+              }
+              @if (conta.ativo && conta.convitePendente) {
+                <span class="status status--pendente" title="Ainda não cadastrou a senha pelo convite do e-mail">Convite pendente</span>
+              }
               @if (!conta.ativo) {
                 <span class="status status--inativa">Inativa</span>
               }
@@ -63,9 +75,10 @@
               type="button"
               class="botao-texto"
               [disabled]="redefinindoId() === conta.id"
-              (click)="redefinirSenha(conta)"
+              [title]="conta.convitePendente ? 'Manda o convite de novo (o anterior deixa de valer).' : 'Manda por e-mail um link para a pessoa criar uma senha nova. A atual continua valendo até ela usar o link.'"
+              (click)="enviarLink(conta)"
             >
-              {{ redefinindoId() === conta.id ? 'Gerando...' : 'Redefinir senha' }}
+              {{ redefinindoId() === conta.id ? 'Enviando...' : conta.convitePendente ? 'Reenviar convite' : 'Enviar link de nova senha' }}
             </button>
             <button type="button" class="botao-icone" (click)="abrirHistorico(conta.id)" aria-label="Ver histórico" title="Ver histórico">🕘</button>
             <button type="button" class="botao-icone" (click)="editar(conta)" aria-label="Editar conta">✏️</button>
@@ -80,6 +93,24 @@
                 >
                   Encerrar sessões
                 </button>
+              }
+              @if (conta.doisFatores) {
+                @if (confirmandoRemocao2faId() === conta.id) {
+                  <span class="confirmacao-inline">
+                    Remover a verificação em duas etapas?
+                    <button type="button" class="botao-texto" (click)="confirmandoRemocao2faId.set(null)">Voltar</button>
+                    <button type="button" class="botao-texto botao-texto--perigo" [disabled]="processandoId() === conta.id" (click)="removerDoisFatores(conta)">Remover</button>
+                  </span>
+                } @else {
+                  <button
+                    type="button"
+                    class="botao-texto"
+                    title="Pra quem perdeu o celular e os códigos de recuperação: a conta volta a entrar só com a senha."
+                    (click)="confirmandoRemocao2faId.set(conta.id)"
+                  >
+                    Remover 2 etapas
+                  </button>
+                }
               }
               <button
                 type="button"

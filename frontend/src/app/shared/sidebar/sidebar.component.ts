@@ -17,6 +17,8 @@ interface ItemNav {
   rota?: string;
   icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes' | 'estoque' | 'competicoes' | 'chamada' | 'plataforma';
   subitens?: SubItemNav[];
+  /** Destacar só na rota exata (ex.: /plataforma não acende em /plataforma/clientes, que tem item próprio). */
+  exato?: boolean;
 }
 
 const ITEM_DASHBOARD: ItemNav = { rotulo: 'Dashboard', rota: '/dashboard', icone: 'painel' };
@@ -51,7 +53,9 @@ const ITEM_ESTOQUE: ItemNav = {
     { rotulo: 'Movimentações', rota: '/estoque/movimentacoes' }
   ]
 };
-const ITEM_PLATAFORMA: ItemNav = { rotulo: 'Plataforma', rota: '/plataforma', icone: 'plataforma' };
+const ITEM_PLATAFORMA: ItemNav = { rotulo: 'Plataforma', rota: '/plataforma', icone: 'plataforma', exato: true };
+/** Painel do Suporte com todos os clientes do produto (assinaturas e uso). */
+const ITEM_CLIENTES: ItemNav = { rotulo: 'Clientes', rota: '/plataforma/clientes', icone: 'unidades' };
 const ITEM_USUARIOS: ItemNav = { rotulo: 'Usuários', rota: '/usuarios', icone: 'usuarios' };
 const ITEM_CONFIGURACOES: ItemNav = {
   rotulo: 'Configurações',
@@ -94,7 +98,7 @@ export class SidebarComponent {
   protected itensPrincipais(): ItemNav[] {
     if (this.contextoService.contexto() === 'portal') return ITENS_PORTAL;
     // Suporte (equipe do produto): só a Plataforma e as Configurações — nada de dado de aluno, saúde ou financeiro do cliente.
-    if (this.contextoService.contexto() === 'suporte') return [ITEM_PLATAFORMA, this.itemConfiguracoes()];
+    if (this.contextoService.contexto() === 'suporte') return [ITEM_PLATAFORMA, ITEM_CLIENTES, this.itemConfiguracoes()];
 
     const itens: ItemNav[] = [ITEM_DASHBOARD, ITEM_UNIDADES];
     if (this.segmentoService.mostrarRotinaDiaria()) itens.push(ITEM_TURMA_ROTINA);

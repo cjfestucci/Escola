@@ -1,0 +1,96 @@
+<div class="container container--estreito">
+  <p class="subtitulo">{{ auth.identidade()?.nome }}</p>
+
+  @if (carregando()) {
+    <p>Carregando...</p>
+  }
+  @if (estado(); as e) {
+    <section class="painel">
+      <p class="titulo-secao">Verificação em duas etapas</p>
+      <p class="ajuda">
+        Além da senha, o login pede um código do app autenticador do seu celular (Google Authenticator, Microsoft Authenticator,
+        Authy…). Mesmo que alguém descubra a sua senha, não entra sem o celular.
+      </p>
+
+      @switch (etapa()) {
+        @case ('status') {
+          @if (e.ativo) {
+            <p class="estado estado--ativo">✅ Ativa{{ e.ativadoEm ? ' desde ' + formatarDataHora(e.ativadoEm) : '' }}</p>
+            <p class="ajuda">
+              Códigos de recuperação restantes: <strong>{{ e.codigosRecuperacaoRestantes }}</strong>.
+              @if (e.codigosRecuperacaoRestantes <= 2) { Gere códigos novos antes que acabem. }
+            </p>
+            <div class="botoes">
+              <button type="button" class="secundario" (click)="abrir('novosCodigos')">Gerar novos códigos de recuperação</button>
+              <button type="button" class="perigo" (click)="abrir('desativando')">Desativar</button>
+            </div>
+          } @else if (!e.disponivel) {
+            <p class="ajuda">A verificação em duas etapas ainda não está disponível neste ambiente.</p>
+          } @else {
+            <p class="estado">Desativada.</p>
+            <div class="botoes">
+              <button type="button" class="primario" [disabled]="enviando()" (click)="comecarAtivacao()">Ativar</button>
+            </div>
+          }
+        }
+
+        @case ('ativando') {
+          <ol class="passos">
+            <li>Abra o app autenticador no celular e escolha adicionar uma conta.</li>
+            <li>
+              Leia o QR Code abaixo. Se a câmera não ler, digite a chave:
+              <code class="chave">{{ inicio()?.segredo }}</code>
+            </li>
+            <li>Digite o código de 6 dígitos que aparece no app:</li>
+          </ol>
+          @if (qrCode(); as qr) {
+            <img class="qr" [src]="qr" alt="QR Code para o app autenticador" />
+          }
+          <input type="text" class="campo-codigo" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" [(ngModel)]="codigo" />
+          <div class="botoes">
+            <button type="button" class="secundario" (click)="voltar()">Cancelar</button>
+            <button type="button" class="primario" [disabled]="enviando()" (click)="confirmarAtivacao()">Confirmar e ativar</button>
+          </div>
+        }
+
+        @case ('codigos') {
+          <p class="aviso">
+            <strong>Guarde estes códigos de recuperação</strong> num lugar seguro (fora do celular). Cada um entra uma vez, se você perder
+            o celular. Eles aparecem só agora.
+          </p>
+          <ul class="codigos">
+            @for (c of codigosRecuperacao(); track c) {
+              <li>{{ c }}</li>
+            }
+          </ul>
+          <div class="botoes">
+            <button type="button" class="secundario" (click)="copiarCodigos()">Copiar códigos</button>
+            <button type="button" class="primario" (click)="voltar()">Já guardei</button>
+          </div>
+        }
+
+        @case ('desativando') {
+          <label>Sua senha
+            <input type="password" autocomplete="current-password" [(ngModel)]="senha" />
+          </label>
+          <label>Código do app (ou um código de recuperação)
+            <input type="text" class="campo-codigo" maxlength="9" autocomplete="one-time-code" [(ngModel)]="codigo" />
+          </label>
+          <div class="botoes">
+            <button type="button" class="secundario" (click)="voltar()">Voltar</button>
+            <button type="button" class="perigo" [disabled]="enviando()" (click)="desativar()">Desativar</button>
+          </div>
+        }
+
+        @case ('novosCodigos') {
+          <p class="ajuda">Os códigos de recuperação atuais deixam de valer. Digite o código que aparece agora no app:</p>
+          <input type="text" class="campo-codigo" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" [(ngModel)]="codigo" />
+          <div class="botoes">
+            <button type="button" class="secundario" (click)="voltar()">Voltar</button>
+            <button type="button" class="primario" [disabled]="enviando()" (click)="gerarNovosCodigos()">Gerar códigos novos</button>
+          </div>
+        }
+      }
+    </section>
+  }
+</div>

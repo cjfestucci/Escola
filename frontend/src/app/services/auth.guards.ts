@@ -115,3 +115,10 @@ export const adminOuSuporteGuard: CanActivateFn = () => {
   if (auth.podeEditarIdentidade()) return true;
   return router.parseUrl(auth.ehEquipe() ? '/alunos' : destinoSemAcesso(auth));
 };
+
+/** Qualquer pessoa logada (Minha conta). */
+export const logadoGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  return auth.estaLogado() ? true : router.parseUrl('/entrar');
+};

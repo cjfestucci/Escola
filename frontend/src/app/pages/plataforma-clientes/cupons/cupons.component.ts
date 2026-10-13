@@ -1,0 +1,92 @@
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+import { Cupom } from '../../../models/plataforma.model';
+import { NotificacaoService } from '../../../services/notificacao.service';
+import { PlataformaService } from '../../../services/plataforma.service';
+import { CalendarioComponent } from '../../../shared/calendario/calendario.component';
+import { formatarDataAbsoluta, hojeIso } from '../../../shared/data-utils';
+
+/** Cupons de desconto da assinatura (Suporte): criar, ativar e desativar. Mudar um cupom não afeta quem já assinou com ele. */
+@Component({
+  selector: 'app-cupons',
+  imports: [FormsModule, CalendarioComponent],
+  templateUrl: './cupons.component.html',
+  styleUrl: './cupons.component.scss'
+})
+export class CuponsComponent implements OnInit {
+  private readonly plataforma = inject(PlataformaService);
+  private readonly notificacao = inject(NotificacaoService);
+  protected readonly formatarData = formatarDataAbsoluta;
+  protected readonly hojeIso = hojeIso;
+
+  readonly cupons = signal<Cupom[]>([]);
+  readonly formularioAberto = signal(false);
+  readonly salvando = signal(false);
+  readonly processandoId = signal<string | null>(null);
+
+  codigo = '';
+  percentual: number | null = 20;
+  meses: number | null = 3;
+  validoAte: string | null = null;
+  usosMaximos: number | null = null;
+  observacao = '';
+
+  ngOnInit(): void {
+    this.plataforma.listarCupons().subscribe({
+      next: (lista) => this.cupons.set(lista),
+      error: () => this.notificacao.erro('Não foi possível carregar os cupons.')
+    });
+  }
+
+  abrir(): void {
+    this.codigo = '';
+    this.percentual = 20;
+    this.meses = 3;
+    this.validoAte = null;
+    this.usosMaximos = null;
+    this.observacao = '';
+    this.formularioAberto.set(true);
+  }
+
+  salvar(): void {
+    if (this.codigo.trim().length < 3) return this.notificacao.erro('Informe o código do cupom (pelo menos 3 letras ou números).');
+    if (!this.percentual || this.percentual < 1 || this.percentual > 100) return this.notificacao.erro('O desconto precisa ser de 1% a 100%.');
+    this.salvando.set(true);
+    this.plataforma
+      .criarCupom({
+        codigo: this.codigo,
+        percentualDesconto: this.percentual,
+        meses: this.meses || null,
+        validoAte: this.validoAte,
+        usosMaximos: this.usosMaximos || null,
+        observacao: this.observacao.trim() || null
+      })
+      .subscribe({
+        next: (cupom) => {
+          this.salvando.set(false);
+          this.formularioAberto.set(false);
+          this.cupons.update((lista) => [cupom, ...lista]);
+          this.notificacao.sucesso(`Cupom ${cupom.codigo} criado.`);
+        },
+        error: (erro) => {
+          this.salvando.set(false);
+          this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível criar o cupom.');
+        }
+      });
+  }
+
+  alternar(cupom: Cupom): void {
+    this.processandoId.set(cupom.id);
+    this.plataforma.definirCupomAtivo(cupom.id, !cupom.ativo).subscribe({
+      next: (atualizado) => {
+        this.processandoId.set(null);
+        this.cupons.update((lista) => lista.map((c) => (c.id === atualizado.id ? atualizado : c)));
+      },
+      error: () => {
+        this.processandoId.set(null);
+        this.notificacao.erro('Não foi possível alterar o cupom.');
+      }
+    });
+  }
+}
