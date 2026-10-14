@@ -33,6 +33,10 @@ public sealed record CobrancaPixCriada(string IdExterno, string PixCopiaECola, s
 public class PixProvedorException(string mensagem, int? statusHttp = null, Exception? inner = null) : Exception(mensagem, inner)
 {
     public int? StatusHttp { get; } = statusHttp;
+
+    /// <summary>Cliente (pagador) que chegou a ser criado no provedor antes da falha — quem chama guarda, senão a próxima tentativa
+    /// criaria o mesmo responsável de novo.</summary>
+    public string? IdClienteExternoCriado { get; set; }
 }
 
 /// <summary>Cobrança Pix dinâmica num banco/gateway, pra dar baixa automática: Banco do Brasil (API Pix do Banco Central) ou Asaas

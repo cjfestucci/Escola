@@ -134,6 +134,37 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         }
     }
 
+    /// <summary>Visto no sandbox real: logo depois de criar a chave Pix da subconta, o Asaas cria a cobrança mas recusa o QR Code
+    /// ("você não possui uma chave Pix") por alguns segundos. A cobrança sem QR é excluída e o pagador criado fica guardado.</summary>
+    [Fact]
+    public async Task SeOQrCodeFalhaACobrancaOrfaEhExcluidaEOPagadorNaoDuplica()
+    {
+        await GarantirContaAsync();
+        var financeiro = await api.ClienteLogadoAsync(PapelUsuario.Financeiro);
+        var (cobrancaId, responsavelId) = await CriarCobrancaAsync(cpfResponsavel: "52998224725");
+
+        api.Asaas.FalharQrCode = true;
+        try { await financeiro.GetAsync($"/api/financeiro/cobrancas/{cobrancaId}/pix"); }
+        finally { api.Asaas.FalharQrCode = false; }
+
+        List<(string Metodo, string Caminho, string? ApiKey, System.Text.Json.Nodes.JsonNode? Corpo)> chamadas;
+        lock (api.Asaas.Chamadas) chamadas = [.. api.Asaas.Chamadas];
+        var idCriado = chamadas.Last(c => c.Metodo == "GET" && c.Caminho.EndsWith("/pixQrCode")).Caminho.Split('/')[2];
+        Assert.Contains(chamadas, c => c.Metodo == "DELETE" && c.Caminho == $"/payments/{idCriado}");
+
+        string? clienteGuardado;
+        using (var db = api.Contexto(ApiFactory.ClienteId))
+            clienteGuardado = (await db.Responsaveis.SingleAsync(r => r.Id == responsavelId)).IdClienteAsaas;
+        Assert.NotNull(clienteGuardado);
+
+        // Na próxima tentativa (chave já ativa) o Pix sai pelo Asaas, reaproveitando o mesmo cliente.
+        int clientesAntes;
+        lock (api.Asaas.Chamadas) clientesAntes = api.Asaas.Chamadas.Count(c => c.Metodo == "POST" && c.Caminho == "/customers");
+        var pix = await financeiro.GetFromJsonAsync<JsonElement>($"/api/financeiro/cobrancas/{cobrancaId}/pix", Json);
+        Assert.True(pix.GetProperty("automatico").GetBoolean());
+        lock (api.Asaas.Chamadas) Assert.Equal(clientesAntes, api.Asaas.Chamadas.Count(c => c.Metodo == "POST" && c.Caminho == "/customers"));
+    }
+
     [Fact]
     public async Task PixNumaCobrancaCanceladaViraPendenciaAteAlguemConferir()
     {

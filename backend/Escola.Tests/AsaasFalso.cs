@@ -16,6 +16,9 @@ public sealed class AsaasFalso
     /// <summary>pagamentoId → (status, valor, data do pagamento).</summary>
     public Dictionary<string, (string Status, decimal Valor, string? DataPagamento)> Pagamentos { get; } = [];
 
+    /// <summary>Simula a chave Pix ainda ativando: o pedido do QR Code responde 400 (como o Asaas real logo depois de criar a chave).</summary>
+    public bool FalharQrCode { get; set; }
+
     public HttpMessageHandler NovoHandler() => new Handler(this);
 
     private HttpResponseMessage Responder(HttpRequestMessage req, JsonNode? corpo)
@@ -24,6 +27,12 @@ public sealed class AsaasFalso
         caminho = caminho[(caminho.IndexOf("/v3", StringComparison.Ordinal) + 3)..];
         var apiKey = req.Headers.TryGetValues("access_token", out var v) ? v.FirstOrDefault() : null;
         lock (Chamadas) Chamadas.Add((req.Method.Method, caminho, apiKey, corpo));
+
+        if (FalharQrCode && req.Method == HttpMethod.Get && caminho.EndsWith("/pixQrCode"))
+            return new HttpResponseMessage(HttpStatusCode.BadRequest)
+            {
+                Content = new StringContent("{\"errors\":[{\"description\":\"Você não possui uma chave Pix cadastrada para recebimentos de cobranças via Pix.\"}]}", Encoding.UTF8, "application/json")
+            };
 
         object? resposta = (req.Method.Method, caminho) switch
         {
@@ -37,6 +46,7 @@ public sealed class AsaasFalso
             ("GET", var c) when c.StartsWith("/subscriptions/") && c.EndsWith("/payments") => FaturasDaAssinatura(c.Split('/')[2]),
             ("PUT", var c) when c.StartsWith("/subscriptions/") => AtualizarAssinatura(c.Split('/')[2], corpo!),
             ("DELETE", var c) when c.StartsWith("/subscriptions/") => CancelarAssinatura(c.Split('/')[2]),
+            ("DELETE", var c) when c.StartsWith("/payments/") => new { deleted = true, id = c.Split('/')[2] },
             ("GET", var c) when c.EndsWith("/pixQrCode") => new { payload = $"00020126ASAAS{c.Split('/')[2]}6304ABCD", encodedImage = "" },
             ("GET", var c) when c.StartsWith("/payments/") => Consultar(c["/payments/".Length..]),
             _ => null

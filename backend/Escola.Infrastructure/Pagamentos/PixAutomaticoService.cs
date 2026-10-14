@@ -109,6 +109,12 @@ public sealed class PixAutomaticoService(
         catch (PixProvedorException ex)
         {
             logger.LogWarning(ex, "Não foi possível criar a cobrança Pix no provedor {Provedor}; usando o Pix estático.", provedor.Tipo);
+            // O pagador pode ter sido cadastrado no provedor antes da falha: guarda, senão a próxima tentativa o duplicaria.
+            if (ex.IdClienteExternoCriado is { } clienteCriado && responsavelPagador is not null)
+            {
+                responsavelPagador.IdClienteAsaas = clienteCriado;
+                await db.SaveChangesAsync(ct);
+            }
             return null;
         }
     }

@@ -24,10 +24,30 @@ public sealed class AsaasProvedorPix(AsaasApi api, string apiKeySubconta) : IPro
             clienteCriado = clienteId;
         }
 
-        // externalReference = a cobrança do sistema: dá pra achar no painel do Asaas e confere com o que volta no webhook.
-        var pagamentoId = await api.CriarCobrancaPixAsync(apiKeySubconta, clienteId, dados.Valor, dados.Vencimento, dados.Descricao, dados.CobrancaId.ToString(), ct);
-        var copiaECola = await api.CopiaEColaAsync(apiKeySubconta, pagamentoId, ct);
-        return new CobrancaPixCriada(pagamentoId, copiaECola, clienteCriado);
+        try
+        {
+            // externalReference = a cobrança do sistema: dá pra achar no painel do Asaas e confere com o que volta no webhook.
+            var pagamentoId = await api.CriarCobrancaPixAsync(apiKeySubconta, clienteId, dados.Valor, dados.Vencimento, dados.Descricao, dados.CobrancaId.ToString(), ct);
+            string copiaECola;
+            try
+            {
+                copiaECola = await api.CopiaEColaAsync(apiKeySubconta, pagamentoId, ct);
+            }
+            catch (PixProvedorException)
+            {
+                // Sem QR Code (ex.: a chave Pix da subconta ainda está ativando) ninguém consegue pagar essa cobrança, e ela ficaria
+                // pendente e depois vencida no extrato da escola. Exclui; a próxima tentativa cria outra.
+                try { await api.ExcluirPagamentoAsync(apiKeySubconta, pagamentoId, ct); }
+                catch (PixProvedorException) { /* melhor esforço: a falha original é que importa */ }
+                throw;
+            }
+            return new CobrancaPixCriada(pagamentoId, copiaECola, clienteCriado);
+        }
+        catch (PixProvedorException ex)
+        {
+            ex.IdClienteExternoCriado ??= clienteCriado;
+            throw;
+        }
     }
 
     public async Task<CobrancaPixConsultada?> ConsultarCobrancaAsync(string idExterno, CancellationToken ct = default)

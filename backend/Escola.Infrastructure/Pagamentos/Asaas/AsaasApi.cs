@@ -169,6 +169,12 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
             : payload;
     }
 
+    /// <summary>Exclui uma cobrança (ex.: criada, mas sem QR Code — ninguém conseguiria pagar e ela ficaria vencida no extrato da escola).</summary>
+    public async Task ExcluirPagamentoAsync(string apiKeySubconta, string pagamentoId, CancellationToken ct = default)
+    {
+        using var _ = await EnviarAsync(apiKeySubconta, HttpMethod.Delete, $"/payments/{Uri.EscapeDataString(pagamentoId)}", null, ct, aceitar404: true);
+    }
+
     /// <summary>Nulo se o pagamento não existe (ou foi excluído).</summary>
     public async Task<PagamentoAsaas?> ConsultarPagamentoAsync(string apiKeySubconta, string pagamentoId, CancellationToken ct = default)
     {
