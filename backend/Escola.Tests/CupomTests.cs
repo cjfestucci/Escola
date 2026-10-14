@@ -68,20 +68,20 @@ public class CupomHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         Assert.Equal(20, conferido.GetProperty("percentualDesconto").GetInt32());
         Assert.Equal(HttpStatusCode.NotFound, (await anonimo.GetAsync("/api/assinaturas/cupom/NAOEXISTE")).StatusCode);
 
-        // Assina com o cupom: 99 + 3 × 40 = 219, com 20% = 175,20 — também na assinatura do gateway.
+        // Assina com o cupom: 60 + 4 × (40 − 20) = 140, com 20% = 112 — também na assinatura do gateway.
         var email = $"dono.{Guid.NewGuid():N}@clube.test";
         var resposta = await anonimo.PostAsJsonAsync("/api/assinaturas", Cadastro(email, "lancamento20"));
         resposta.EnsureSuccessStatusCode();
-        Assert.Equal(175.20m, (await resposta.Content.ReadFromJsonAsync<JsonElement>(Json)).GetProperty("valorMensal").GetDecimal());
+        Assert.Equal(112m, (await resposta.Content.ReadFromJsonAsync<JsonElement>(Json)).GetProperty("valorMensal").GetDecimal());
         var criadaNoGateway = api.Asaas.Chamadas.Last(c => c.Metodo == "POST" && c.Caminho == "/subscriptions");
-        Assert.Equal(175.20m, criadaNoGateway.Corpo!["value"]!.GetValue<decimal>());
+        Assert.Equal(112m, criadaNoGateway.Corpo!["value"]!.GetValue<decimal>());
 
         // Limite de 1 uso: o próximo cadastro com o cupom é recusado.
         Assert.Equal(HttpStatusCode.BadRequest, (await anonimo.PostAsJsonAsync("/api/assinaturas", Cadastro($"outro.{Guid.NewGuid():N}@clube.test", "LANCAMENTO20"))).StatusCode);
         var cupons = await suporte.GetFromJsonAsync<JsonElement>("/api/plataforma/cupons", Json);
         Assert.Equal(1, cupons.EnumerateArray().Single(c => c.GetProperty("codigo").GetString() == "LANCAMENTO20").GetProperty("usos").GetInt32());
 
-        // Pagou a 1ª (o cupom vale 1 mês): a próxima volta ao valor cheio (99 + 3 × 0 atletas ativos).
+        // Pagou a 1ª (o cupom vale 1 mês): a próxima volta ao valor cheio (R$ 60: nenhum atleta ativo, dentro dos 20 incluídos).
         Guid clienteId;
         string idAssinatura;
         using (var db = api.Contexto(ApiFactory.ClienteId))
@@ -92,9 +92,9 @@ public class CupomHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
             Assert.Equal("LANCAMENTO20", a.CupomCodigo);
         }
         api.Asaas.Pagar(api.Asaas.Assinaturas[idAssinatura][0].PagamentoId);
-        var proxima = api.Asaas.GerarFatura(idAssinatura, DateOnly.FromDateTime(DateTime.Today).AddDays(20), 175.20m);
+        var proxima = api.Asaas.GerarFatura(idAssinatura, DateOnly.FromDateTime(DateTime.Today).AddDays(20), 112m);
         using (var escopo = api.Services.CreateScope())
             await escopo.ServiceProvider.GetRequiredService<IAssinaturaService>().AtualizarAsync(clienteId);
-        Assert.Equal(99m, api.Asaas.Pagamentos[proxima].Valor);
+        Assert.Equal(60m, api.Asaas.Pagamentos[proxima].Valor);
     }
 }

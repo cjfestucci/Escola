@@ -1,8 +1,11 @@
 export type SituacaoAssinatura = 'AguardandoPagamento' | 'EmTeste' | 'Ativa' | 'EmAtraso' | 'Suspensa' | 'Cancelada';
 
 export interface PlanoAssinatura {
+  /** Valor mínimo, que já cobre `atletasIncluidos` atletas. */
   precoFixo: number;
+  /** Valor de cada atleta acima dos incluídos. */
   precoPorAtleta: number;
+  atletasIncluidos: number;
   diasTeste: number;
   versaoTermos: string;
 }
@@ -68,8 +71,14 @@ export interface MinhaAssinatura {
   cupomDescricao: string | null;
 }
 
+/** Atletas cobrados à parte (acima dos incluídos no valor mínimo). */
+export function atletasExcedentes(plano: PlanoAssinatura, atletas: number): number {
+  return Math.max(0, atletas - Math.max(0, plano.atletasIncluidos));
+}
+
+/** Mesma conta da API (`OpcoesAssinatura.CalcularValor`): mínimo até N atletas + valor por atleta acima. */
 export function valorDoPlano(plano: PlanoAssinatura, atletas: number): number {
-  return Math.round((plano.precoFixo + plano.precoPorAtleta * Math.max(0, atletas)) * 100) / 100;
+  return Math.round((plano.precoFixo + plano.precoPorAtleta * atletasExcedentes(plano, atletas)) * 100) / 100;
 }
 
 export function formatarReais(valor: number): string {

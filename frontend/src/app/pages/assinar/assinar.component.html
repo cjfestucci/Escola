@@ -110,8 +110,10 @@
       <aside class="painel resumo">
         <h2>Plano completo</h2>
         @if (plano(); as p) {
-          <div class="linha"><span>Valor fixo</span><span>{{ formatarReais(p.precoFixo) }}</span></div>
-          <div class="linha"><span>{{ atletas() }} atletas × {{ formatarReais(p.precoPorAtleta) }}</span><span>{{ formatarReais(p.precoPorAtleta * atletas()) }}</span></div>
+          <div class="linha"><span>Até {{ p.atletasIncluidos }} atletas</span><span>{{ formatarReais(p.precoFixo) }}</span></div>
+          @if (atletasExcedentes(p, atletas()); as excedentes) {
+            <div class="linha"><span>{{ excedentes }} {{ excedentes === 1 ? 'atleta' : 'atletas' }} a mais × {{ formatarReais(p.precoPorAtleta) }}</span><span>{{ formatarReais(p.precoPorAtleta * excedentes) }}</span></div>
+          }
           @if (cupom(); as c) {
             <div class="linha cupom">
               <span>Cupom {{ c.codigo }} (−{{ c.percentualDesconto }}%)</span>

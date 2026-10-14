@@ -21,7 +21,9 @@ namespace Escola.Api.Controllers;
 
 public record CupomPublicoDto(string Codigo, int PercentualDesconto, int? Meses, string Descricao);
 
-public record PlanoAssinaturaDto(decimal PrecoFixo, decimal PrecoPorAtleta, int DiasTeste, string VersaoTermos);
+/// <param name="PrecoFixo">Valor mínimo, que já cobre <c>AtletasIncluidos</c> atletas.</param>
+/// <param name="PrecoPorAtleta">Valor de cada atleta acima dos incluídos.</param>
+public record PlanoAssinaturaDto(decimal PrecoFixo, decimal PrecoPorAtleta, int DiasTeste, string VersaoTermos, int AtletasIncluidos);
 
 public record CadastroAssinaturaRequest(
     string? NomeClube, string? CpfCnpj, string? Cidade, int Atletas,
@@ -59,7 +61,7 @@ public class AssinaturasController(
     public ActionResult<PlanoAssinaturaDto> Plano()
     {
         var o = opcoes.Value;
-        return Ok(new PlanoAssinaturaDto(o.PrecoFixo, o.PrecoPorAtleta, Math.Max(0, o.DiasTeste), AssinaturaService.VersaoTermosUso));
+        return Ok(new PlanoAssinaturaDto(o.PrecoFixo, o.PrecoPorAtleta, Math.Max(0, o.DiasTeste), AssinaturaService.VersaoTermosUso, Math.Max(0, o.AtletasIncluidos)));
     }
 
     /// <summary>Confere um cupom na tela de cadastro (antes de assinar) e diz o desconto. Com freio por IP: não serve pra adivinhar cupons.</summary>

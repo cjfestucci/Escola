@@ -123,7 +123,14 @@ public class SituacaoAssinaturaCalculoTests
     public void SoBloqueiaQuemNaoPagou(SituacaoAssinatura situacao, bool bloqueia) =>
         Assert.Equal(bloqueia, SituacaoAssinaturaCalculo.Bloqueia(situacao));
 
-    [Fact]
-    public void ValorEhFixoMaisPorAtleta() =>
-        Assert.Equal(219m, new OpcoesAssinatura { PrecoFixo = 99m, PrecoPorAtleta = 3m }.CalcularValor(40));
+    /// <summary>R$ 60 cobre até 20 atletas; cada atleta acima custa R$ 4 (decisão de 2026-10-14).</summary>
+    [Theory]
+    [InlineData(0, 60)]
+    [InlineData(10, 60)]
+    [InlineData(20, 60)]
+    [InlineData(21, 64)]
+    [InlineData(40, 140)]
+    [InlineData(150, 580)]
+    public void ValorEhOMinimoAte20AtletasMaisPorAtletaAcima(int atletas, decimal esperado) =>
+        Assert.Equal(esperado, new OpcoesAssinatura().CalcularValor(atletas));
 }

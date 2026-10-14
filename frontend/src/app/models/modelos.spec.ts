@@ -81,9 +81,11 @@ describe('assinatura', () => {
     expect(cnpjValido('00000000000000')).toBeFalse();
   });
 
-  it('calcula a mensalidade como fixo + valor por atleta', () => {
-    const plano = { precoFixo: 99, precoPorAtleta: 3, diasTeste: 7, versaoTermos: 'v' };
-    expect(valorDoPlano(plano, 40)).toBe(219);
-    expect(valorDoPlano(plano, 0)).toBe(99);
+  it('calcula a mensalidade: mínimo até 20 atletas + valor por atleta acima', () => {
+    const plano = { precoFixo: 60, precoPorAtleta: 4, atletasIncluidos: 20, diasTeste: 7, versaoTermos: 'v' };
+    expect(valorDoPlano(plano, 0)).toBe(60);
+    expect(valorDoPlano(plano, 20)).toBe(60);
+    expect(valorDoPlano(plano, 21)).toBe(64);
+    expect(valorDoPlano(plano, 40)).toBe(140);
   });
 });

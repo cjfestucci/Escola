@@ -45,8 +45,9 @@ services:
       Segredos__Chave: ${SEGREDOS_CHAVE:-}
       # Assinatura pelo site (plano e regras; a cobrança usa a conta raiz do Asaas)
       Assinatura__DiasTeste: ${ASSINATURA_DIAS_TESTE:-7}
-      Assinatura__PrecoFixo: ${ASSINATURA_PRECO_FIXO:-99}
-      Assinatura__PrecoPorAtleta: ${ASSINATURA_PRECO_POR_ATLETA:-3}
+      Assinatura__PrecoFixo: ${ASSINATURA_PRECO_FIXO:-60}
+      Assinatura__AtletasIncluidos: ${ASSINATURA_ATLETAS_INCLUIDOS:-20}
+      Assinatura__PrecoPorAtleta: ${ASSINATURA_PRECO_POR_ATLETA:-4}
       Assinatura__DiasToleranciaAtraso: ${ASSINATURA_DIAS_TOLERANCIA:-7}
       Assinatura__ExclusaoAutomatica: ${ASSINATURA_EXCLUSAO_AUTOMATICA:-false}
       Assinatura__WebhookToken: ${ASSINATURA_WEBHOOK_TOKEN:-}

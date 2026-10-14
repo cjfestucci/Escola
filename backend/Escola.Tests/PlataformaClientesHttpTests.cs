@@ -28,7 +28,7 @@ public class PlataformaClientesHttpTests(ApiFactory api) : IClassFixture<ApiFact
 
         var doSite = lista.Single(c => c.GetProperty("nome").GetString() == "Clube Do Painel");
         Assert.Equal("EmTeste", doSite.GetProperty("situacao").GetString());
-        Assert.Equal(159m, doSite.GetProperty("valorMensal").GetDecimal()); // 99 + 3 × 20
+        Assert.Equal(60m, doSite.GetProperty("valorMensal").GetDecimal()); // 20 atletas: dentro do mínimo
         Assert.Equal(email, doSite.GetProperty("emailCobranca").GetString());
         Assert.Equal(1, doSite.GetProperty("contasEquipe").GetInt32()); // o Admin (o Suporte não conta)
 
