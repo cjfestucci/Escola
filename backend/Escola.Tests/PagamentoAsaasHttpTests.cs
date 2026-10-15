@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Tests;
@@ -85,6 +86,21 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
 
         var deNovo = await admin.PostAsJsonAsync("/api/pagamentos/conta", Conta());
         Assert.Equal(HttpStatusCode.BadRequest, deNovo.StatusCode);
+    }
+
+    [Fact]
+    public async Task ComSubcontasDesligadasAEscolaNaoVeNemAbreOPagamentoAutomatico()
+    {
+        // Produção hoje: o Asaas serve só pra assinatura dos clubes; subconta custa R$ 12,90 e ainda não tem onboarding.
+        using var fabrica = api.WithWebHostBuilder(b => b.UseSetting("Asaas:SubcontasHabilitadas", "false"));
+        var admin = fabrica.CreateClient();
+        admin.DefaultRequestHeaders.Authorization = (await api.ClienteLogadoAsync(PapelUsuario.Admin)).DefaultRequestHeaders.Authorization;
+        var criacoesAntes = api.Asaas.Chamadas.Count(c => c.Metodo == "POST" && c.Caminho == "/accounts");
+
+        var conta = await admin.GetFromJsonAsync<JsonElement>("/api/pagamentos/conta", Json);
+        Assert.False(conta.GetProperty("disponivel").GetBoolean());
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/pagamentos/conta", Conta())).StatusCode);
+        Assert.Equal(criacoesAntes, api.Asaas.Chamadas.Count(c => c.Metodo == "POST" && c.Caminho == "/accounts"));
     }
 
     [Fact]

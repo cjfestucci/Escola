@@ -56,6 +56,8 @@ services:
       Asaas__Ambiente: ${ASAAS_AMBIENTE:-Sandbox}
       Asaas__WebhookToken: ${ASAAS_WEBHOOK_TOKEN:-}
       Asaas__WebhookUrlBase: https://app.gestortatico.com.br
+      # Subcontas das escolas (Pix com baixa automática): desligado até o onboarding de documentos do Asaas estar resolvido.
+      Asaas__SubcontasHabilitadas: ${ASAAS_SUBCONTAS:-false}
       Segredos__Chave: ${SEGREDOS_CHAVE:?Informe SEGREDOS_CHAVE no .env}
       Assinatura__DiasTeste: ${ASSINATURA_DIAS_TESTE:-7}
       Assinatura__PrecoFixo: ${ASSINATURA_PRECO_FIXO:-60}

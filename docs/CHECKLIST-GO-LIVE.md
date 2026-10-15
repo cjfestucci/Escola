@@ -42,8 +42,8 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 |---|---|---|---|---|
 | D1 | Abrir conta **PJ** no Asaas e enviar documentos | 👤 | ✅ | conta de produção (www.asaas.com) do CNPJ já existia e está **aprovada** (conferido em 14/10/2026); login no e-mail pessoal com Token SMS, e-mail da empresa financeiro@; nome fantasia CJF Technology, endereço da Receita, cor e logo na fatura; conta duplicada encerrada. Taxas: cartão 1,99%+0,49 (promo até 07/01/2027), boleto R$ 0,99, notificações R$ 0,99/cobrança (desligadas pelo sistema), Pix dinâmico grátis, **subconta R$ 12,90** (confirmar se é mensal). Conta bancária PJ cadastrada (14/10/2026) |
 | D2 | Chave Pix da conta + conversar sobre **subcontas** | 👤🤖 | 🟨 | resposta do Asaas (14/10/2026): R$ 12,90 por subconta, debitado do saldo na criação; período de avaliação (60 dias, até 10 subcontas, R$ 2.000 cada); documentos pelo `onboardingUrl`. 🤖 tela de documentos pendentes com o link feita. **Falta**: pedir ao gerente do Asaas a habilitação de subcontas **BaaS/white label com onboardingUrl** (no sandbox o link veio nulo) e criar a chave Pix da conta |
-| D3 | Chave de API de **produção** (direto no servidor, não precisa me mandar) | 👤 | ⬜ | |
-| D4 | **Webhook** da assinatura no painel | 👤🤖 | ⬜ | eu gero o token |
+| D3 | Chave de API de **produção** (direto no servidor, não precisa me mandar) | 👤 | ✅ | 15/10/2026: `servidor-gestortatico`, sem saque e sem expiração, gravada com `gt-definir ASAAS_API_KEY`; conta APPROVED. A `AssinaturasWorker` consulta o Asaas 1x/dia pra chave não ser desabilitada por falta de uso (3 meses) |
+| D4 | **Webhook** da assinatura no painel | 👤🤖 | ✅ | 15/10/2026: "Gestor Tático – assinaturas" → `/api/assinaturas/asaas/webhook`, eventos de Cobranças, token = `ASSINATURA_WEBHOOK_TOKEN`; sem token o endpoint responde 401. Entrega real só será vista no G2 |
 | D5 | **NFS-e** no Asaas (com o contador) | 👤 | ⬜ | |
 
 ## Servidor
@@ -67,7 +67,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 
 | # | Tarefa | Quem | Situação | Observação |
 |---|---|---|---|---|
-| G1 | Virar o Asaas para **produção** | 🤖 | ⬜ | |
+| G1 | Virar o Asaas para **produção** | 🤖 | ✅ | 15/10/2026: `ASAAS_AMBIENTE=Producao` só pra **assinatura dos clubes**; subcontas das escolas desligadas (`ASAAS_SUBCONTAS=false`) até o D2 |
 | G2 | **Assinatura real** de teste (sua) | 👤 | ⬜ | |
 | G3 | Primeiro **clube piloto** com cupom de lançamento | 👤🤖 | ⬜ | |
 | G4 | Após ~1 mês: ligar a **exclusão automática** de dados | 🤖 | ⬜ | |

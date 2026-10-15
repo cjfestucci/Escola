@@ -30,6 +30,10 @@ public class OpcoesAsaas
     /// Sem ele, as subcontas são criadas sem webhook e a baixa vem só da conferência periódica.</summary>
     public string? WebhookUrlBase { get; set; }
 
+    /// <summary>Escolas podem abrir subconta ("Pagamento automático")? Desligado, o Asaas serve só pra cobrar a assinatura dos clubes —
+    /// cada subconta custa R$ 12,90 do saldo da conta raiz na criação, então só se liga quando o onboarding das escolas estiver pronto.</summary>
+    public bool SubcontasHabilitadas { get; set; } = true;
+
     public bool Configurado => !string.IsNullOrWhiteSpace(ApiKey);
 
     public bool Producao => string.Equals(Ambiente, "Producao", StringComparison.OrdinalIgnoreCase);

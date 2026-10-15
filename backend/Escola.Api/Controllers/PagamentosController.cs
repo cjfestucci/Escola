@@ -80,7 +80,7 @@ public class PagamentosController(
     public async Task<ActionResult<ContaPagamentoDto>> Conectar(ConectarContaPagamentoRequest request, CancellationToken ct)
     {
         var o = opcoes.Value;
-        if (!o.Configurado || !cofre.Disponivel)
+        if (!o.Configurado || !o.SubcontasHabilitadas || !cofre.Disponivel)
             return BadRequest("O pagamento automático ainda não está disponível neste ambiente. Fale com o suporte.");
         if (await ContaAtualAsync() is not null)
             return BadRequest("Esta escola já tem uma conta de pagamento conectada.");
@@ -234,7 +234,7 @@ public class PagamentosController(
         await db.ContasPagamento.AsNoTracking().FirstOrDefaultAsync(c => c.Ambiente == opcoes.Value.NomeAmbiente);
 
     private ContaPagamentoDto ParaDto(ContaPagamento? conta) => new(
-        opcoes.Value.Configurado && cofre.Disponivel,
+        opcoes.Value.Configurado && opcoes.Value.SubcontasHabilitadas && cofre.Disponivel,
         opcoes.Value.NomeAmbiente,
         conta is not null,
         conta?.TitularNome,

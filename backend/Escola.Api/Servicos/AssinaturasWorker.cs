@@ -1,6 +1,7 @@
 using Escola.Domain.Enums;
 using Escola.Infrastructure.Assinaturas;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Pagamentos.Asaas;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -12,6 +13,7 @@ namespace Escola.Api.Servicos;
 public sealed class AssinaturasWorker(
     IServiceScopeFactory escopos,
     IOptions<OpcoesAssinatura> opcoes,
+    IOptions<OpcoesAsaas> opcoesAsaas,
     ILogger<AssinaturasWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken parada)
@@ -37,11 +39,31 @@ public sealed class AssinaturasWorker(
                     }
                 }
                 await ApagarRegistrosAcessoAntigosAsync(parada);
+                await ManterChaveDoAsaasAtivaAsync(parada);
             } while (await relogio.WaitForNextTickAsync(parada));
         }
         catch (OperationCanceledException)
         {
             // Encerrando a aplicação.
+        }
+    }
+
+    private DateTime _ultimaConsultaAsaas = DateTime.MinValue;
+
+    /// <summary>O Asaas desabilita chave de API sem uso por 3 meses — e sem clube assinando o sistema não chama o Asaas. Uma consulta de
+    /// leitura por dia mantém a chave viva (e um erro aqui avisa no log que a chave caiu antes de um clube precisar dela).</summary>
+    private async Task ManterChaveDoAsaasAtivaAsync(CancellationToken ct)
+    {
+        if (!opcoesAsaas.Value.Configurado || DateTime.UtcNow - _ultimaConsultaAsaas < TimeSpan.FromDays(1)) return;
+        try
+        {
+            await using var escopo = escopos.CreateAsyncScope();
+            await escopo.ServiceProvider.GetRequiredService<AsaasApi>().TestarContaRaizAsync(ct);
+            _ultimaConsultaAsaas = DateTime.UtcNow;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "A chave de API do Asaas não respondeu — sem ela, os clubes novos não recebem fatura.");
         }
     }
 
