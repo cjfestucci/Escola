@@ -8,8 +8,10 @@ const DIAS_TESTE = 7;
 // Dias de atraso até suspender o acesso (Assinatura:DiasToleranciaAtraso).
 const DIAS_TOLERANCIA = 7;
 
-// Endereço do app (tela de cadastro e de entrar). Em produção, trocar pelo domínio do app.
-const URL_APP = 'http://localhost:4200';
+// Endereço do app (tela de cadastro e de entrar): o de produção, ou o de desenvolvimento quando o site roda na máquina.
+const URL_APP = ['localhost', '127.0.0.1'].includes(location.hostname)
+  ? 'http://localhost:4200'
+  : 'https://app.gestortatico.com.br';
 
 function calcularMensalidade(atletas) {
   return PRECO_FIXO + PRECO_POR_ATLETA * Math.max(0, atletas - ATLETAS_INCLUIDOS);

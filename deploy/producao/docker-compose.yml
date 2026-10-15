@@ -1,0 +1,102 @@
+# Produção do Gestor Tático num servidor só: banco + API + app + Caddy (HTTPS automático) + site institucional.
+# Um deploy pra todos os clientes (login único). Segredos ficam no .env ao lado (modelo: .env.example; NUNCA versionar o .env).
+#
+#   cd /opt/gestortatico/deploy/producao
+#   docker compose up -d --build
+#
+# Só o Caddy publica portas (80/443). Banco e API ficam na rede interna do Docker.
+name: gestortatico
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gestortatico
+      POSTGRES_USER: gestortatico
+      POSTGRES_PASSWORD: ${DB_SENHA:?Informe DB_SENHA no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gestortatico -d gestortatico"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=gestortatico;Username=gestortatico;Password=${DB_SENHA}
+      Database__MigrarAoIniciar: "true"
+      Jwt__Chave: ${JWT_CHAVE:?Informe JWT_CHAVE no .env}
+      Jwt__Emissor: RotinaEscola
+      Cliente__Id: ${CLIENTE_ID:?Informe CLIENTE_ID no .env}
+      Cliente__Nome: ${CLIENTE_NOME:?Informe CLIENTE_NOME no .env}
+      Cliente__Segmento: ${CLIENTE_SEGMENTO:-Clube}
+      App__UrlBase: https://app.gestortatico.com.br
+      # Caddy -> nginx do app -> API: dois proxies confiáveis na frente (IP real nos termos aceitos e nos registros de acesso).
+      App__ProxiesNaFrente: "2"
+      Suporte__Email: ${SUPORTE_EMAIL:-}
+      Suporte__Nome: ${SUPORTE_NOME:-Suporte Gestor Tático}
+      Suporte__SenhaHash: ${SUPORTE_SENHA_HASH:-}
+      Suporte__TotpSegredo: ${SUPORTE_TOTP_SEGREDO:-}
+      Smtp__Host: ${SMTP_HOST:-}
+      Smtp__Porta: ${SMTP_PORTA:-587}
+      Smtp__Usuario: ${SMTP_USUARIO:-}
+      Smtp__Senha: ${SMTP_SENHA:-}
+      Smtp__RemetenteEmail: ${SMTP_REMETENTE_EMAIL:-}
+      Smtp__RemetenteNome: ${SMTP_REMETENTE_NOME:-Gestor Tático}
+      Asaas__ApiKey: ${ASAAS_API_KEY:-}
+      Asaas__Ambiente: ${ASAAS_AMBIENTE:-Sandbox}
+      Asaas__WebhookToken: ${ASAAS_WEBHOOK_TOKEN:-}
+      Asaas__WebhookUrlBase: https://app.gestortatico.com.br
+      Segredos__Chave: ${SEGREDOS_CHAVE:?Informe SEGREDOS_CHAVE no .env}
+      Assinatura__DiasTeste: ${ASSINATURA_DIAS_TESTE:-7}
+      Assinatura__PrecoFixo: ${ASSINATURA_PRECO_FIXO:-60}
+      Assinatura__AtletasIncluidos: ${ASSINATURA_ATLETAS_INCLUIDOS:-20}
+      Assinatura__PrecoPorAtleta: ${ASSINATURA_PRECO_POR_ATLETA:-4}
+      Assinatura__DiasToleranciaAtraso: ${ASSINATURA_DIAS_TOLERANCIA:-7}
+      Assinatura__ExclusaoAutomatica: ${ASSINATURA_EXCLUSAO_AUTOMATICA:-false}
+      Assinatura__WebhookToken: ${ASSINATURA_WEBHOOK_TOKEN:-}
+    volumes:
+      - fotos:/app/wwwroot/uploads
+      - documentos:/app/dados-privados
+
+  app:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_UPSTREAM: http://api:8080
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../../site:/srv/site:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  fotos:
+  documentos:
+  caddy_data:
+  caddy_config:

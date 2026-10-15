@@ -40,7 +40,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 
 | # | Tarefa | Quem | Situação | Observação |
 |---|---|---|---|---|
-| D1 | Abrir conta **PJ** no Asaas e enviar documentos | 👤 | 🟨 | conta de produção (www.asaas.com) do CNPJ já existia e está **aprovada** (conferido em 14/10/2026); login no e-mail pessoal com Token SMS, e-mail da empresa financeiro@; nome fantasia CJF Technology, endereço da Receita, cor e logo na fatura; conta duplicada encerrada. Taxas: cartão 1,99%+0,49 (promo até 07/01/2027), boleto R$ 0,99, notificações R$ 0,99/cobrança (desligadas pelo sistema), Pix dinâmico grátis, **subconta R$ 12,90** (confirmar se é mensal). Falta: conta bancária PJ pra saque |
+| D1 | Abrir conta **PJ** no Asaas e enviar documentos | 👤 | ✅ | conta de produção (www.asaas.com) do CNPJ já existia e está **aprovada** (conferido em 14/10/2026); login no e-mail pessoal com Token SMS, e-mail da empresa financeiro@; nome fantasia CJF Technology, endereço da Receita, cor e logo na fatura; conta duplicada encerrada. Taxas: cartão 1,99%+0,49 (promo até 07/01/2027), boleto R$ 0,99, notificações R$ 0,99/cobrança (desligadas pelo sistema), Pix dinâmico grátis, **subconta R$ 12,90** (confirmar se é mensal). Conta bancária PJ cadastrada (14/10/2026) |
 | D2 | Chave Pix da conta + conversar sobre **subcontas** | 👤🤖 | 🟨 | resposta do Asaas (14/10/2026): R$ 12,90 por subconta, debitado do saldo na criação; período de avaliação (60 dias, até 10 subcontas, R$ 2.000 cada); documentos pelo `onboardingUrl`. 🤖 tela de documentos pendentes com o link feita. **Falta**: pedir ao gerente do Asaas a habilitação de subcontas **BaaS/white label com onboardingUrl** (no sandbox o link veio nulo) e criar a chave Pix da conta |
 | D3 | Chave de API de **produção** (direto no servidor, não precisa me mandar) | 👤 | ⬜ | |
 | D4 | **Webhook** da assinatura no painel | 👤🤖 | ⬜ | eu gero o token |
@@ -50,8 +50,8 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 
 | # | Tarefa | Quem | Situação | Observação |
 |---|---|---|---|---|
-| E1 | Contratar **VPS** no Brasil (2 vCPU / 4 GB) | 👤 | ⬜ | |
-| E2 | Instalar Docker, subir banco + API + app + site, **HTTPS** | 🤖 | ⬜ | depende de E1 e C2 |
+| E1 | Contratar **VPS** no Brasil (2 vCPU / 4 GB) | 👤 | ✅ | Hostinger KVM 2 (2 vCPU, 8 GB, 100 GB NVMe), Brasil, Ubuntu 24.04, 12 meses (R$ 557,89, contratado 14/10/2026 — anotar a renovação); IP 187.127.44.70; acesso só por chave SSH `~/.ssh/gestortatico_ed25519` (cópia no Bitwarden), senha root no Bitwarden |
+| E2 | Instalar Docker, subir banco + API + app + site, **HTTPS** | 🤖 | 🟨 | 14/10/2026: servidor endurecido (SSH só por chave, ufw 22/80/443, fail2ban, atualizações automáticas, fuso SP), Docker, código por deploy key, `deploy/producao` (Postgres + API + app + Caddy) no ar com Let's Encrypt: app.gestortatico.com.br, gestortatico.com.br, www → apex. `.env` com segredos gerados no servidor. `.env` guardado no Bitwarden; SMTP de produção (chave própria do Brevo) testado do servidor em 14/10/2026; `gt-definir NOME` grava segredo no `.env` sem mostrar na tela. Falta: Suporte (hash + TOTP), Asaas |
 | E3 | **Backup** diário fora do servidor + teste de restauração | 🤖 | ⬜ | |
 | E4 | **Monitoramento** (UptimeRobot no `/healthz`) | 👤🤖 | ⬜ | |
 

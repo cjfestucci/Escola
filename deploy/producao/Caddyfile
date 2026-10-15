@@ -1,0 +1,33 @@
+# HTTPS automático (Let's Encrypt): o Caddy emite e renova os certificados sozinho.
+# Os registros DNS (A) precisam apontar pro servidor e ficar "DNS only" (nuvem cinza) na Cloudflare.
+{
+	email contato@gestortatico.com.br
+}
+
+(seguranca) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+# O sistema (app Angular + API, servidos pelo nginx do contêiner "app").
+app.gestortatico.com.br {
+	import seguranca
+	encode zstd gzip
+	reverse_proxy app:80
+}
+
+# Site institucional (estático, pasta site/ do repositório).
+gestortatico.com.br {
+	import seguranca
+	encode zstd gzip
+	root * /srv/site
+	file_server
+}
+
+www.gestortatico.com.br {
+	redir https://gestortatico.com.br{uri} permanent
+}
