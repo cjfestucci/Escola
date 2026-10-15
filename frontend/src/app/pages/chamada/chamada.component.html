@@ -1,6 +1,6 @@
 <div class="container">
   <p class="subtitulo">
-    Presença da turma, dia a dia. A frequência de cada um considera o período escolhido — faltas justificadas não pesam.
+    Presença da turma, dia a dia. Ao lado de cada nome, a frequência no período — faltas justificadas não pesam.
   </p>
 
   @if (!carregandoTurmas() && sessao.turmas().length > 1) {
@@ -48,20 +48,17 @@
       <div class="backdrop-calendario" (click)="calendarioAberto.set(false)"></div>
     }
 
-    @if (registrada()) {
-      <div class="linha-historico-dia">
-        <button type="button" class="botao-texto" (click)="abrirHistorico()">🕘 Histórico do dia</button>
-      </div>
-    }
-
     @if (carregando()) {
       <p>Carregando...</p>
     } @else if (itens().length === 0) {
       <p class="vazio">Esta turma não tem {{ segmentoService.rotuloPessoaPlural().toLowerCase() }} ativos.</p>
     } @else {
-      <div class="bloco-periodo">
-        <span class="rotulo-periodo">Frequência: <strong>{{ periodo().rotulo }}</strong></span>
-        <app-filtro-periodo (periodoChange)="aoMudarPeriodo($event)" />
+      <!-- A chamada é do dia escolhido; a frequência ao lado de cada nome é de um período (outro assunto, por isso fica abaixo e discreta). -->
+      <div class="cabecalho-dia">
+        <h2>Chamada de {{ tituloDia() }}</h2>
+        @if (registrada()) {
+          <button type="button" class="botao-historico" (click)="abrirHistorico()">🕘 Histórico do dia</button>
+        }
       </div>
 
       <div class="resumo-chamada">
@@ -79,6 +76,17 @@
         <p class="aviso-registrada">Chamada já registrada neste dia — altere o que for preciso e salve de novo.</p>
       }
 
+      <div class="linha-frequencia">
+        <span>Frequência ao lado de cada nome: <strong>{{ periodo().rotulo }}</strong></span>
+        <button type="button" class="botao-texto-pequeno" (click)="filtroPeriodoAberto.set(!filtroPeriodoAberto())">
+          {{ filtroPeriodoAberto() ? 'Fechar' : 'Mudar período' }}
+        </button>
+      </div>
+      <!-- [hidden], não @if: fechar e abrir de novo não pode perder o período escolhido. -->
+      <div class="bloco-periodo" [hidden]="!filtroPeriodoAberto()">
+        <app-filtro-periodo (periodoChange)="aoMudarPeriodo($event)" />
+      </div>
+
       <ul class="lista-chamada">
         @for (item of itens(); track item.alunoId) {
           <li class="linha-aluno" [class.linha-aluno--sem-marca]="item.status === null">
@@ -95,8 +103,11 @@
               @if (frequenciaDe(item.alunoId); as freq) {
                 <span class="frequencia">
                   @if (freq.percentual !== null) {
-                    <span class="selo-frequencia selo-frequencia--{{ classeFrequencia(freq.percentual) }}">{{ freq.percentual }}%</span>
-                    {{ freq.presencas }} {{ freq.presencas === 1 ? 'presença' : 'presenças' }} · {{ freq.faltas }} {{ freq.faltas === 1 ? 'falta' : 'faltas' }}
+                    <span
+                      class="selo-frequencia selo-frequencia--{{ classeFrequencia(freq.percentual) }}"
+                      [title]="'Frequência (' + periodo().rotulo + '): ' + freq.presencas + ' presenças, ' + freq.faltas + ' faltas'"
+                    >{{ freq.percentual }}%</span>
+                    de frequência ({{ freq.presencas }} {{ freq.presencas === 1 ? 'presença' : 'presenças' }} e {{ freq.faltas }} {{ freq.faltas === 1 ? 'falta' : 'faltas' }} no período)
                   } @else {
                     Sem chamadas no período
                   }

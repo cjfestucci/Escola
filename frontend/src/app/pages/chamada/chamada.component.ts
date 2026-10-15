@@ -9,7 +9,7 @@ import { SegmentoService } from '../../services/segmento.service';
 import { SessaoService } from '../../services/sessao.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
-import { hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
+import { formatarDataAbsoluta, hojeIso, rotuloData, somarDias } from '../../shared/data-utils';
 import { FiltroPeriodoComponent, PeriodoEscolhido, periodoPadrao } from '../../shared/filtro-periodo/filtro-periodo.component';
 import { LogsModalComponent } from '../../shared/logs-modal/logs-modal.component';
 import { resolverFotoUrl } from '../../shared/registro-rotina-display';
@@ -38,6 +38,11 @@ export class ChamadaComponent implements OnInit {
 
   readonly dataVisualizada = signal(hojeIso());
   readonly ehHoje = computed(() => this.dataVisualizada() === hojeIso());
+  /** "Chamada de hoje" / "de ontem" / "de 09/10/2026". */
+  readonly tituloDia = computed(() => {
+    const rotulo = rotuloData(this.dataVisualizada());
+    return rotulo === 'Hoje' || rotulo === 'Ontem' ? rotulo.toLowerCase() : formatarDataAbsoluta(this.dataVisualizada());
+  });
   readonly calendarioAberto = signal(false);
 
   /** Estado editável da chamada (começa igual ao que está salvo e vai mudando até clicar em Salvar). */
@@ -48,6 +53,8 @@ export class ChamadaComponent implements OnInit {
 
   /** Período da frequência mostrada ao lado de cada nome (independe do dia da chamada que está sendo feita). */
   readonly periodo = signal<PeriodoEscolhido>(periodoPadrao());
+  /** O seletor do período da frequência fica recolhido: é informação de apoio, não a chamada do dia. */
+  readonly filtroPeriodoAberto = signal(false);
 
   readonly contagem = computed(() => {
     const lista = this.itens();
