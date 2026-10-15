@@ -11,19 +11,20 @@ public class ModeloEmailTests
             <p>Olá, Maria!</p>
             <p><a href="https://app.teste/redefinir?token=abc&amp;convite=1">Criar minha senha</a></p>
             <p>Dúvidas? <a href="https://app.teste/ajuda">veja a ajuda</a>.</p>
-            """, "https://app.teste/");
+            """);
 
         Assert.Contains("background:#0E2A3A;border-radius:8px;", html); // o botão
         Assert.Contains("""href="https://app.teste/redefinir?token=abc&amp;convite=1">Criar minha senha</a>""", html);
         Assert.Contains("""<a style="color:#0E2A3A;font-weight:700;" href="https://app.teste/ajuda">""", html);
-        Assert.Contains("https://app.teste/icons/icon-96x96.png", html);
         Assert.DoesNotContain("<p>", html); // todo parágrafo ganhou o espaçamento do layout
     }
 
     [Fact]
-    public void SemEnderecoDoAppOCabecalhoSaiSemImagem()
+    public void CabecalhoSoComONomeSemImagem()
     {
-        Assert.DoesNotContain("<img", ModeloEmail.Html("Assunto", "<p>Oi</p>", null));
+        var html = ModeloEmail.Html("Assunto", "<p>Oi</p>");
+        Assert.DoesNotContain("<img", html);
+        Assert.Contains("Gestor Tático", html);
     }
 
     [Fact]
