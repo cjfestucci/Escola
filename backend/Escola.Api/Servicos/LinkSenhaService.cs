@@ -123,7 +123,7 @@ public sealed class LinkSenhaService(
         var daEscola = string.IsNullOrWhiteSpace(nomeCliente) ? string.Empty : $" em <strong>{WebUtility.HtmlEncode(nomeCliente)}</strong>";
         return (string.IsNullOrWhiteSpace(nomeCliente) ? "Redefinição de senha" : $"Redefinição de senha — {nomeCliente}", $"""
                 <p>Olá, {nomeSeguro}!</p>
-                <p>Recebemos um pedido para redefinir a senha da sua conta{daEscola}. Para criar uma nova senha, clique no link abaixo:</p>
+                <p>Recebemos um pedido para redefinir a senha da sua conta{daEscola}. Para criar uma nova senha, clique no botão abaixo:</p>
                 <p><a href="{linkSeguro}">Criar nova senha</a></p>
                 <p>O link vale por 1 hora e só pode ser usado uma vez. Se você não pediu isso, pode ignorar este e-mail — sua senha continua a mesma.</p>
                 """);
@@ -137,7 +137,7 @@ public sealed class LinkSenhaService(
         return ($"Convite de acesso — {nomeCliente ?? MarcaProduto.Nome}", $"""
                 <p>Olá, {nomeSeguro}!</p>
                 <p>Foi criado um acesso de <strong>administrador</strong> para você no sistema de <strong>{clienteSeguro}</strong>.</p>
-                <p>Para confirmar este e-mail e cadastrar a sua senha, clique no link abaixo:</p>
+                <p>Para confirmar este e-mail e cadastrar a sua senha, clique no botão abaixo:</p>
                 <p><a href="{linkSeguro}">Confirmar e cadastrar minha senha</a></p>
                 <p>O link vale por 7 dias e só pode ser usado uma vez. Se você não esperava este convite, pode ignorar este e-mail — nenhum acesso será liberado sem esse passo.</p>
                 """);
@@ -153,7 +153,7 @@ public sealed class LinkSenhaService(
                 <p>Olá, {nomeSeguro}!</p>
                 <p>O <strong>{clienteSeguro}</strong> já está no {MarcaProduto.Nome}, e você é o administrador.</p>
                 {detalheHtml}
-                <p>Para confirmar este e-mail e criar a sua senha, clique no link abaixo. Depois é só entrar:</p>
+                <p>Para confirmar este e-mail e criar a sua senha, clique no botão abaixo. Depois é só entrar:</p>
                 <p><a href="{linkSeguro}">Confirmar e-mail e criar minha senha</a></p>
                 <p>O link vale por 7 dias e só pode ser usado uma vez. Se você não fez esse cadastro, ignore este e-mail.</p>
                 """);
@@ -168,7 +168,7 @@ public sealed class LinkSenhaService(
         return ($"Seu acesso ao {MarcaProduto.Nome} — {nomeCliente ?? MarcaProduto.Nome}", $"""
                 <p>Olá, {nomeSeguro}!</p>
                 <p>Foi criado um acesso para você{papelSeguro} no sistema de <strong>{clienteSeguro}</strong>.</p>
-                <p>Para confirmar este e-mail e cadastrar a sua senha, clique no link abaixo:</p>
+                <p>Para confirmar este e-mail e cadastrar a sua senha, clique no botão abaixo:</p>
                 <p><a href="{linkSeguro}">Confirmar e cadastrar minha senha</a></p>
                 <p>O link vale por 7 dias e só pode ser usado uma vez. Se você não esperava este convite, pode ignorar este e-mail.</p>
                 """);
@@ -183,7 +183,7 @@ public sealed class LinkSenhaService(
         return ($"Confirme a matrícula — {nomeCliente ?? MarcaProduto.Nome}", $"""
                 <p>Olá, {nomeSeguro}!</p>
                 <p>A matrícula de <strong>{alunosSeguro}</strong> foi registrada por <strong>{clienteSeguro}</strong>.</p>
-                <p>Para confirmar este e-mail e criar a sua senha de acesso ao portal, clique no link abaixo:</p>
+                <p>Para confirmar este e-mail e criar a sua senha de acesso ao portal, clique no botão abaixo:</p>
                 <p><a href="{linkSeguro}">Confirmar e-mail e criar minha senha</a></p>
                 <p>Depois, ao entrar no portal, leia e aceite o termo de matrícula. <strong>A matrícula só é efetivada depois desse aceite.</strong></p>
                 <p>O link vale por 7 dias e só pode ser usado uma vez. Se você não reconhece esta matrícula, ignore este e-mail e fale com a escola.</p>
