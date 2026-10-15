@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MascaraDirective } from '../../shared/mascara/mascara.directive';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -7,7 +8,7 @@ import { FornecedorService } from '../../services/fornecedor.service';
 
 @Component({
   selector: 'app-fornecedor-formulario',
-  imports: [FormsModule],
+  imports: [FormsModule, MascaraDirective],
   templateUrl: './fornecedor-formulario.component.html',
   styleUrl: './fornecedor-formulario.component.scss'
 })

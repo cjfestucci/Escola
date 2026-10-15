@@ -77,6 +77,12 @@ public class SituacaoAssinaturaCalculoTests
         // No teste: até o fim do teste.
         Assert.Equal(Hoje.AddDays(4), SituacaoAssinaturaCalculo.AcessoAteAoCancelar(Hoje, Hoje.AddDays(4), Hoje.AddDays(4), [Fatura(Hoje.AddDays(4))]));
         Assert.Equal(Hoje.AddDays(4), SituacaoAssinaturaCalculo.AcessoAteAoCancelar(Hoje, Hoje.AddDays(4), Hoje.AddDays(4), []));
+        // Pagou a 1ª fatura (fim do teste) ainda no teste e o Asaas ainda não gerou a próxima: um mês depois do vencimento pago.
+        Assert.Equal(Hoje.AddDays(7).AddMonths(1), SituacaoAssinaturaCalculo.AcessoAteAoCancelar(Hoje, Hoje.AddDays(7), Hoje.AddDays(7),
+            [Fatura(Hoje.AddDays(7), paga: true)]));
+        // Paga há 20 dias, sem a próxima gerada: até um mês depois daquele vencimento.
+        Assert.Equal(Hoje.AddDays(-20).AddMonths(1), SituacaoAssinaturaCalculo.AcessoAteAoCancelar(Hoje, null, Hoje.AddDays(-20),
+            [Fatura(Hoje.AddDays(-20), paga: true)]));
         // Com fatura vencida em aberto não há período pago: termina hoje.
         Assert.Equal(Hoje, SituacaoAssinaturaCalculo.AcessoAteAoCancelar(Hoje, null, Hoje.AddDays(-40),
             [Fatura(Hoje.AddDays(-40), paga: true), Fatura(Hoje.AddDays(-5))]));

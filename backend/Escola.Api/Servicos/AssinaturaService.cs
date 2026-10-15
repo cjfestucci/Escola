@@ -582,13 +582,30 @@ public sealed class AssinaturaService(
         var detalhe = a.Situacao == SituacaoAssinatura.EmTeste && a.TesteAte is { } ate
             ? $"Seu teste grátis vai até {ate:dd/MM/yyyy}. Depois, o plano fica em {Plano(a)} — você escolhe pagar com Pix, boleto ou cartão."
             : $"Pagamento confirmado. Plano: {Plano(a)}.";
-        var resultado = await sp.GetRequiredService<ILinkSenhaService>().EnviarAsync(admin, TipoLinkSenha.BoasVindasAssinatura, nomeClube, detalhe: detalhe);
+        // Reserva o envio no banco ANTES de mandar: o webhook do Asaas chega segundos depois do cadastro e, enquanto o SMTP ainda
+        // entregava o 1º convite, gerava um 2º — que invalidava o link do 1º (bug do teste de produção, 15/10/2026).
+        var agora = DateTime.UtcNow;
+        var reservado = await db.Assinaturas.Where(x => x.Id == a.Id && x.ConviteEnviadoEm == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.ConviteEnviadoEm, agora), ct);
+        if (reservado == 0) return false;
+        a.ConviteEnviadoEm = agora;
+
         // Marca mesmo sem entrega (sem SMTP): reenviar toda hora só invalidaria o link anterior. O Suporte reenvia pela Plataforma.
-        if (resultado.Gerado)
+        var gerado = false;
+        try
         {
-            a.ConviteEnviadoEm = DateTime.UtcNow;
-            await db.SaveChangesAsync(ct);
+            var resultado = await sp.GetRequiredService<ILinkSenhaService>().EnviarAsync(admin, TipoLinkSenha.BoasVindasAssinatura, nomeClube, detalhe: detalhe);
+            gerado = resultado.Gerado;
+            return resultado.Entregue;
         }
-        return resultado.Entregue;
+        finally
+        {
+            if (!gerado)
+            {
+                // Nem gerou o link (ex.: sem App:UrlBase): libera pra próxima atualização tentar de novo.
+                await db.Assinaturas.Where(x => x.Id == a.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.ConviteEnviadoEm, (DateTime?)null), CancellationToken.None);
+                a.ConviteEnviadoEm = null;
+            }
+        }
     }
 }

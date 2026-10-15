@@ -61,7 +61,7 @@
                 placeholder="Ex.: Escola de Futebol Craque do Amanhã" />
             </label>
             <label><span class="obrigatorio">CNPJ ou CPF</span>
-              <input type="text" [(ngModel)]="cpfCnpj" name="cpfCnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" />
+              <input type="text" appMascara="cpfCnpj" [(ngModel)]="cpfCnpj" name="cpfCnpj" placeholder="00.000.000/0000-00" />
             </label>
             <label><span class="obrigatorio">Cidade</span>
               <input type="text" [(ngModel)]="cidade" name="cidade" maxlength="120" autocomplete="address-level2" placeholder="Ex.: Campinas" />
@@ -88,7 +88,7 @@
               <span class="ajuda">O link de acesso chega aqui.</span>
             </label>
             <label><span class="obrigatorio">Celular (WhatsApp)</span>
-              <input type="tel" [(ngModel)]="celular" name="celular" maxlength="20" autocomplete="tel" placeholder="(11) 99999-8888" />
+              <input type="tel" appMascara="telefone" [(ngModel)]="celular" name="celular" autocomplete="tel" placeholder="(11) 99999-8888" />
             </label>
             <label class="aceite inteiro">
               <input type="checkbox" [(ngModel)]="aceite" name="aceite" />

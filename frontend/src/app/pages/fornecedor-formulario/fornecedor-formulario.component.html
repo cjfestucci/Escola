@@ -14,11 +14,11 @@
       </label>
 
       <label>Documento (opcional)
-        <input type="text" [(ngModel)]="documento" placeholder="CNPJ ou CPF" />
+        <input type="text" appMascara="cpfCnpj" [(ngModel)]="documento" placeholder="CNPJ ou CPF" />
       </label>
 
       <label>Telefone (opcional)
-        <input type="text" [(ngModel)]="telefone" placeholder="Ex.: (11) 99999-9999" />
+        <input type="tel" appMascara="telefone" [(ngModel)]="telefone" placeholder="Ex.: (11) 99999-9999" />
       </label>
 
       <label>E-mail (opcional)

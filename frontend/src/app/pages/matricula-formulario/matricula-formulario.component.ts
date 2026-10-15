@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MascaraDirective } from '../../shared/mascara/mascara.directive';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ConviteMatricula, POSICOES_ATLETA, PosicaoAtleta, ResponsavelResumo, SenhaGeradaResponsavel, Turma } from '../../models/aluno.model';
@@ -32,7 +33,7 @@ type Aba = 'dados' | 'responsaveis' | 'saude';
 
 @Component({
   selector: 'app-matricula-formulario',
-  imports: [FormsModule, SeletorArquivoComponent, CalendarioComponent, LogsModalComponent, DocumentosSaudeComponent],
+  imports: [FormsModule, MascaraDirective, SeletorArquivoComponent, CalendarioComponent, LogsModalComponent, DocumentosSaudeComponent],
   templateUrl: './matricula-formulario.component.html',
   styleUrl: './matricula-formulario.component.scss'
 })

@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MascaraDirective } from '../../shared/mascara/mascara.directive';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { NotificacaoService } from '../../services/notificacao.service';
@@ -7,7 +8,7 @@ import { UnidadeService } from '../../services/unidade.service';
 
 @Component({
   selector: 'app-unidade-formulario',
-  imports: [FormsModule],
+  imports: [FormsModule, MascaraDirective],
   templateUrl: './unidade-formulario.component.html',
   styleUrl: './unidade-formulario.component.scss'
 })

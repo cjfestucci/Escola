@@ -43,11 +43,16 @@ public static class SituacaoAssinaturaCalculo
     }
 
     /// <summary>Até quando vale o acesso de quem cancela agora: o período já pago (até o vencimento da fatura em aberto, ou o fim do teste).
-    /// Com fatura vencida em aberto não há período pago a respeitar: termina hoje.</summary>
+    /// Com fatura vencida em aberto não há período pago a respeitar: termina hoje. Sem fatura em aberto, a última paga cobre um mês a partir
+    /// do vencimento dela — o Asaas só gera a próxima perto da data (bug do teste de produção, 15/10/2026: quem pagou a 1ª fatura ainda
+    /// no teste e cancelou perdia o mês pago).</summary>
     public static DateOnly AcessoAteAoCancelar(DateOnly hoje, DateOnly? testeAte, DateOnly primeiroVencimento, IReadOnlyCollection<FaturaAssinatura> faturas)
     {
         var aberta = EmAberto(faturas);
-        var fim = aberta?.Vencimento ?? (faturas.Count == 0 ? testeAte ?? primeiroVencimento : hoje);
+        var ultimaPaga = faturas.Where(f => f.Paga).OrderByDescending(f => f.Vencimento).FirstOrDefault();
+        var fim = aberta?.Vencimento
+            ?? ultimaPaga?.Vencimento.AddMonths(1)
+            ?? testeAte ?? primeiroVencimento;
         return fim < hoje ? hoje : fim;
     }
 

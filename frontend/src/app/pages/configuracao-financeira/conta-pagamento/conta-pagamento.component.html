@@ -106,7 +106,7 @@
             <input type="email" [(ngModel)]="email" maxlength="200" placeholder="financeiro@escola.com.br" />
           </label>
           <label><span class="obrigatorio">CPF ou CNPJ</span>
-            <input type="text" inputmode="numeric" [(ngModel)]="cpfCnpj" maxlength="18" />
+            <input type="text" appMascara="cpfCnpj" [(ngModel)]="cpfCnpj" />
           </label>
 
           @if (ehCnpj) {
@@ -143,12 +143,12 @@
           }
 
           <label><span class="obrigatorio">Celular</span>
-            <input type="tel" [(ngModel)]="celular" maxlength="20" placeholder="(11) 99999-9999" />
+            <input type="tel" appMascara="telefone" [(ngModel)]="celular" placeholder="(11) 99999-9999" />
           </label>
 
           <div class="linha-campos">
             <label class="campo-curto"><span class="obrigatorio">CEP</span>
-              <input type="text" inputmode="numeric" [(ngModel)]="cep" maxlength="9" placeholder="00000-000" />
+              <input type="text" appMascara="cep" [(ngModel)]="cep" placeholder="00000-000" />
             </label>
             <label class="campo-largo"><span class="obrigatorio">Endereço</span>
               <input type="text" [(ngModel)]="endereco" maxlength="200" placeholder="Rua, avenida…" />

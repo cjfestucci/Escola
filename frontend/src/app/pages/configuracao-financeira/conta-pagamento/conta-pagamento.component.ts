@@ -1,5 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MascaraDirective } from '../../../shared/mascara/mascara.directive';
+import { soDigitos } from '../../../shared/mascara/mascara';
 
 import { ContaPagamento, TIPOS_EMPRESA, TipoEmpresa, rotuloSituacaoGateway } from '../../../models/pagamento.model';
 import { AuthService } from '../../../services/auth.service';
@@ -7,13 +9,12 @@ import { NotificacaoService } from '../../../services/notificacao.service';
 import { PagamentoService } from '../../../services/pagamento.service';
 import { MESES_PT_BR, formatarDataHoraAbsoluta, hojeIso } from '../../../shared/data-utils';
 
-const soDigitos = (valor: string) => valor.replace(/\D/g, '');
 
 /** Seção "Pagamento automático" de Configurações → Financeiro: abre a subconta da escola no gateway (Asaas) e mostra a situação dela.
  * Some quando o gateway não está configurado no ambiente e a escola ainda não tem conta. */
 @Component({
   selector: 'app-conta-pagamento',
-  imports: [FormsModule],
+  imports: [FormsModule, MascaraDirective],
   templateUrl: './conta-pagamento.component.html',
   styleUrl: './conta-pagamento.component.scss'
 })

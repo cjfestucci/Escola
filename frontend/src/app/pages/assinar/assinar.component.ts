@@ -1,5 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MascaraDirective } from '../../shared/mascara/mascara.directive';
+import { soDigitos } from '../../shared/mascara/mascara';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
@@ -20,14 +22,11 @@ import { environment } from '../../../environments/environment';
 
 type Etapa = 'clube' | 'voce' | 'pronto';
 
-function soDigitos(texto: string): string {
-  return texto.replace(/\D/g, '');
-}
 
 /** Cadastro pelo site: o clube vira cliente sozinho. Pública (sem login), como a tela de entrar. */
 @Component({
   selector: 'app-assinar',
-  imports: [FormsModule],
+  imports: [FormsModule, MascaraDirective],
   templateUrl: './assinar.component.html',
   styleUrl: './assinar.component.scss'
 })

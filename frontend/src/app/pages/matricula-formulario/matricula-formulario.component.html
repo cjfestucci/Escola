@@ -188,6 +188,7 @@
             <label>Telefone (opcional)
               <input
                 type="tel"
+                appMascara="telefone"
                 [ngModel]="responsavel.telefone"
                 (ngModelChange)="atualizarResponsavel($index, 'telefone', $event)"
                 placeholder="(11) 99999-9999"
@@ -197,8 +198,7 @@
             <label>CPF (opcional)
               <input
                 type="text"
-                inputmode="numeric"
-                maxlength="14"
+                appMascara="cpf"
                 [ngModel]="responsavel.cpf"
                 (ngModelChange)="atualizarResponsavel($index, 'cpf', $event)"
                 placeholder="000.000.000-00"
@@ -349,7 +349,7 @@
             <input type="text" [(ngModel)]="pediatraNome" />
           </label>
           <label>Telefone
-            <input type="tel" [(ngModel)]="pediatraTelefone" placeholder="(11) 99999-9999" />
+            <input type="tel" appMascara="telefone" [(ngModel)]="pediatraTelefone" placeholder="(11) 99999-9999" />
           </label>
 
           <div class="cabecalho-secao">
@@ -359,7 +359,7 @@
             <input type="text" [(ngModel)]="contatoEmergenciaNome" placeholder="Se diferente dos responsáveis" />
           </label>
           <label>Telefone
-            <input type="tel" [(ngModel)]="contatoEmergenciaTelefone" placeholder="(11) 99999-9999" />
+            <input type="tel" appMascara="telefone" [(ngModel)]="contatoEmergenciaTelefone" placeholder="(11) 99999-9999" />
           </label>
 
           <div class="cabecalho-secao">
