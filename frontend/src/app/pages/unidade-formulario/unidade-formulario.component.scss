@@ -31,7 +31,8 @@ h1 {
   }
 
   select,
-  input[type='text'] {
+  input[type='text'],
+  input[type='tel'] {
     font-family: inherit;
     font-size: 1rem;
     padding: 9px 10px;
