@@ -8,22 +8,22 @@ export const routes: Routes = [
   { path: 'portal', pathMatch: 'full', redirectTo: 'entrar' },
   {
     path: 'entrar',
-    data: { titulo: NOME_PRODUTO },
+    data: { titulo: NOME_PRODUTO, publica: true },
     loadComponent: () => import('./pages/entrar/entrar.component').then((m) => m.EntrarComponent)
   },
   {
     path: 'assinar',
-    data: { titulo: NOME_PRODUTO },
+    data: { titulo: NOME_PRODUTO, publica: true },
     loadComponent: () => import('./pages/assinar/assinar.component').then((m) => m.AssinarComponent)
   },
   {
     path: 'esqueci-senha',
-    data: { titulo: NOME_PRODUTO },
+    data: { titulo: NOME_PRODUTO, publica: true },
     loadComponent: () => import('./pages/esqueci-senha/esqueci-senha.component').then((m) => m.EsqueciSenhaComponent)
   },
   {
     path: 'redefinir-senha',
-    data: { titulo: NOME_PRODUTO },
+    data: { titulo: NOME_PRODUTO, publica: true },
     loadComponent: () => import('./pages/redefinir-senha/redefinir-senha.component').then((m) => m.RedefinirSenhaComponent)
   },
   {

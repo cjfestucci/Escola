@@ -1,4 +1,4 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
 
@@ -29,6 +29,8 @@ export class TopbarComponent {
   private readonly segmentoService = inject(SegmentoService);
 
   readonly abrirMenu = output<void>();
+  /** Tela pública: sem botão de menu nem a conta logada (ver AppComponent.paginaPublica). */
+  readonly publica = input(false);
 
   /** Título fixo da rota (data.titulo), lido a cada navegação. */
   private readonly tituloDaRota = signal<string | null>(this.lerTituloDaRota());

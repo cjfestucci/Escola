@@ -1,4 +1,4 @@
-@if (auth.estaLogado()) {
+@if (auth.estaLogado() && !paginaPublica()) {
   <app-sidebar [aberto]="menuAberto()" (fechar)="menuAberto.set(false)" />
 
   @if (menuAberto()) {
@@ -6,9 +6,11 @@
   }
 }
 
-<div class="app-area" [class.app-area--sem-sidebar]="!auth.estaLogado()">
-  <app-topbar (abrirMenu)="menuAberto.set(true)" />
-  <app-aviso-assinatura />
+<div class="app-area" [class.app-area--sem-sidebar]="!auth.estaLogado() || paginaPublica()">
+  <app-topbar [publica]="paginaPublica()" (abrirMenu)="menuAberto.set(true)" />
+  @if (!paginaPublica()) {
+    <app-aviso-assinatura />
+  }
 
   <main class="app-conteudo">
     <router-outlet></router-outlet>
