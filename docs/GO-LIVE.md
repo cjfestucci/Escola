@@ -81,7 +81,7 @@ flowchart LR
 
 ### 2.4 👤 E-mail transacional (o que o sistema envia) ⏱️ 1–2 horas
 - **Não use o Gmail pessoal**: convites, códigos de verificação e avisos precisam chegar e não cair no spam.
-- Serviço SMTP: **Brevo** (tem plano gratuito diário), **Resend**, **Amazon SES** ou **Mailgun**.
+- Serviço SMTP: **SMTP relay do Google Workspace** (em uso; sem rastreio), **Brevo** (grátis 300/dia, mas rastreio e "cancelar inscrição" obrigatórios), **Resend**, **Amazon SES** ou **Mailgun**.
 - No painel do serviço, **verifique o domínio**: ele dá registros **SPF, DKIM e DMARC** pra criar no DNS. Sem isso, cai no spam.
 - Remetente sugerido: `nao-responda@gestortatico.com.br`, nome "Gestor Tático".
 - **Me passe**: host, porta, usuário, senha SMTP e o e-mail remetente. 🤖 Eu configuro e testo convite, esqueci a senha e código.

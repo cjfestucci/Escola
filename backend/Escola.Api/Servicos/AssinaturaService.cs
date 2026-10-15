@@ -60,7 +60,7 @@ public sealed class AssinaturaService(
 {
     /// <summary>Versão dos Termos de Uso e da Política de Privacidade aceitos no cadastro (publicados no site: site/termos.html e
     /// site/privacidade.html). Mudou o texto → troque aqui e em VERSAO_DOCUMENTOS (site/paginas.js).</summary>
-    public const string VersaoTermosUso = "2026-10-15.1";
+    public const string VersaoTermosUso = "2026-10-15.2";
 
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
 

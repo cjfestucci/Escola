@@ -1,7 +1,17 @@
 #!/bin/bash
 # Backup diário: banco (pg_dump) + volumes de fotos e documentos, criptografados com age (só a chave pública fica aqui) e enviados
 # pro Cloudflare R2. Guarda os 3 últimos também no servidor. A limpeza dos antigos no R2 é a regra de ciclo de vida do bucket.
+#
+# Monitoramento (opcional): com HC_BACKUP_URL no .env (endereço de um check do healthchecks.io, gravado com gt-definir), avisa o
+# início, o sucesso e a falha. Se o backup falhar ou nem rodar, o healthchecks.io manda e-mail. Disco acima de 85% também conta como
+# falha (o backup local e o Postgres param quando o disco enche).
 set -euo pipefail
+ENV=/opt/gestortatico/deploy/producao/.env
+HC=$(grep -E "^HC_BACKUP_URL=" "$ENV" 2>/dev/null | head -1 | cut -d= -f2- | tr -d "'\"" || true)
+avisar() { [ -n "$HC" ] && curl -fsS -m 10 --retry 3 -o /dev/null --data-raw "${2:-}" "$HC$1" || true; }
+trap 'avisar /fail "Backup falhou na linha $LINENO (veja journalctl -u gt-backup)."' ERR
+avisar /start
+
 PUB=$(cat /root/.config/gestortatico/backup-chave-publica.txt)
 QUANDO=$(date +%Y-%m-%d_%H%M)
 LOCAL=/root/backups/$QUANDO; mkdir -p "$LOCAL"; chmod 700 /root/backups
@@ -13,4 +23,12 @@ done
 ( cd "$LOCAL" && sha256sum *.age > SHA256SUMS )
 rclone copy "$LOCAL" "r2:gestortatico-backup/$QUANDO" --s3-no-check-bucket
 ls -1d /root/backups/20* | head -n -3 | xargs -r rm -rf
-echo "$(date -Is) backup $QUANDO ok: $(du -sh "$LOCAL" | cut -f1)" >> /var/log/gt-backup.log
+RESUMO="$(date -Is) backup $QUANDO ok: $(du -sh "$LOCAL" | cut -f1)"
+echo "$RESUMO" >> /var/log/gt-backup.log
+
+DISCO=$(df --output=pcent / | tail -1 | tr -dc '0-9')
+if [ "$DISCO" -ge 85 ]; then
+  avisar /fail "Backup ok, mas o disco do servidor está com ${DISCO}% de uso."
+else
+  avisar "" "$RESUMO; disco ${DISCO}%"
+fi

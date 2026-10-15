@@ -24,7 +24,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 | B4 | Pedido da **marca no INPI** (opcional, recomendado) | 👤 | ⬜ | |
 | B4a | **Endereço da sede** desatualizado na Receita (Rua Blumenau, 278 — não mora mais lá) | 👤 | ⬜ | atualizar com o contador; depois Asaas, Termos/Privacidade e Google Workspace (este não deixa mudar). Nome fantasia fica "CJF Technology" (decidido em 14/10/2026) |
 | B5 | **Advogado** revisa Termos, Privacidade e termo de matrícula; definir o **DPO** | 👤 | ⬜ | |
-| B6 | Aplicar textos revisados + dados da empresa | 🤖 | 🟨 | dados da empresa, DPO (Cleber Festucci), hospedagem (Hostinger, Campinas/SP) e backup fora do país (R2) aplicados em 15/10/2026 (versão 2026-10-15.1); falta só a revisão do advogado (B5), opcional antes do 1º clube |
+| B6 | Aplicar textos revisados + dados da empresa | 🤖 | 🟨 | dados da empresa, DPO (Cleber Festucci), hospedagem (Hostinger, Campinas/SP) e backup fora do país (R2) aplicados em 15/10/2026 (versão 2026-10-15.2); falta só a revisão do advogado (B5), opcional antes do 1º clube |
 
 ## Domínio e e-mail
 
@@ -33,7 +33,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 | C1 | **Comprar o domínio** | 👤 | ✅ | gestortatico.com.br no CNPJ da empresa (14/10/2026); .com ainda livre (opcional) |
 | C2 | **DNS na Cloudflare** | 👤 | ✅ | delegação para armfazh/molly.ns.cloudflare.com concluída em 14/10/2026; registros importados (MX nulo, SPF -all, DMARC reject) mudam no C3/C4 |
 | C3 | **E-mail profissional** (contato@, suporte@, financeiro@, privacidade@) | 👤 | ✅ | Google Workspace Business Starter (mensal, R$ 39,20 por 12 meses, depois R$ 49; teste até 28/10/2026), no CNPJ; domínio verificado e Gmail ativo em 14/10/2026 (MX smtp.google.com, SPF include:_spf.google.com -all); DKIM do Google (google._domainkey, 2048 bits); caixa cleber@ com 2FA + chave de acesso + recuperação; apelidos contato@, suporte@, financeiro@, privacidade@ e "Enviar como"; teste de ida e volta com SPF/DKIM/DMARC = PASS |
-| C4 | **E-mail transacional** (Brevo) + SPF/DKIM/DMARC | 👤 | ✅ | conta Brevo (300/dia grátis); domínio autenticado em 14/10/2026 (TXT brevo-code + 2 CNAME DKIM, DNS only; DMARC p=reject mantido); remetente Gestor Tático <nao-responda@gestortatico.com.br>; chave SMTP de dev no Bitwarden |
+| C4 | **E-mail transacional** + SPF/DKIM/DMARC | 👤 | ✅ | **produção desde 15/10/2026: SMTP relay do Google Workspace** (`smtp-relay.gmail.com:587`, só do IP do servidor, com senha de app; sem rastreio nem "cancelar inscrição", que a Brevo confirmou serem obrigatórios). Antes: conta Brevo (300/dia grátis); domínio autenticado em 14/10/2026 (TXT brevo-code + 2 CNAME DKIM, DNS only; DMARC p=reject mantido); remetente Gestor Tático <nao-responda@gestortatico.com.br>; chave SMTP de dev no Bitwarden |
 | C5 | Configurar SMTP no sistema e testar entrega | 🤖 | ✅ | dev: smtp-relay.brevo.com:587; convite real chegou na **caixa de entrada** do Gmail em 14/10/2026 (convite de teste cancelado). Brevo não deixa desligar rastreio nem o "Cancelar inscrição" (rastreio ficou anônimo; pedido ao suporte do Brevo em aberto). Se alguém não recebe e-mail: Configurações → E-mail transacional → **Contatos bloqueados ou cancelados** → desbloquear. Produção usa outra chave (F2) |
 
 ## Asaas produção
@@ -53,7 +53,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 | E1 | Contratar **VPS** no Brasil (2 vCPU / 4 GB) | 👤 | ✅ | Hostinger KVM 2 (2 vCPU, 8 GB, 100 GB NVMe), Brasil, Ubuntu 24.04, 12 meses (R$ 557,89, contratado 14/10/2026 — anotar a renovação); IP 187.127.44.70; acesso só por chave SSH `~/.ssh/gestortatico_ed25519` (cópia no Bitwarden), senha root no Bitwarden |
 | E2 | Instalar Docker, subir banco + API + app + site, **HTTPS** | 🤖 | 🟨 | 14/10/2026: servidor endurecido (SSH só por chave, ufw 22/80/443, fail2ban, atualizações automáticas, fuso SP), Docker, código por deploy key, `deploy/producao` (Postgres + API + app + Caddy) no ar com Let's Encrypt: app.gestortatico.com.br, gestortatico.com.br, www → apex. `.env` com segredos gerados no servidor. `.env` guardado no Bitwarden; SMTP de produção (chave própria do Brevo) testado do servidor em 14/10/2026; `gt-definir NOME` grava segredo no `.env` sem mostrar na tela. Falta: Suporte (hash + TOTP), Asaas |
 | E3 | **Backup** diário fora do servidor + teste de restauração | 🤖 | ✅ | 15/10/2026: banco + fotos + documentos criptografados (age; chave privada só no Bitwarden) pro Cloudflare R2 todo dia às 03:30 (systemd), 3 últimos também no servidor; teste de restauração OK (`gt-backup-testar`, repetir a cada trimestre). Ver `deploy/producao/servidor/LEIA-ME.md` |
-| E4 | **Monitoramento** (UptimeRobot no `/healthz`) | 👤🤖 | ⬜ | |
+| E4 | **Monitoramento** (UptimeRobot no `/healthz`) | 👤🤖 | ✅ | 15/10/2026: **UptimeRobot** (grátis, 5 min, e-mail cleber@) com "Gestor Tático – App" (`/healthz`, que testa o banco — a raiz do app é estática e fica 200 com a API fora) e "Gestor Tático – Site"; queda simulada (API parada) alertou em 4 min. **Healthchecks.io** check "Backup diário" (cron `30 3 * * *`, fuso São Paulo, 1 h de tolerância): o `gt-backup` avisa início/sucesso/falha e disco ≥ 85% (`HC_BACKUP_URL` no `.env`); falha simulada chegou por e-mail |
 
 ## Configuração e validação
 

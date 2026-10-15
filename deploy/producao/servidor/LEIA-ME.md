@@ -17,7 +17,7 @@ Os valores ficam entre aspas simples no `.env` porque o docker compose interpret
 
 | Arquivo | Onde fica no servidor | Uso |
 |---|---|---|
-| `gt-backup` | `/usr/local/bin/` | backup do banco (`pg_dump -Fc`) + volumes `fotos` e `documentos`, **criptografados com age** (só a chave pública fica no servidor), enviados pro Cloudflare R2 (`r2:gestortatico-backup/AAAA-MM-DD_HHMM/`) + os 3 últimos em `/root/backups`. Log em `/var/log/gt-backup.log` |
+| `gt-backup` | `/usr/local/bin/` | backup do banco (`pg_dump -Fc`) + volumes `fotos` e `documentos`, **criptografados com age** (só a chave pública fica no servidor), enviados pro Cloudflare R2 (`r2:gestortatico-backup/AAAA-MM-DD_HHMM/`) + os 3 últimos em `/root/backups`. Log em `/var/log/gt-backup.log`. Com `HC_BACKUP_URL` no `.env` (`gt-definir HC_BACKUP_URL`), avisa o healthchecks.io no início, no sucesso e na falha — e trata disco acima de 85% como falha |
 | `gt-backup.service` / `gt-backup.timer` | `/etc/systemd/system/` | roda o `gt-backup` todo dia às 03:30 (`systemctl list-timers gt-backup.timer`) |
 | `gt-backup-configurar` | `/usr/local/bin/` | grava as chaves do R2 no rclone (ocultas). O R2 precisa de `no_head = true` (não implementa o HEAD com `versionId`) e não aceita filtro de IP no token |
 | `gt-backup-chave` | `/usr/local/bin/` | cria o par de chaves age: a **privada aparece uma vez** (vai pro Bitwarden: "Gestor Tático – chave dos backups") e é apagada |
