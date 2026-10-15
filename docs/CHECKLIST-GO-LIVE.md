@@ -68,6 +68,6 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 | # | Tarefa | Quem | Situação | Observação |
 |---|---|---|---|---|
 | G1 | Virar o Asaas para **produção** | 🤖 | ✅ | 15/10/2026: `ASAAS_AMBIENTE=Producao` só pra **assinatura dos clubes**; subcontas das escolas desligadas (`ASAAS_SUBCONTAS=false`) até o D2 |
-| G2 | **Assinatura real** de teste (sua) | 👤 | ⬜ | |
+| G2 | **Assinatura real** de teste (sua) | 👤 | ✅ | 15/10/2026: cadastro pelo site com cupom de 90% (R$ 6), Pix pago → **webhook do Asaas** ativou o clube sozinho e saiu o recibo pelo nosso SMTP. Achou 2 bugs, corrigidos em e490892: convite de boas-vindas duplicado (o webhook "fatura criada" chegava durante o envio) e data de acesso ao cancelar (perdia o mês pago). Clube de teste excluído e cupom TESTEG2 desativado |
 | G3 | Primeiro **clube piloto** com cupom de lançamento | 👤🤖 | ⬜ | |
 | G4 | Após ~1 mês: ligar a **exclusão automática** de dados | 🤖 | ⬜ | |
