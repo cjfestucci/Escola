@@ -1,0 +1,15 @@
+#!/bin/bash
+# Grava um segredo no .env de produção sem mostrar na tela. Uso: gt-definir NOME   (ex.: gt-definir SMTP_SENHA)
+set -e
+F=/opt/gestortatico/deploy/producao/.env
+V="$1"
+[[ "$V" =~ ^[A-Z][A-Z0-9_]*$ ]] || { echo "Uso: gt-definir NOME_DA_VARIAVEL"; exit 1; }
+read -rsp "Valor de $V (não aparece na tela): " VAL; echo
+[ -n "$VAL" ] || { echo "Vazio: nada foi alterado."; exit 1; }
+[[ "$VAL" != *"'"* ]] || { echo "O valor não pode ter aspas simples."; exit 1; }
+tmp=$(mktemp)
+grep -v "^$V=" "$F" > "$tmp" || true
+# Aspas simples: o docker compose não interpreta "\$" dentro delas (a chave do Asaas começa com \$aact_).
+printf "%s='%s'\n" "$V" "$VAL" >> "$tmp"
+install -m 600 "$tmp" "$F"; rm -f "$tmp"
+echo "$V gravado. Para aplicar: cd /opt/gestortatico/deploy/producao && docker compose up -d"

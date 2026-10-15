@@ -68,6 +68,8 @@ export interface ClienteResumo {
   atletasAtivos: number;
   contasEquipe: number;
   ultimoAcessoEm: string | null;
+  /** Dados apagados: fica fora da lista padrão e da contagem (filtro "Excluídos"). */
+  excluidoEm: string | null;
 }
 
 /** Cupom de desconto da assinatura (do produto, gerido pelo Suporte). */

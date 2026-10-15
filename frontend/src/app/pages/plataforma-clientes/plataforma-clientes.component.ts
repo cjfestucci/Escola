@@ -9,7 +9,7 @@ import { NotificacaoService } from '../../services/notificacao.service';
 import { PlataformaService } from '../../services/plataforma.service';
 import { formatarDataAbsoluta, formatarDataHoraAbsoluta } from '../../shared/data-utils';
 
-type Filtro = 'todos' | 'EmTeste' | 'Ativa' | 'EmAtraso' | 'bloqueados' | 'Cancelada' | 'semAssinatura';
+type Filtro = 'todos' | 'EmTeste' | 'Ativa' | 'EmAtraso' | 'bloqueados' | 'Cancelada' | 'semAssinatura' | 'excluidos';
 
 const FILTROS: { valor: Filtro; rotulo: string }[] = [
   { valor: 'todos', rotulo: 'Todos' },
@@ -18,7 +18,8 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
   { valor: 'EmAtraso', rotulo: 'Em atraso' },
   { valor: 'bloqueados', rotulo: 'Suspensas / aguardando' },
   { valor: 'Cancelada', rotulo: 'Canceladas' },
-  { valor: 'semAssinatura', rotulo: 'Sem assinatura' }
+  { valor: 'semAssinatura', rotulo: 'Sem assinatura' },
+  { valor: 'excluidos', rotulo: 'Excluídos' }
 ];
 
 /** Painel do Suporte: todos os clientes do produto, com a assinatura e o uso (contagens). Pra agir num cliente, o Suporte entra nele
@@ -43,6 +44,9 @@ export class PlataformaClientesComponent implements OnInit {
   readonly clientes = signal<ClienteResumo[]>([]);
   readonly filtro = signal<Filtro>('todos');
   readonly busca = signal('');
+
+  /** Clientes de verdade: os excluídos (dados apagados) não contam no total nem aparecem fora do filtro "Excluídos". */
+  readonly totalClientes = computed(() => this.clientes().filter((c) => !c.excluidoEm).length);
 
   readonly contagem = computed(() => {
     const porFiltro = new Map<Filtro, number>();
@@ -80,6 +84,8 @@ export class PlataformaClientesComponent implements OnInit {
   }
 
   private passa(c: ClienteResumo, filtro: Filtro): boolean {
+    if (filtro === 'excluidos') return !!c.excluidoEm;
+    if (c.excluidoEm) return false;
     switch (filtro) {
       case 'todos':
         return true;

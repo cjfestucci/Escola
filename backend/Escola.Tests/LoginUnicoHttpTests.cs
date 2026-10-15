@@ -71,6 +71,26 @@ public class LoginUnicoHttpTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task ContaDesativadaOuEscolaExcluidaNaoEntraNaEscolha()
+    {
+        // Mesma senha em três escolas: a conta da escola B está desativada e a da escola excluída nem conta — entra direto na que sobra.
+        var email = Email("desativada");
+        _api.CriarUsuario(PapelUsuario.Coordenador, email);
+        _api.CriarUsuario(PapelUsuario.Educador, email, ativo: false, clienteId: EscolaB);
+        var excluida = Guid.NewGuid();
+        using (var db = _api.Contexto(ApiFactory.ClienteId))
+        {
+            db.Clientes.Add(new Cliente { Id = excluida, Nome = "Cliente excluído", Ativo = false, ExcluidoEm = DateTime.UtcNow, CriadoEm = DateTime.UtcNow });
+            db.SaveChanges();
+        }
+        _api.CriarUsuario(PapelUsuario.Admin, email, clienteId: excluida);
+
+        var resposta = await _api.EntrarAsync(_api.CreateClient(), email, "Senha-de-Teste-1");
+        var corpo = (await resposta.Content.ReadFromJsonAsync<ApiFactory.LoginResposta>())!;
+        Assert.Equal(ApiFactory.ClienteId, ClienteDoToken(corpo.Token));
+    }
+
+    [Fact]
     public async Task SenhasDiferentesEntraDiretoNaEscolaDaSenhaDigitada()
     {
         var email = Email("senhas");

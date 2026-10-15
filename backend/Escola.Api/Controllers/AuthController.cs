@@ -151,6 +151,16 @@ public class AuthController(
 
         if (validas.Count > 1)
         {
+            // Conta desativada ou escola excluída não entra na escolha (senão aparece uma escola em que não dá pra entrar). Se só
+            // sobrarem contas assim, segue com todas pra cair na mensagem de conta desativada logo abaixo.
+            var idsValidas = validas.Select(v => v.ClienteId).ToList();
+            var excluidos = await db.Clientes.Where(c => idsValidas.Contains(c.Id) && c.ExcluidoEm != null).Select(c => c.Id).ToListAsync();
+            var utilizaveis = validas.Where(v => v.Usuario.Ativo && !excluidos.Contains(v.ClienteId)).ToList();
+            if (utilizaveis.Count > 0) validas = utilizaveis;
+        }
+
+        if (validas.Count > 1)
+        {
             var ids = validas.Select(v => v.ClienteId).ToList();
             var nomes = await db.Clientes.Where(c => ids.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Nome);
             return Ok(LoginRespostaDto.ExigeEscolhaDeCliente(validas

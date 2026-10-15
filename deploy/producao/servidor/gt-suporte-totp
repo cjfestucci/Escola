@@ -1,0 +1,15 @@
+#!/bin/bash
+# Gera um segredo NOVO de 2 etapas pro Suporte, grava no .env e mostra o QR Code pra cadastrar no app autenticador.
+set -e
+. /usr/local/lib/gt-gravar.sh
+cd /opt/gestortatico/deploy/producao
+SAIDA=$(docker compose run --rm -T --no-deps api --gerar-segredo-totp suporte@gestortatico.com.br 2>/dev/null)
+SEGREDO=$(printf '%s\n' "$SAIDA" | sed -n 's/^Segredo (Suporte:TotpSegredo): //p')
+LINK=$(printf '%s\n' "$SAIDA" | sed -n 's/^Link para o app autenticador: *//p')
+[ -n "$SEGREDO" ] && [ -n "$LINK" ] || { echo "Não foi possível gerar o segredo."; exit 1; }
+gt_gravar SUPORTE_TOTP_SEGREDO "$SEGREDO"
+echo
+echo "Leia este QR Code com o app autenticador (Google Authenticator, Microsoft Authenticator, Authy...):"
+qrencode -t ANSIUTF8 "$LINK"
+echo "Se não conseguir ler, cadastre digitando a chave: $SEGREDO"
+echo "Guarde a chave no Bitwarden. Aplicar: cd /opt/gestortatico/deploy/producao && docker compose up -d api"

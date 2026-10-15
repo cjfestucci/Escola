@@ -1,0 +1,14 @@
+#!/bin/bash
+# Define a senha da conta de Suporte: pede duas vezes (sem mostrar), grava só o HASH no .env. A senha não fica em lugar nenhum.
+set -e
+. /usr/local/lib/gt-gravar.sh
+read -rsp "Nova senha do Suporte (mín. 12 caracteres, não aparece na tela): " A; echo
+read -rsp "Repita a senha: " B; echo
+[ "$A" = "$B" ] || { echo "As senhas não conferem. Nada foi alterado."; exit 1; }
+[ ${#A} -ge 12 ] || { echo "Use pelo menos 12 caracteres. Nada foi alterado."; exit 1; }
+cd /opt/gestortatico/deploy/producao
+HASH=$(printf '%s\n' "$A" | docker compose run --rm -T --no-deps api --gerar-hash-senha 2>/dev/null | tail -1)
+unset A B
+[ -n "$HASH" ] || { echo "Não foi possível gerar o hash."; exit 1; }
+gt_gravar SUPORTE_SENHA_HASH "$HASH"
+echo "Senha do Suporte gravada (só o hash). Aplicar: cd /opt/gestortatico/deploy/producao && docker compose up -d api"

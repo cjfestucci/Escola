@@ -12,11 +12,12 @@ namespace Escola.Api.Controllers;
 
 /// <param name="Situacao">Nula = cliente sem assinatura (criado à mão).</param>
 /// <param name="UltimoAcessoEm">Último login/uso da equipe ou das famílias (não conta o Suporte).</param>
+/// <param name="ExcluidoEm">Dados apagados (cliente anonimizado): o painel deixa fora da lista padrão e da contagem.</param>
 public record ClienteResumoDto(
     Guid Id, string Nome, SegmentoCliente Segmento, bool Ativo, DateTime CriadoEm,
     string? Situacao, string? RotuloSituacao, decimal? ValorMensal, DateOnly? TesteAte, DateOnly? VencimentoEmAberto,
     DateOnly? AcessoAte, DateOnly? DataExclusao, string? EmailCobranca,
-    int AtletasAtivos, int ContasEquipe, DateTime? UltimoAcessoEm);
+    int AtletasAtivos, int ContasEquipe, DateTime? UltimoAcessoEm, DateTime? ExcluidoEm);
 
 /// <summary>Visão de todos os clientes do produto, pra equipe do produto (Suporte) acompanhar assinaturas e uso. Só <b>contagens</b> e dados
 /// da assinatura — nada de aluno, saúde ou financeiro do clube (o privilégio mínimo do Suporte continua). É a única consulta do app que
@@ -63,7 +64,7 @@ public class PlataformaClientesController(EscolaDbContext db, IConfiguration con
                 a?.VencimentoEmAberto, a?.AcessoAte,
                 a is null ? null : SituacaoAssinaturaCalculo.DataExclusao(a.Situacao, a.AcessoAte, a.SuspensaEm, a.JaPagou, dias),
                 a?.EmailCobranca,
-                atletas.GetValueOrDefault(c.Id), equipe.GetValueOrDefault(c.Id), ultimoAcesso.GetValueOrDefault(c.Id));
+                atletas.GetValueOrDefault(c.Id), equipe.GetValueOrDefault(c.Id), ultimoAcesso.GetValueOrDefault(c.Id), c.ExcluidoEm);
         }).ToList());
     }
 }
