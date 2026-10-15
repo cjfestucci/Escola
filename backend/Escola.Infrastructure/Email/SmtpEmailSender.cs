@@ -1,11 +1,12 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace Escola.Infrastructure.Email;
 
-public class SmtpEmailSender(IOptions<ConfiguracaoSmtp> opcoes) : IEmailSender
+public class SmtpEmailSender(IOptions<ConfiguracaoSmtp> opcoes, IConfiguration configuracao) : IEmailSender
 {
     private readonly ConfiguracaoSmtp _config = opcoes.Value;
 
@@ -24,7 +25,12 @@ public class SmtpEmailSender(IOptions<ConfiguracaoSmtp> opcoes) : IEmailSender
         mensagem.From.Add(new MailboxAddress(_config.RemetenteNome, _config.RemetenteEmail!));
         mensagem.To.Add(new MailboxAddress(destinatarioNome, destinatarioEmail));
         mensagem.Subject = assunto;
-        mensagem.Body = new BodyBuilder { HtmlBody = corpoHtml }.ToMessageBody();
+        // Todo e-mail sai no layout da marca (ModeloEmail), com a versão em texto puro junto.
+        mensagem.Body = new BodyBuilder
+        {
+            HtmlBody = ModeloEmail.Html(assunto, corpoHtml, configuracao["App:UrlBase"]),
+            TextBody = ModeloEmail.Texto(corpoHtml)
+        }.ToMessageBody();
 
         using var cliente = new SmtpClient();
         await cliente.ConnectAsync(_config.Host!, _config.Porta, SecureSocketOptions.StartTls, ct);

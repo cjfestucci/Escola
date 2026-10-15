@@ -49,7 +49,7 @@ public sealed class CodigoEmailService(IEmailSender emailSender, IHostEnvironmen
             var corpo = $"""
                 <p>Olá, {Html(usuario.Nome)}!</p>
                 <p>Seu código para entrar em <b>{Html(escola)}</b> é:</p>
-                <p style="font-size:28px;font-weight:700;letter-spacing:6px">{codigo}</p>
+                <p style="margin:4px 0 20px;padding:14px 0;background:#F3F5F7;border-radius:8px;text-align:center;font-size:30px;font-weight:700;letter-spacing:8px;">{codigo}</p>
                 <p>Ele vale por {(int)Validade.TotalMinutes} minutos e só pode ser usado uma vez.</p>
                 <p>Se não foi você que tentou entrar, troque sua senha: alguém pode ter descoberto a senha atual.</p>
                 """;

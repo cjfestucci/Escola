@@ -55,6 +55,9 @@ export class RedefinirSenhaComponent implements OnInit {
     this.auth.redefinirSenha(this.token, this.novaSenha).subscribe({
       next: () => {
         this.salvando.set(false);
+        // A senha é de uma conta que pode não ser a logada neste navegador (ex.: o Admin abriu aqui o convite da secretária):
+        // encerra a sessão aberta pra a tela de entrar não aparecer dentro do menu de outra pessoa.
+        this.auth.sair();
         this.notificacao.sucesso(this.convite() ? 'Pronto! Senha cadastrada. Entre com seu e-mail e senha.' : 'Senha redefinida! Entre com a nova senha.');
         this.router.navigateByUrl('/entrar');
       },

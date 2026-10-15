@@ -489,7 +489,8 @@ public sealed class AssinaturaService(
                 <p>Olá!</p>
                 <p>O acesso do <strong>{Html(nomeClube)}</strong> ao {MarcaProduto.Nome} foi <strong>suspenso</strong> por falta de pagamento.
                 A equipe e as famílias não conseguem entrar até a mensalidade ser paga. Nenhum dado foi apagado.</p>
-                <p><a href="{Html(linkPagar)}">Pagar agora</a> — assim que o pagamento for confirmado, tudo volta ao normal.</p>
+                <p><a href="{Html(linkPagar)}">Pagar agora</a></p>
+                <p>Assim que o pagamento for confirmado, tudo volta ao normal.</p>
                 """);
 
         try
@@ -529,7 +530,8 @@ public sealed class AssinaturaService(
                 <p>Olá!</p>
                 <p>A mensalidade do <strong>{Html(nomeClube)}</strong> no {MarcaProduto.Nome}, de <strong>{valor}</strong>, vence em
                 <strong>{f.Vencimento:dd/MM/yyyy}</strong>.</p>
-                <p><a href="{Html(link)}">Pagar agora</a> — Pix, boleto ou cartão de crédito.</p>
+                <p><a href="{Html(link)}">Pagar agora</a></p>
+                <p>Pix, boleto ou cartão de crédito.</p>
                 {comoAparece}
                 """),
             TipoAvisoFatura.Atraso => ($"Mensalidade em atraso — {nomeClube}",
@@ -539,7 +541,8 @@ public sealed class AssinaturaService(
                 <strong>{f.Vencimento:dd/MM/yyyy}</strong> e ainda não foi paga.</p>
                 <p>O acesso continua normal até <strong>{f.Vencimento.AddDays(opcoes.Value.DiasToleranciaAtraso):dd/MM/yyyy}</strong>. Depois
                 disso, a equipe e as famílias deixam de conseguir entrar até o pagamento.</p>
-                <p><a href="{Html(link)}">Pagar agora</a> — Pix, boleto ou cartão de crédito. Se já pagou, desconsidere este e-mail.</p>
+                <p><a href="{Html(link)}">Pagar agora</a></p>
+                <p>Pix, boleto ou cartão de crédito. Se já pagou, desconsidere este e-mail.</p>
                 {comoAparece}
                 """),
             _ => ($"Pagamento confirmado — {nomeClube}",

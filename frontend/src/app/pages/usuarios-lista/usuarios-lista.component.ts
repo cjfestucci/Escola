@@ -45,6 +45,8 @@ export class UsuariosListaComponent implements OnInit {
 
   protected readonly papeis: PapelEquipe[] = ['Admin', 'Coordenador', 'Educador', 'Financeiro', 'Secretaria'];
   protected readonly rotuloPapel = (papel: string): string => ROTULO_PAPEL[papel as PapelEquipe] ?? papel;
+  /** Subtítulo da tela, montado da mesma lista do formulário: um perfil novo aparece sozinho. */
+  protected readonly papeisDaEquipe = this.papeis.map(this.rotuloPapel).join(', ');
 
   get meuId(): string | null {
     return this.auth.identidade()?.usuarioId ?? null;

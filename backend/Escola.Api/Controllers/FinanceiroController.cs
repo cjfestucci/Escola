@@ -559,8 +559,10 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
 
     private static string MontarCorpoEmail(Cobranca cobranca, string? codigoPix, decimal valorAtualizado, decimal encargos, string? instrucoesPresencial = null)
     {
+        // Valores sempre em pt-BR: no servidor a cultura é a invariante ("250.00").
+        var ptBr = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
         var encargosHtml = encargos > 0
-            ? $"<br/>Em atraso — valor atualizado com multa/juros: <strong>R$ {valorAtualizado:N2}</strong>"
+            ? $"<br/>Em atraso — valor atualizado com multa/juros: <strong>{valorAtualizado.ToString("C", ptBr)}</strong>"
             : string.Empty;
 
         var presencialHtml = instrucoesPresencial is null
@@ -571,13 +573,13 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             ? (presencialHtml.Length > 0 ? string.Empty : "<p>Entre em contato com a escola para combinar o pagamento.</p>")
             : $"""
                <p>Pague com Pix copiando o código abaixo no app do seu banco:</p>
-               <p style="font-family: monospace; word-break: break-all; background: #f3f4f6; padding: 12px; border-radius: 6px;">{codigoPix}</p>
+               <p style="margin:0 0 16px;font-family:monospace;font-size:13px;word-break:break-all;background:#F3F5F7;padding:12px;border-radius:8px;">{codigoPix}</p>
                """;
 
         return $"""
                 <p>Olá,</p>
                 <p>Você tem uma cobrança referente a <strong>{WebUtility.HtmlEncode(cobranca.Descricao)}</strong>, aluno(a) <strong>{WebUtility.HtmlEncode(cobranca.Aluno.Nome)}</strong>.</p>
-                <p>Valor: <strong>R$ {cobranca.Valor:F2}</strong><br/>
+                <p style="margin:0 0 16px;padding:14px 16px;background:#F3F5F7;border-radius:8px;">Valor: <strong>{cobranca.Valor.ToString("C", ptBr)}</strong><br/>
                 Vencimento: <strong>{cobranca.Vencimento:dd/MM/yyyy}</strong>{encargosHtml}</p>
                 {pixHtml}
                 {presencialHtml}

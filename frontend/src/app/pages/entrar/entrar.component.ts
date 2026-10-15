@@ -22,6 +22,11 @@ export class EntrarComponent {
   private readonly notificacao = inject(NotificacaoService);
   protected readonly segmentoService = inject(SegmentoService);
 
+  constructor() {
+    // Já logado: a tela de entrar não faz sentido (apareceria dentro do menu). Vai pra tela inicial da conta.
+    if (this.auth.estaLogado()) this.router.navigateByUrl('/');
+  }
+
   // Só em dev, pra agilizar teste manual — nunca preenche sozinho em produção.
   email = environment.production ? '' : 'admin@escola.dev';
   senha = environment.production ? '' : 'escola123';
