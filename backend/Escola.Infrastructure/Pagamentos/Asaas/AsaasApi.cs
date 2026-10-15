@@ -58,6 +58,10 @@ public sealed record DadosSubconta(
 
 public sealed record SubcontaCriada(string Id, string? WalletId, string ApiKey);
 
+/// <summary>Um grupo de documentos que a subconta precisa mandar pra aprovação. <c>UrlEnvio</c> (onboardingUrl do Asaas) = o envio é pela
+/// página do Asaas; sem ela, só pela API (o sistema não faz upload de documento de KYC).</summary>
+public sealed record DocumentoSubconta(string Titulo, string? Descricao, string Status, string? UrlEnvio, DateTime? UrlExpiraEm);
+
 public sealed record PagamentoAsaas(string Id, string Status, decimal Valor, DateOnly? DataPagamento, string? ReferenciaExterna);
 
 /// <summary>Chamadas HTTP à API v3 do Asaas. Autenticação pelo cabeçalho <c>access_token</c> (+ <c>User-Agent</c>, obrigatório pra contas
@@ -127,6 +131,24 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
     {
         using var json = await EnviarAsync(apiKeySubconta, HttpMethod.Get, "/myAccount/status", null, ct);
         return Texto(json!.RootElement, "general");
+    }
+
+    /// <summary>Documentos pendentes da subconta (GET /myAccount/documents, com a chave dela). O Asaas recomenda esperar uns segundos
+    /// depois de criar a conta: antes disso a lista pode vir incompleta.</summary>
+    public async Task<(IReadOnlyList<DocumentoSubconta> Documentos, string? MotivoRecusa)> DocumentosSubcontaAsync(string apiKeySubconta, CancellationToken ct = default)
+    {
+        using var json = await EnviarAsync(apiKeySubconta, HttpMethod.Get, "/myAccount/documents", null, ct);
+        var raiz = json!.RootElement;
+        var documentos = new List<DocumentoSubconta>();
+        if (raiz.TryGetProperty("data", out var dados) && dados.ValueKind == JsonValueKind.Array)
+            foreach (var d in dados.EnumerateArray())
+                documentos.Add(new DocumentoSubconta(
+                    Texto(d, "title") ?? "Documento",
+                    Texto(d, "description"),
+                    (Texto(d, "status") ?? "NOT_SENT").ToUpperInvariant(),
+                    Texto(d, "onboardingUrl"),
+                    DateTime.TryParse(Texto(d, "onboardingUrlExpirationDate"), CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var expira) ? expira : null));
+        return (documentos, Texto(raiz, "rejectReasons"));
     }
 
     public async Task<string> CriarClienteAsync(string apiKeySubconta, string nome, string cpfCnpj, string? email, string referenciaExterna, CancellationToken ct = default)
@@ -202,7 +224,9 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
             ["name"] = nome,
             ["cpfCnpj"] = cpfCnpj,
             ["email"] = email,
-            ["externalReference"] = referenciaExterna
+            ["externalReference"] = referenciaExterna,
+            // As notificações do Asaas custam R$ 0,99 por cobrança paga: lembrete, atraso e recibo saem pelo e-mail do próprio sistema.
+            ["notificationDisabled"] = true
         };
         if (!string.IsNullOrWhiteSpace(celular)) corpo["mobilePhone"] = celular;
         using var json = await EnviarAsync(_o.ApiKey, HttpMethod.Post, "/customers", corpo, ct);

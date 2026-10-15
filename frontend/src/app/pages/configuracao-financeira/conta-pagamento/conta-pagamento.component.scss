@@ -178,3 +178,59 @@
     color: #fff;
   }
 }
+
+.selo--recusado {
+  background: #fde8e8;
+  color: #b42318;
+}
+
+.documentos h3 {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+}
+
+.lista-documentos {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--cor-borda, #e5e7eb);
+    border-radius: 10px;
+    font-size: 0.88rem;
+  }
+
+  .selo {
+    margin-left: 6px;
+  }
+}
+
+.descricao-documento {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.botao-envio {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: var(--cor-primaria);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    background: var(--cor-primaria-escura);
+  }
+}

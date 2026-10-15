@@ -15,7 +15,7 @@
         </p>
         @if (r.linkPagamento) {
           <a class="botao botao--primario" [href]="r.linkPagamento" target="_blank" rel="noopener">Pagar agora</a>
-          <p class="ajuda">Pix, boleto ou cartão de crédito, na página segura do nosso parceiro de pagamentos.</p>
+          <p class="ajuda">Pix, boleto ou cartão de crédito, na página segura do nosso parceiro de pagamentos. Na fatura e no extrato, a cobrança aparece como <strong>{{ empresaCobranca }}</strong>.</p>
         } @else {
           <p class="ajuda">O link de pagamento vai chegar no seu e-mail em instantes.</p>
         }
@@ -134,6 +134,7 @@
           } @else {
             <p class="nota">Pix, boleto ou cartão de crédito. Sem fidelidade.</p>
           }
+          <p class="nota">Na fatura e no extrato, a cobrança aparece como <strong>{{ empresaCobranca }}</strong>, a empresa responsável pelo {{ nomeProduto }}.</p>
         } @else {
           <p class="nota">Carregando...</p>
         }

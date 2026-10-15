@@ -5,4 +5,8 @@ namespace Escola.Infrastructure;
 public static class MarcaProduto
 {
     public const string Nome = "Gestor Tático";
+
+    /// <summary>Nome fantasia do CNPJ que vende o produto: é como a cobrança da assinatura aparece na fatura e no extrato (vem do cadastro
+    /// no Asaas). Espelho de EMPRESA_COBRANCA no front.</summary>
+    public const string EmpresaCobranca = "CJF Technology";
 }

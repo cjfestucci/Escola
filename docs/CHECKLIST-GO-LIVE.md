@@ -22,25 +22,26 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 | B2 | **CNPJ** (ME, CNAE 62.03-1-00 de licenciamento, inscrição municipal) | 👤 | ✅ | conferido em 14/10/2026 |
 | B3 | **Conta bancária PJ** | 👤 | ✅ | já tem |
 | B4 | Pedido da **marca no INPI** (opcional, recomendado) | 👤 | ⬜ | |
+| B4a | **Endereço da sede** desatualizado na Receita (Rua Blumenau, 278 — não mora mais lá) | 👤 | ⬜ | atualizar com o contador; depois Asaas, Termos/Privacidade e Google Workspace (este não deixa mudar). Nome fantasia fica "CJF Technology" (decidido em 14/10/2026) |
 | B5 | **Advogado** revisa Termos, Privacidade e termo de matrícula; definir o **DPO** | 👤 | ⬜ | |
-| B6 | Aplicar textos revisados + dados da empresa | 🤖 | ⬜ | depende de B2 e B5 |
+| B6 | Aplicar textos revisados + dados da empresa | 🤖 | 🟨 | dados da empresa aplicados em 14/10/2026 (versão 2026-10-14.2; cobrança aparece como "CJF Technology"); faltam o nome do DPO, a hospedagem (E1) e a revisão do advogado (B5) |
 
 ## Domínio e e-mail
 
 | # | Tarefa | Quem | Situação | Observação |
 |---|---|---|---|---|
-| C1 | **Comprar o domínio** | 👤 | ⬜ | depende de A3 |
-| C2 | **DNS na Cloudflare** | 👤 | ⬜ | |
-| C3 | **E-mail profissional** (contato@, suporte@, financeiro@, privacidade@) | 👤 | ⬜ | |
-| C4 | **E-mail transacional** (Brevo/Resend/SES) + SPF/DKIM/DMARC | 👤 | ⬜ | |
-| C5 | Configurar SMTP no sistema e testar entrega | 🤖 | ⬜ | depende de C4 |
+| C1 | **Comprar o domínio** | 👤 | ✅ | gestortatico.com.br no CNPJ da empresa (14/10/2026); .com ainda livre (opcional) |
+| C2 | **DNS na Cloudflare** | 👤 | ✅ | delegação para armfazh/molly.ns.cloudflare.com concluída em 14/10/2026; registros importados (MX nulo, SPF -all, DMARC reject) mudam no C3/C4 |
+| C3 | **E-mail profissional** (contato@, suporte@, financeiro@, privacidade@) | 👤 | ✅ | Google Workspace Business Starter (mensal, R$ 39,20 por 12 meses, depois R$ 49; teste até 28/10/2026), no CNPJ; domínio verificado e Gmail ativo em 14/10/2026 (MX smtp.google.com, SPF include:_spf.google.com -all); DKIM do Google (google._domainkey, 2048 bits); caixa cleber@ com 2FA + chave de acesso + recuperação; apelidos contato@, suporte@, financeiro@, privacidade@ e "Enviar como"; teste de ida e volta com SPF/DKIM/DMARC = PASS |
+| C4 | **E-mail transacional** (Brevo) + SPF/DKIM/DMARC | 👤 | ✅ | conta Brevo (300/dia grátis); domínio autenticado em 14/10/2026 (TXT brevo-code + 2 CNAME DKIM, DNS only; DMARC p=reject mantido); remetente Gestor Tático <nao-responda@gestortatico.com.br>; chave SMTP de dev no Bitwarden |
+| C5 | Configurar SMTP no sistema e testar entrega | 🤖 | ✅ | dev: smtp-relay.brevo.com:587; convite real chegou na **caixa de entrada** do Gmail em 14/10/2026 (convite de teste cancelado). Brevo não deixa desligar rastreio nem o "Cancelar inscrição" (rastreio ficou anônimo; pedido ao suporte do Brevo em aberto). Se alguém não recebe e-mail: Configurações → E-mail transacional → **Contatos bloqueados ou cancelados** → desbloquear. Produção usa outra chave (F2) |
 
 ## Asaas produção
 
 | # | Tarefa | Quem | Situação | Observação |
 |---|---|---|---|---|
-| D1 | Abrir conta **PJ** no Asaas e enviar documentos | 👤 | ⬜ | depende de B2/B3 |
-| D2 | Chave Pix da conta + conversar sobre **subcontas** (perguntar: como a escola envia os documentos — link de onboarding?) | 👤 | ⬜ | o sistema ainda não tem tela de envio de documentos (KYC) da escola — 🤖 implementar conforme a resposta |
+| D1 | Abrir conta **PJ** no Asaas e enviar documentos | 👤 | 🟨 | conta de produção (www.asaas.com) do CNPJ já existia e está **aprovada** (conferido em 14/10/2026); login no e-mail pessoal com Token SMS, e-mail da empresa financeiro@; nome fantasia CJF Technology, endereço da Receita, cor e logo na fatura; conta duplicada encerrada. Taxas: cartão 1,99%+0,49 (promo até 07/01/2027), boleto R$ 0,99, notificações R$ 0,99/cobrança (desligadas pelo sistema), Pix dinâmico grátis, **subconta R$ 12,90** (confirmar se é mensal). Falta: conta bancária PJ pra saque |
+| D2 | Chave Pix da conta + conversar sobre **subcontas** | 👤🤖 | 🟨 | resposta do Asaas (14/10/2026): R$ 12,90 por subconta, debitado do saldo na criação; período de avaliação (60 dias, até 10 subcontas, R$ 2.000 cada); documentos pelo `onboardingUrl`. 🤖 tela de documentos pendentes com o link feita. **Falta**: pedir ao gerente do Asaas a habilitação de subcontas **BaaS/white label com onboardingUrl** (no sandbox o link veio nulo) e criar a chave Pix da conta |
 | D3 | Chave de API de **produção** (direto no servidor, não precisa me mandar) | 👤 | ⬜ | |
 | D4 | **Webhook** da assinatura no painel | 👤🤖 | ⬜ | eu gero o token |
 | D5 | **NFS-e** no Asaas (com o contador) | 👤 | ⬜ | |
@@ -59,7 +60,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 | # | Tarefa | Quem | Situação | Observação |
 |---|---|---|---|---|
 | F1 | Gerar segredos e guardar no **cofre de senhas** | 🤖👤 | ⬜ | |
-| F2 | `.env` de produção, `URL_APP`, `urlSite` | 🤖 | ⬜ | |
+| F2 | `.env` de produção, `URL_APP`, `urlSite` | 🤖 | ⬜ | Brevo: chave SMTP só de produção + ligar "bloquear IPs não autorizados" com o IP da VPS |
 | F3 | Validação completa (e-mails, celular, backup, segurança, CI) | 🤖 | ⬜ | |
 
 ## Lançamento

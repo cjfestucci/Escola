@@ -14,7 +14,7 @@ import {
 } from '../../models/assinatura.model';
 import { AssinaturaService } from '../../services/assinatura.service';
 import { NotificacaoService } from '../../services/notificacao.service';
-import { SegmentoService } from '../../services/segmento.service';
+import { EMPRESA_COBRANCA, NOME_PRODUTO, SegmentoService } from '../../services/segmento.service';
 import { formatarDataAbsoluta } from '../../shared/data-utils';
 import { environment } from '../../../environments/environment';
 
@@ -42,6 +42,8 @@ export class AssinarComponent implements OnInit {
   protected readonly atletasExcedentes = atletasExcedentes;
   protected readonly formatarData = formatarDataAbsoluta;
   protected readonly urlSite = environment.urlSite;
+  protected readonly empresaCobranca = EMPRESA_COBRANCA;
+  protected readonly nomeProduto = NOME_PRODUTO;
 
   readonly plano = signal<PlanoAssinatura | null>(null);
   readonly etapa = signal<Etapa>('clube');

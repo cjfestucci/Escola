@@ -17,6 +17,9 @@ public class AssinaturaConfiguration : IEntityTypeConfiguration<Assinatura>
         builder.Property(a => a.IdClienteGateway).HasMaxLength(100);
         builder.Property(a => a.IdAssinaturaGateway).HasMaxLength(100);
         builder.Property(a => a.LinkPagamento).HasMaxLength(500);
+        builder.Property(a => a.LembreteFaturaId).HasMaxLength(100);
+        builder.Property(a => a.AvisoAtrasoFaturaId).HasMaxLength(100);
+        builder.Property(a => a.ReciboFaturaId).HasMaxLength(100);
         builder.Property(a => a.TermosVersao).IsRequired().HasMaxLength(40);
         builder.Property(a => a.CupomCodigo).HasMaxLength(30);
         builder.Property(a => a.TermosIp).HasMaxLength(64);

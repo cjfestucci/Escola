@@ -60,7 +60,7 @@ public sealed class AssinaturaService(
 {
     /// <summary>Versão dos Termos de Uso e da Política de Privacidade aceitos no cadastro (publicados no site: site/termos.html e
     /// site/privacidade.html). Mudou o texto → troque aqui e em VERSAO_DOCUMENTOS (site/paginas.js).</summary>
-    public const string VersaoTermosUso = "2026-10-14";
+    public const string VersaoTermosUso = "2026-10-14.2";
 
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
 
@@ -239,6 +239,7 @@ public sealed class AssinaturaService(
     {
         var hoje = await sp.GetRequiredService<IRelogioEscola>().HojeAsync();
         SituacaoAssinatura nova;
+        IReadOnlyList<FaturaAssinatura> faturas = [];
 
         if (a.AcessoAte is { } acessoAte)
         {
@@ -247,7 +248,6 @@ public sealed class AssinaturaService(
         }
         else
         {
-            IReadOnlyList<FaturaAssinatura> faturas = [];
             if (GatewayDaAssinatura(a))
             {
                 var (lidas, disponivel) = await FaturasAsync(a, ct);
@@ -278,6 +278,7 @@ public sealed class AssinaturaService(
         await db.SaveChangesAsync(ct);
 
         await EnviarAvisosAsync(db, sp, a, hoje, ct);
+        await EnviarAvisoFaturaAsync(db, sp, a, hoje, faturas, ct);
     }
 
     /// <summary>Depois da 1ª fatura paga, o valor segue os atletas <b>ativos</b> (no teste vale o número informado). Falha no gateway só
@@ -456,8 +457,8 @@ public sealed class AssinaturaService(
         }
     }
 
-    /// <summary>Os avisos que só o produto sabe dar: o teste acabando e o acesso suspenso. (Fatura gerada/vencendo/vencida o próprio Asaas
-    /// avisa ao cliente.) Sem SMTP não envia nem marca — sai quando o e-mail estiver configurado, se ainda fizer sentido.</summary>
+    /// <summary>Os avisos que só o produto sabe dar: o teste acabando e o acesso suspenso. Sem SMTP não envia nem marca — sai quando o
+    /// e-mail estiver configurado, se ainda fizer sentido.</summary>
     private async Task EnviarAvisosAsync(EscolaDbContext db, IServiceProvider sp, Assinatura a, DateOnly hoje, CancellationToken ct)
     {
         var email = sp.GetRequiredService<IEmailSender>();
@@ -501,6 +502,70 @@ public sealed class AssinaturaService(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogWarning(ex, "Não foi possível enviar o aviso da assinatura {AssinaturaId}.", a.Id);
+        }
+    }
+
+    /// <summary>Lembrete de vencimento, atraso e recibo de cada fatura (as notificações do Asaas ficam desligadas: são pagas). Um aviso
+    /// por rodada; sem SMTP não envia nem marca.</summary>
+    private async Task EnviarAvisoFaturaAsync(EscolaDbContext db, IServiceProvider sp, Assinatura a, DateOnly hoje,
+        IReadOnlyList<FaturaAssinatura> faturas, CancellationToken ct)
+    {
+        var email = sp.GetRequiredService<IEmailSender>();
+        if (!email.Configurado || faturas.Count == 0) return;
+        if (AvisosFaturaCalculo.Proximo(hoje, a.Situacao, faturas, a.LembreteFaturaId, a.AvisoAtrasoFaturaId, a.ReciboFaturaId)
+            is not { } aviso) return;
+
+        var clienteId = db.Entry(a).Property<Guid>(EscolaDbContext.ColunaCliente).CurrentValue;
+        var nomeClube = await db.Clientes.Where(c => c.Id == clienteId).Select(c => c.Nome).FirstOrDefaultAsync(ct) ?? "seu clube";
+        var f = aviso.Fatura;
+        var link = f.LinkPagamento ?? $"{config["App:UrlBase"]?.TrimEnd('/')}/configuracoes/assinatura";
+        var valor = Html(Moeda(f.Valor));
+        const string comoAparece = $"<p style=\"color:#666\">Na fatura e no extrato, a cobrança aparece como {MarcaProduto.EmpresaCobranca}.</p>";
+
+        var (assunto, corpo) = aviso.Tipo switch
+        {
+            TipoAvisoFatura.Lembrete => ($"Sua mensalidade vence em {f.Vencimento:dd/MM} — {nomeClube}",
+                $"""
+                <p>Olá!</p>
+                <p>A mensalidade do <strong>{Html(nomeClube)}</strong> no {MarcaProduto.Nome}, de <strong>{valor}</strong>, vence em
+                <strong>{f.Vencimento:dd/MM/yyyy}</strong>.</p>
+                <p><a href="{Html(link)}">Pagar agora</a> — Pix, boleto ou cartão de crédito.</p>
+                {comoAparece}
+                """),
+            TipoAvisoFatura.Atraso => ($"Mensalidade em atraso — {nomeClube}",
+                $"""
+                <p>Olá!</p>
+                <p>A mensalidade do <strong>{Html(nomeClube)}</strong> no {MarcaProduto.Nome}, de <strong>{valor}</strong>, venceu em
+                <strong>{f.Vencimento:dd/MM/yyyy}</strong> e ainda não foi paga.</p>
+                <p>O acesso continua normal até <strong>{f.Vencimento.AddDays(opcoes.Value.DiasToleranciaAtraso):dd/MM/yyyy}</strong>. Depois
+                disso, a equipe e as famílias deixam de conseguir entrar até o pagamento.</p>
+                <p><a href="{Html(link)}">Pagar agora</a> — Pix, boleto ou cartão de crédito. Se já pagou, desconsidere este e-mail.</p>
+                {comoAparece}
+                """),
+            _ => ($"Pagamento confirmado — {nomeClube}",
+                $"""
+                <p>Olá!</p>
+                <p>Recebemos o pagamento de <strong>{valor}</strong> da mensalidade do <strong>{Html(nomeClube)}</strong> no {MarcaProduto.Nome}
+                (vencimento {f.Vencimento:dd/MM/yyyy}). Obrigado!</p>
+                <p><a href="{Html(link)}">Ver a fatura e o comprovante</a></p>
+                {comoAparece}
+                """)
+        };
+
+        try
+        {
+            await email.EnviarAsync(a.EmailCobranca, nomeClube, assunto, corpo, ct);
+            switch (aviso.Tipo)
+            {
+                case TipoAvisoFatura.Lembrete: a.LembreteFaturaId = f.Id; break;
+                case TipoAvisoFatura.Atraso: a.AvisoAtrasoFaturaId = f.Id; break;
+                default: a.ReciboFaturaId = f.Id; break;
+            }
+            await db.SaveChangesAsync(ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Não foi possível enviar o aviso de fatura da assinatura {AssinaturaId}.", a.Id);
         }
     }
 

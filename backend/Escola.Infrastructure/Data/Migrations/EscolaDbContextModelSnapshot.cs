@@ -158,6 +158,10 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<int>("AtletasInformados")
                         .HasColumnType("integer");
 
+                    b.Property<string>("AvisoAtrasoFaturaId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<DateTime?>("AvisoExclusaoEnviadoEm")
                         .HasColumnType("timestamp with time zone");
 
@@ -217,6 +221,10 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<bool>("JaPagou")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("LembreteFaturaId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<DateTime?>("LembreteTesteEnviadoEm")
                         .HasColumnType("timestamp with time zone");
 
@@ -226,6 +234,10 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<DateOnly>("PrimeiroVencimento")
                         .HasColumnType("date");
+
+                    b.Property<string>("ReciboFaturaId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("Situacao")
                         .HasColumnType("integer");

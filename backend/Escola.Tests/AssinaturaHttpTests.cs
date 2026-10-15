@@ -298,6 +298,35 @@ public partial class AssinaturaHttpTests(ApiFactory api) : IClassFixture<ApiFact
         Assert.Single(api.Email.Enviados, e => e.Para == email && e.Assunto.StartsWith("Acesso suspenso"));
     }
 
+    [Fact]
+    public async Task AsNotificacoesDoAsaasFicamDesligadasEOSistemaMandaReciboLembreteEAtraso()
+    {
+        var (clienteId, admin, email) = await AssinarEEntrarAsync();
+        string idAssinatura;
+        using (var db = api.Contexto(clienteId)) idAssinatura = (await db.Assinaturas.SingleAsync()).IdAssinaturaGateway!;
+
+        // O cliente do clube no Asaas nasce sem notificações (são pagas).
+        var clienteAsaas = api.Asaas.Chamadas.Last(c => c.Metodo == "POST" && c.Caminho == "/customers" && c.Corpo!["email"]?.GetValue<string>() == email);
+        Assert.True(clienteAsaas.Corpo!["notificationDisabled"]!.GetValue<bool>());
+
+        int Avisos(string inicioAssunto) => api.Email.Enviados.Count(e => e.Para == email && e.Assunto.StartsWith(inicioAssunto));
+
+        // Pagou a 1ª e a próxima já vence em 2 dias: recibo numa rodada, lembrete na seguinte, e nada se repete.
+        api.Asaas.Pagar(api.Asaas.Assinaturas[idAssinatura][0].PagamentoId);
+        var proxima = api.Asaas.GerarFatura(idAssinatura, Hoje.AddDays(2), 140m);
+        for (var i = 0; i < 3; i++) await AtualizarAsync(admin);
+        Assert.Equal(1, Avisos("Pagamento confirmado"));
+        Assert.Equal(1, Avisos("Sua mensalidade vence em"));
+        Assert.Contains($"https://asaas.teste/i/{proxima}", api.Email.Enviados.Last(e => e.Para == email && e.Assunto.StartsWith("Sua mensalidade")).Corpo);
+
+        // Venceu há 2 dias (dentro da tolerância): um aviso de atraso, com a data em que o acesso é suspenso.
+        api.Asaas.MudarVencimento(idAssinatura, 1, Hoje.AddDays(-2));
+        Assert.Equal("EmAtraso", (await AtualizarAsync(admin)).GetProperty("situacao").GetString());
+        await AtualizarAsync(admin);
+        Assert.Equal(1, Avisos("Mensalidade em atraso"));
+        Assert.Contains(Hoje.AddDays(5).ToString("dd/MM/yyyy"), api.Email.Enviados.Last(e => e.Para == email && e.Assunto.StartsWith("Mensalidade em atraso")).Corpo);
+    }
+
     [GeneratedRegex(@"token=([A-Za-z0-9_\-]+)")]
     private static partial Regex TokenDoLink();
 }

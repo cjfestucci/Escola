@@ -60,8 +60,12 @@ public class Assinatura
     /// <summary>Com o cancelamento pedido, o acesso continua até este dia (fim do período pago ou do teste); depois vira Cancelada.</summary>
     public DateOnly? AcessoAte { get; set; }
 
-    // Avisos por e-mail que só o produto sabe dar (as faturas o próprio gateway avisa). Marcados pra não repetir.
+    // Avisos por e-mail do produto, marcados pra não repetir. As notificações do Asaas ficam desligadas (são pagas): lembrete de
+    // vencimento, atraso e recibo também saem daqui, um de cada por fatura (guardado o id da última fatura avisada).
     public DateTime? LembreteTesteEnviadoEm { get; set; }
+    public string? LembreteFaturaId { get; set; }
+    public string? AvisoAtrasoFaturaId { get; set; }
+    public string? ReciboFaturaId { get; set; }
     public DateTime? AvisoSuspensaoEnviadoEm { get; set; }
     /// <summary>Aviso de que os dados vão ser apagados (cancelada ou teste nunca pago). A exclusão só acontece 7 dias depois dele.</summary>
     public DateTime? AvisoExclusaoEnviadoEm { get; set; }

@@ -88,6 +88,34 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task ContaEmAnaliseMostraOsDocumentosPendentesComOLinkDeEnvio()
+    {
+        await GarantirContaAsync();
+        var admin = await api.ClienteLogadoAsync(PapelUsuario.Admin);
+        api.Asaas.SituacaoConta = "AWAITING_APPROVAL";
+        try
+        {
+            var conta = await (await admin.PostAsync("/api/pagamentos/conta/atualizar", null)).Content.ReadFromJsonAsync<JsonElement>(Json);
+            var documentos = conta.GetProperty("documentos").EnumerateArray().ToList();
+            // O aprovado não aparece; o "não enviado" leva o link do Asaas; o "em análise" não tem o que enviar.
+            Assert.Equal(2, documentos.Count);
+            Assert.Equal("Não enviado", documentos[0].GetProperty("situacao").GetString());
+            Assert.Equal("https://asaas.teste/onboarding/doc_1", documentos[0].GetProperty("urlEnvio").GetString());
+            Assert.Equal("Em análise", documentos[1].GetProperty("situacao").GetString());
+            Assert.Equal(JsonValueKind.Null, documentos[1].GetProperty("urlEnvio").ValueKind);
+        }
+        finally
+        {
+            api.Asaas.SituacaoConta = "APPROVED";
+            (await admin.PostAsync("/api/pagamentos/conta/atualizar", null)).EnsureSuccessStatusCode();
+        }
+
+        // Aprovada: nada de documentos (nem consulta).
+        var aprovada = await admin.GetFromJsonAsync<JsonElement>("/api/pagamentos/conta", Json);
+        Assert.Equal(JsonValueKind.Null, aprovada.GetProperty("documentos").ValueKind);
+    }
+
+    [Fact]
     public async Task PixDaMensalidadeSaiDaSubcontaEOWebhookDaABaixaPeloValorQueOAsaasConfirmar()
     {
         await GarantirContaAsync();

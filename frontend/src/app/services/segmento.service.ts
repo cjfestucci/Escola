@@ -7,6 +7,8 @@ export type Segmento = 'escola' | 'clube';
 
 /** Marca do produto (a plataforma), usada onde ainda não há escola: tela de login, menu sem sessão. Espelho de MarcaProduto.Nome no backend. */
 export const NOME_PRODUTO = 'Gestor Tático';
+/** Nome fantasia do CNPJ que vende o produto: é o que aparece na fatura e no extrato da assinatura (vem do cadastro no Asaas). */
+export const EMPRESA_COBRANCA = 'CJF Technology';
 /** Símbolo da marca (public/marca), mostrado nas telas sem sessão quando não há logo de escola. */
 export const SIMBOLO_PRODUTO = 'marca/simbolo.svg';
 

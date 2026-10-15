@@ -29,7 +29,13 @@ public record ContaPagamentoDto(
     bool WebhookConfigurado,
     string? SituacaoGateway,
     DateTime? CriadaEm,
-    bool PagamentoAutomaticoAtivo);
+    bool PagamentoAutomaticoAtivo,
+    IReadOnlyList<DocumentoPendenteDto>? Documentos = null,
+    string? MotivoRecusa = null);
+
+/// <param name="Situacao">Não enviado, Em análise ou Recusado.</param>
+/// <param name="UrlEnvio">Página do Asaas pra enviar este documento. Nula = o envio não é pela página (o suporte ajuda).</param>
+public record DocumentoPendenteDto(string Titulo, string? Descricao, string Situacao, string? UrlEnvio);
 
 /// <param name="TipoEmpresa">Só pra CNPJ: MEI, LIMITED, INDIVIDUAL ou ASSOCIATION.</param>
 /// <param name="DataNascimento">Só pra CPF (titular pessoa física).</param>
@@ -66,7 +72,7 @@ public class PagamentosController(
 
     [HttpGet("conta")]
     [Authorize(Roles = GruposDePapeis.GestaoOuSuporte)]
-    public async Task<ActionResult<ContaPagamentoDto>> ObterConta() => Ok(ParaDto(await ContaAtualAsync()));
+    public async Task<ActionResult<ContaPagamentoDto>> ObterConta(CancellationToken ct) => Ok(await ComDocumentosAsync(await ContaAtualAsync(), ct));
 
     /// <summary>Abre a subconta da escola no Asaas (uma por escola). Dado da empresa (KYC) — só o Admin (dono da conta) e o Suporte.</summary>
     [HttpPost("conta")]
@@ -127,7 +133,7 @@ public class PagamentosController(
         if (!cofre.Disponivel) return BadRequest("O cofre de segredos não está configurado neste ambiente (Segredos:Chave).");
 
         await ConcluirConfiguracaoAsync(conta, cofre.Descriptografar(conta.ApiKeyCriptografada), ct);
-        return Ok(ParaDto(conta));
+        return Ok(await ComDocumentosAsync(conta, ct));
     }
 
     /// <summary>Aviso do Asaas de que algo aconteceu com um pagamento. <b>O corpo nunca é confiado</b>: serve só pra dizer qual
@@ -193,6 +199,35 @@ public class PagamentosController(
         }
 
         await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>Enquanto a conta não está aprovada, acrescenta os documentos que faltam (consulta ao vivo: o link de envio do Asaas
+    /// expira). Falha na consulta só deixa a lista de fora.</summary>
+    private async Task<ContaPagamentoDto> ComDocumentosAsync(ContaPagamento? conta, CancellationToken ct)
+    {
+        var dto = ParaDto(conta);
+        if (conta is null || conta.SituacaoGateway == "APPROVED" || !cofre.Disponivel) return dto;
+        try
+        {
+            var (documentos, motivo) = await asaas.DocumentosSubcontaAsync(cofre.Descriptografar(conta.ApiKeyCriptografada), ct);
+            var agora = DateTime.UtcNow;
+            var pendentes = documentos
+                .Where(d => d.Status is "NOT_SENT" or "PENDING" or "REJECTED")
+                .Select(d => new DocumentoPendenteDto(d.Titulo, d.Descricao, d.Status switch
+                {
+                    "PENDING" => "Em análise",
+                    "REJECTED" => "Recusado",
+                    _ => "Não enviado"
+                    // Em análise não há o que enviar; link vencido só confundiria (o próximo "Atualizar" traz um novo).
+                }, d.Status != "PENDING" && (d.UrlExpiraEm is null || d.UrlExpiraEm > agora) ? d.UrlEnvio : null))
+                .ToList();
+            return dto with { Documentos = pendentes, MotivoRecusa = string.IsNullOrWhiteSpace(motivo) ? null : motivo };
+        }
+        catch (PixProvedorException ex)
+        {
+            logger.LogWarning(ex, "Não foi possível consultar os documentos da subconta {Conta}.", conta.IdExterno);
+            return dto;
+        }
     }
 
     private async Task<ContaPagamento?> ContaAtualAsync() =>

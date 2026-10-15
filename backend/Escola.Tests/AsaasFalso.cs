@@ -19,6 +19,9 @@ public sealed class AsaasFalso
     /// <summary>Simula a chave Pix ainda ativando: o pedido do QR Code responde 400 (como o Asaas real logo depois de criar a chave).</summary>
     public bool FalharQrCode { get; set; }
 
+    /// <summary>Situação geral da subconta (myAccount/status). Fora de APPROVED, a tela mostra os documentos pendentes.</summary>
+    public string SituacaoConta { get; set; } = "APPROVED";
+
     public HttpMessageHandler NovoHandler() => new Handler(this);
 
     private HttpResponseMessage Responder(HttpRequestMessage req, JsonNode? corpo)
@@ -39,7 +42,20 @@ public sealed class AsaasFalso
             ("POST", "/accounts") => new { id = "acc_teste", walletId = "wallet_teste", apiKey = ApiKeySubconta },
             ("GET", "/pix/addressKeys") => new { data = Array.Empty<object>() },
             ("POST", "/pix/addressKeys") => new { id = "chave_teste", status = "ACTIVE" },
-            ("GET", "/myAccount/status") => new { general = "APPROVED" },
+            ("GET", "/myAccount/status") => new { general = SituacaoConta },
+            ("GET", "/myAccount/documents") => new
+            {
+                rejectReasons = (string?)null,
+                data = new object[]
+                {
+                    new { id = "doc_1", status = "NOT_SENT", type = "IDENTIFICATION", title = "Documento de identificação", description = "RG ou CNH do titular",
+                          onboardingUrl = "https://asaas.teste/onboarding/doc_1", onboardingUrlExpirationDate = DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-ddTHH:mm:ssZ") },
+                    new { id = "doc_2", status = "PENDING", type = "SOCIAL_CONTRACT", title = "Contrato social", description = (string?)null,
+                          onboardingUrl = (string?)null, onboardingUrlExpirationDate = (string?)null },
+                    new { id = "doc_3", status = "APPROVED", type = "IDENTIFICATION_SELFIE", title = "Selfie", description = (string?)null,
+                          onboardingUrl = (string?)null, onboardingUrlExpirationDate = (string?)null }
+                }
+            },
             ("POST", "/customers") => new { id = $"cus_{Interlocked.Increment(ref _sequencia)}" },
             ("POST", "/payments") => NovoPagamento(corpo!),
             ("POST", "/subscriptions") => NovaAssinatura(corpo!),

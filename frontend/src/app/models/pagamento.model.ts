@@ -14,6 +14,19 @@ export interface ContaPagamento {
   criadaEm: string | null;
   /** Já dá pra cobrar com baixa automática por esta conta. */
   pagamentoAutomaticoAtivo: boolean;
+  /** Documentos que faltam pra aprovação (só enquanto a conta não está aprovada; nulo se não consultou). */
+  documentos?: DocumentoPendente[] | null;
+  /** Motivo de recusa informado pelo gateway, se houver. */
+  motivoRecusa?: string | null;
+}
+
+export interface DocumentoPendente {
+  titulo: string;
+  descricao: string | null;
+  /** Não enviado, Em análise ou Recusado. */
+  situacao: string;
+  /** Página do gateway pra enviar o documento; nula = não é pela página (fale com o suporte). */
+  urlEnvio: string | null;
 }
 
 export type TipoEmpresa = 'MEI' | 'LIMITED' | 'INDIVIDUAL' | 'ASSOCIATION';
