@@ -296,7 +296,6 @@ p { margin: 0 0 1em; }
 .documento th { background: var(--fundo-alt); font-weight: 700; }
 .documento .resumo-doc { background: var(--verde-fundo); border-radius: var(--raio); padding: 18px 20px; margin-bottom: 8px; }
 .documento .resumo-doc p:last-child { margin-bottom: 0; }
-.documento .aviso-revisao { background: #FEF3C7; color: #92400E; border-radius: 10px; padding: 12px 16px; margin-bottom: 24px; font-size: .9rem; }
 .documento .indice { background: var(--fundo-alt); border-radius: var(--raio); padding: 16px 20px 16px 40px; }
 /* Dado da empresa ainda não preenchido: fica gritante de propósito, pra não ir pro ar assim. */
 .preencher { background: #FDE68A; color: #78350F; padding: 0 4px; border-radius: 4px; font-weight: 700; }

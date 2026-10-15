@@ -24,7 +24,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 | B4 | Pedido da **marca no INPI** (opcional, recomendado) | 👤 | ⬜ | |
 | B4a | **Endereço da sede** desatualizado na Receita (Rua Blumenau, 278 — não mora mais lá) | 👤 | ⬜ | atualizar com o contador; depois Asaas, Termos/Privacidade e Google Workspace (este não deixa mudar). Nome fantasia fica "CJF Technology" (decidido em 14/10/2026) |
 | B5 | **Advogado** revisa Termos, Privacidade e termo de matrícula; definir o **DPO** | 👤 | ⬜ | |
-| B6 | Aplicar textos revisados + dados da empresa | 🤖 | 🟨 | dados da empresa aplicados em 14/10/2026 (versão 2026-10-14.2; cobrança aparece como "CJF Technology"); faltam o nome do DPO, a hospedagem (E1) e a revisão do advogado (B5) |
+| B6 | Aplicar textos revisados + dados da empresa | 🤖 | 🟨 | dados da empresa, DPO (Cleber Festucci), hospedagem (Hostinger, Campinas/SP) e backup fora do país (R2) aplicados em 15/10/2026 (versão 2026-10-15.1); falta só a revisão do advogado (B5), opcional antes do 1º clube |
 
 ## Domínio e e-mail
 
