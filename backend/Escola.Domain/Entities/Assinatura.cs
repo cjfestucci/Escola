@@ -29,6 +29,8 @@ public class Assinatura
     public int? CupomPercentual { get; set; }
     /// <summary>Por quantas mensalidades pagas o desconto vale. Nulo (com cupom) = sempre.</summary>
     public int? CupomMeses { get; set; }
+    /// <summary>Meses grátis do cupom (já aplicados no <see cref="TesteAte"/> do cadastro). Só pra exibir.</summary>
+    public int? CupomMesesGratis { get; set; }
 
     /// <summary>Já houve alguma fatura paga (em qualquer assinatura do clube). Uma assinatura reativada é nova no gateway e não traz as
     /// faturas antigas — sem isto, quem pagou o mês e desistiu do cancelamento ficaria como "aguardando o 1º pagamento".</summary>

@@ -79,6 +79,8 @@ export interface Cupom {
   percentualDesconto: number;
   /** Nulo = em todas as mensalidades. */
   meses: number | null;
+  /** Meses grátis (o teste do clube dura esses meses). */
+  mesesGratis: number | null;
   validoAte: string | null;
   usosMaximos: number | null;
   usos: number;
@@ -92,6 +94,7 @@ export interface SalvarCupom {
   codigo: string;
   percentualDesconto: number;
   meses: number | null;
+  mesesGratis: number | null;
   validoAte: string | null;
   usosMaximos: number | null;
   observacao: string | null;

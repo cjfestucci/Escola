@@ -113,7 +113,9 @@ mostra **"Pagar agora"** e o e-mail de boas-vindas **só sai quando o pagamento 
 ## Cupons de desconto (desde 2026-10-13)
 
 - **Criados pelo Suporte** em Plataforma → Clientes (`PlataformaCuponsController`, `api/plataforma/cupons`, só `Suporte`): código
-  (único, guardado em maiúsculas), desconto de 1–100%, por quantas mensalidades (vazio = todas), validade e limite de usos opcionais,
+  (único, guardado em maiúsculas), desconto de 0–99% (100% é recusado: fatura de R$ 0 o Asaas não aceita), por quantas mensalidades
+  (vazio = todas), **meses grátis** (1–12, desde 2026-10-15: o teste passa a durar esses meses e a 1ª fatura, cheia, vence no fim deles —
+  `CupomRegras.FimDoTeste`; copiado pra `Assinatura.CupomMesesGratis` só pra exibir), validade e limite de usos opcionais,
   observação. Sem exclusão: desativar/ativar. Mudanças vão pro **log da aplicação**, não pro histórico de um cliente (o cupom não é
   de nenhum cliente).
 - **`Cupom` é a única entidade da plataforma** (`IEntidadePlataforma`): fica fora do isolamento por cliente (sem `ClienteId`, sem filtro

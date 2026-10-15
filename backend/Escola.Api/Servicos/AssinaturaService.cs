@@ -81,7 +81,7 @@ public sealed class AssinaturaService(
         await db.SaveChangesAsync(ct);
 
         var hoje = await escopo.ServiceProvider.GetRequiredService<IRelogioEscola>().HojeAsync();
-        DateOnly? testeAte = o.DiasTeste > 0 ? hoje.AddDays(o.DiasTeste) : null;
+        DateOnly? testeAte = CupomRegras.FimDoTeste(hoje, o.DiasTeste, dados.Cupom?.MesesGratis);
 
         var assinatura = new Assinatura
         {
@@ -94,6 +94,7 @@ public sealed class AssinaturaService(
             CupomCodigo = dados.Cupom?.Codigo,
             CupomPercentual = dados.Cupom?.PercentualDesconto,
             CupomMeses = dados.Cupom?.Meses,
+            CupomMesesGratis = dados.Cupom?.MesesGratis,
             AtletasInformados = dados.Atletas,
             CpfCnpj = dados.CpfCnpj,
             Cidade = dados.Cidade,
@@ -181,7 +182,7 @@ public sealed class AssinaturaService(
 
     public static string Plano(Assinatura a) =>
         $"{Moeda(a.ValorMensal)} por mês ({a.AtletasCobrados ?? a.AtletasInformados} atletas)"
-        + (a.CupomCodigo is not null && a.CupomPercentual is { } pct ? $", cupom {a.CupomCodigo}: {CupomRegras.Descricao(pct, a.CupomMeses)}" : string.Empty);
+        + (a.CupomCodigo is not null && a.CupomPercentual is { } pct ? $", cupom {a.CupomCodigo}: {CupomRegras.Descricao(pct, a.CupomMeses, a.CupomMesesGratis)}" : string.Empty);
 
     public static string Moeda(decimal valor) => valor.ToString("C", PtBr);
 

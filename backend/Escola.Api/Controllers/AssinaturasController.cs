@@ -19,7 +19,7 @@ using Microsoft.Extensions.Options;
 
 namespace Escola.Api.Controllers;
 
-public record CupomPublicoDto(string Codigo, int PercentualDesconto, int? Meses, string Descricao);
+public record CupomPublicoDto(string Codigo, int PercentualDesconto, int? Meses, string Descricao, int? MesesGratis = null);
 
 /// <param name="PrecoFixo">Valor mínimo, que já cobre <c>AtletasIncluidos</c> atletas.</param>
 /// <param name="PrecoPorAtleta">Valor de cada atleta acima dos incluídos.</param>
@@ -80,7 +80,8 @@ public class AssinaturasController(
             limitador.RegistrarFalha(chave); // só os errados contam
             return NotFound(motivo);
         }
-        return Ok(new CupomPublicoDto(cupom!.Codigo, cupom.PercentualDesconto, cupom.Meses, CupomRegras.Descricao(cupom.PercentualDesconto, cupom.Meses)));
+        return Ok(new CupomPublicoDto(cupom!.Codigo, cupom.PercentualDesconto, cupom.Meses,
+            CupomRegras.Descricao(cupom.PercentualDesconto, cupom.Meses, cupom.MesesGratis), cupom.MesesGratis));
     }
 
     private const int ConsultasDeCupomPorIp = 10;
@@ -225,7 +226,7 @@ public class AssinaturasController(
             faturas.Select(f => new FaturaAssinaturaDto(f.Vencimento, f.Valor, f.Paga, f.PagaEm, f.Paga || a.AcessoAte is not null ? null : f.LinkPagamento)).ToList(),
             a.AcessoAte, a.CanceladaEm,
             SituacaoAssinaturaCalculo.DataExclusao(a.Situacao, a.AcessoAte, a.SuspensaEm, a.JaPagou, opcoes.Value.DiasRetencaoAposSuspensao),
-            a.CupomCodigo, a.CupomPercentual is { } pct ? CupomRegras.Descricao(pct, a.CupomMeses) : null);
+            a.CupomCodigo, a.CupomPercentual is { } pct ? CupomRegras.Descricao(pct, a.CupomMeses, a.CupomMesesGratis) : null);
     }
 
     private static string SoDigitos(string? texto) => new((texto ?? string.Empty).Where(char.IsAsciiDigit).ToArray());

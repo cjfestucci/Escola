@@ -38,6 +38,70 @@ public class CupomRegrasTests
         Assert.NotNull(CupomRegras.MotivoInvalido(null, Hoje, 0));
         Assert.Equal("LANCAMENTO-20", CupomRegras.Normalizar(" lancamento-20 "));
     }
+
+    [Fact]
+    public void MesesGratisEstendemOTesteEAparecemNaDescricao()
+    {
+        Assert.Equal(new DateOnly(2027, 1, 20), CupomRegras.FimDoTeste(Hoje, 7, 3));
+        Assert.Equal(Hoje.AddDays(7), CupomRegras.FimDoTeste(Hoje, 7, null));
+        Assert.Equal(new DateOnly(2026, 11, 20), CupomRegras.FimDoTeste(Hoje, 0, 1)); // mesmo sem teste no plano
+        Assert.Null(CupomRegras.FimDoTeste(Hoje, 0, null));
+
+        Assert.Equal("3 meses grátis", CupomRegras.Descricao(0, null, 3));
+        Assert.Equal("1 mês grátis", CupomRegras.Descricao(0, null, 1));
+        Assert.Equal("3 meses grátis e depois 50% de desconto nas 3 primeiras mensalidades", CupomRegras.Descricao(50, 3, 3));
+        Assert.Equal("20% de desconto na 1ª mensalidade", CupomRegras.Descricao(20, 1));
+    }
+}
+
+/// <summary>Cupom de meses grátis (clube piloto): o teste dura os meses do cupom e a 1ª fatura, cheia, só vence no fim deles.</summary>
+public class CupomMesesGratisHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
+{
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
+    [Fact]
+    public async Task TresMesesGratisViramTesteDeTresMesesSemFaturaDeZero()
+    {
+        var suporte = await api.SuporteLogadoAsync();
+
+        // 100% é recusado (fatura de R$ 0 o Asaas não aceita); cupom sem desconto e sem meses grátis também.
+        Assert.Equal(HttpStatusCode.BadRequest, (await suporte.PostAsJsonAsync("/api/plataforma/cupons", new { codigo = "TUDO100", percentualDesconto = 100 })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await suporte.PostAsJsonAsync("/api/plataforma/cupons", new { codigo = "NADA", percentualDesconto = 0 })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await suporte.PostAsJsonAsync("/api/plataforma/cupons", new { codigo = "GRATIS13", percentualDesconto = 0, mesesGratis = 13 })).StatusCode);
+
+        var criacao = await suporte.PostAsJsonAsync("/api/plataforma/cupons", new { codigo = "piloto", percentualDesconto = 0, mesesGratis = 3, meses = 5, usosMaximos = 1 });
+        criacao.EnsureSuccessStatusCode();
+        var criado = await criacao.Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Equal("3 meses grátis", criado.GetProperty("descricao").GetString());
+        Assert.Equal(JsonValueKind.Null, criado.GetProperty("meses").ValueKind); // sem desconto, "por quantas mensalidades" não vale
+
+        var anonimo = api.CreateClient();
+        var conferido = await anonimo.GetFromJsonAsync<JsonElement>("/api/assinaturas/cupom/PILOTO", Json);
+        Assert.Equal(3, conferido.GetProperty("mesesGratis").GetInt32());
+
+        var email = $"piloto.{Guid.NewGuid():N}@clube.test";
+        var resposta = await anonimo.PostAsJsonAsync("/api/assinaturas", new
+        {
+            nomeClube = "Clube Piloto", cpfCnpj = "11222333000181", cidade = "Campinas", atletas = 40,
+            nomeAdmin = "Dono", email, celular = "(19) 99999-8888", aceiteTermos = true, cupom = "piloto"
+        });
+        resposta.EnsureSuccessStatusCode();
+        var corpo = await resposta.Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Equal(140m, corpo.GetProperty("valorMensal").GetDecimal()); // valor cheio: 60 + 4 × (40 − 20)
+
+        using var db = api.Contexto(ApiFactory.ClienteId);
+        var a = await db.Assinaturas.IgnoreQueryFilters().SingleAsync(x => x.EmailCobranca == email);
+        var hoje = DateOnly.Parse(corpo.GetProperty("testeAte").GetString()!).AddMonths(-3);
+        Assert.Equal(SituacaoAssinatura.EmTeste, a.Situacao);
+        Assert.Equal(hoje.AddMonths(3), a.TesteAte);
+        Assert.InRange(hoje.DayNumber, DateOnly.FromDateTime(DateTime.Today).DayNumber - 1, DateOnly.FromDateTime(DateTime.Today).DayNumber + 1);
+        Assert.Equal(3, a.CupomMesesGratis);
+
+        // A 1ª fatura do gateway vence no fim dos 3 meses, com o valor cheio.
+        var noGateway = api.Asaas.Chamadas.Last(c => c.Metodo == "POST" && c.Caminho == "/subscriptions");
+        Assert.Equal(a.TesteAte!.Value.ToString("yyyy-MM-dd"), noGateway.Corpo!["nextDueDate"]!.GetValue<string>());
+        Assert.Equal(140m, noGateway.Corpo!["value"]!.GetValue<decimal>());
+    }
 }
 
 /// <summary>Cupom de ponta a ponta: o Suporte cria, o visitante confere e assina com desconto, e o desconto acaba depois dos meses do cupom.</summary>

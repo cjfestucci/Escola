@@ -202,6 +202,9 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<int?>("CupomMeses")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("CupomMesesGratis")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("CupomPercentual")
                         .HasColumnType("integer");
 
@@ -761,6 +764,9 @@ namespace Escola.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("Meses")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MesesGratis")
                         .HasColumnType("integer");
 
                     b.Property<string>("Observacao")

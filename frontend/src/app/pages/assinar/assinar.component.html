@@ -47,7 +47,9 @@
           <h1>Comece seu teste grátis</h1>
           <p class="sub">
             @if (plano(); as p) {
-              @if (p.diasTeste > 0) {
+              @if (cupom()?.mesesGratis; as meses) {
+                {{ meses }} {{ meses === 1 ? 'mês' : 'meses' }} para usar tudo, sem cartão de crédito.
+              } @else if (p.diasTeste > 0) {
                 {{ p.diasTeste }} dias para usar tudo, sem cartão de crédito.
               } @else {
                 Assine e comece a usar hoje mesmo.
@@ -115,10 +117,18 @@
             <div class="linha"><span>{{ excedentes }} {{ excedentes === 1 ? 'atleta' : 'atletas' }} a mais × {{ formatarReais(p.precoPorAtleta) }}</span><span>{{ formatarReais(p.precoPorAtleta * excedentes) }}</span></div>
           }
           @if (cupom(); as c) {
-            <div class="linha cupom">
-              <span>Cupom {{ c.codigo }} (−{{ c.percentualDesconto }}%)</span>
-              <span>−{{ formatarReais((valorCheio() ?? 0) - (valorMensal() ?? 0)) }}</span>
-            </div>
+            @if (c.mesesGratis) {
+              <div class="linha cupom">
+                <span>Cupom {{ c.codigo }}</span>
+                <span>{{ c.mesesGratis }} {{ c.mesesGratis === 1 ? 'mês grátis' : 'meses grátis' }}</span>
+              </div>
+            }
+            @if (c.percentualDesconto > 0) {
+              <div class="linha cupom">
+                <span>{{ c.mesesGratis ? 'Depois,' : 'Cupom ' + c.codigo }} (−{{ c.percentualDesconto }}%)</span>
+                <span>−{{ formatarReais((valorCheio() ?? 0) - (valorMensal() ?? 0)) }}</span>
+              </div>
+            }
           }
           <div class="linha total"><span>Por mês</span><span>{{ formatarReais(valorMensal() ?? 0) }}</span></div>
           @if (cupom(); as c) {
@@ -129,7 +139,9 @@
               <button type="button" class="botao botao--secundario" [disabled]="aplicandoCupom() || !cupomDigitado.trim()" (click)="aplicarCupom()">Aplicar</button>
             </div>
           }
-          @if (p.diasTeste > 0) {
+          @if (cupom()?.mesesGratis; as meses) {
+            <p class="nota">Os primeiros {{ meses }} {{ meses === 1 ? 'mês é grátis' : 'meses são grátis' }}: a 1ª mensalidade só vence no fim deles. Depois, você escolhe pagar com Pix, boleto ou cartão. Sem fidelidade.</p>
+          } @else if (p.diasTeste > 0) {
             <p class="nota">Os primeiros {{ p.diasTeste }} dias são grátis. Depois, você escolhe pagar com Pix, boleto ou cartão. Sem fidelidade.</p>
           } @else {
             <p class="nota">Pix, boleto ou cartão de crédito. Sem fidelidade.</p>

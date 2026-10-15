@@ -28,6 +28,8 @@ export interface CupomPublico {
   /** Nulo = em todas as mensalidades. */
   meses: number | null;
   descricao: string;
+  /** Meses grátis: o teste dura esses meses e a 1ª fatura vence no fim deles. */
+  mesesGratis?: number | null;
 }
 
 export interface CadastroAssinaturaResposta {

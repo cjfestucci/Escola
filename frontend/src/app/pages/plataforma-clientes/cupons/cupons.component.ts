@@ -29,6 +29,7 @@ export class CuponsComponent implements OnInit {
   codigo = '';
   percentual: number | null = 20;
   meses: number | null = 3;
+  mesesGratis: number | null = null;
   validoAte: string | null = null;
   usosMaximos: number | null = null;
   observacao = '';
@@ -44,6 +45,7 @@ export class CuponsComponent implements OnInit {
     this.codigo = '';
     this.percentual = 20;
     this.meses = 3;
+    this.mesesGratis = null;
     this.validoAte = null;
     this.usosMaximos = null;
     this.observacao = '';
@@ -57,13 +59,19 @@ export class CuponsComponent implements OnInit {
 
   salvar(): void {
     if (this.codigo.trim().length < 3) return this.notificacao.erro('Informe o código do cupom (pelo menos 3 letras ou números).');
-    if (!this.percentual || this.percentual < 1 || this.percentual > 100) return this.notificacao.erro('O desconto precisa ser de 1% a 100%.');
+    const percentual = this.percentual || 0;
+    const mesesGratis = this.mesesGratis || null;
+    if (percentual === 100) return this.notificacao.erro('Para dar meses grátis, use o campo "Meses grátis" (desconto de 100% não gera fatura).');
+    if (percentual < 0 || percentual > 99) return this.notificacao.erro('O desconto precisa ser de 0% a 99%.');
+    if (mesesGratis !== null && (mesesGratis < 1 || mesesGratis > 12)) return this.notificacao.erro('Os meses grátis precisam ser de 1 a 12.');
+    if (percentual === 0 && mesesGratis === null) return this.notificacao.erro('Informe meses grátis ou um desconto.');
     this.salvando.set(true);
     this.plataforma
       .criarCupom({
         codigo: this.codigo,
-        percentualDesconto: this.percentual,
-        meses: this.meses || null,
+        percentualDesconto: percentual,
+        meses: percentual > 0 ? this.meses || null : null,
+        mesesGratis,
         validoAte: this.validoAte,
         usosMaximos: this.usosMaximos || null,
         observacao: this.observacao.trim() || null

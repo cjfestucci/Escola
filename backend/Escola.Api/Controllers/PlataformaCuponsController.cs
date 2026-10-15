@@ -10,9 +10,10 @@ namespace Escola.Api.Controllers;
 
 public record CupomDto(
     Guid Id, string Codigo, int PercentualDesconto, int? Meses, DateOnly? ValidoAte, int? UsosMaximos, int Usos,
-    bool Ativo, string? Observacao, string Descricao, DateTime CriadoEm);
+    bool Ativo, string? Observacao, string Descricao, DateTime CriadoEm, int? MesesGratis = null);
 
-public record SalvarCupomRequest(string? Codigo, int PercentualDesconto, int? Meses, DateOnly? ValidoAte, int? UsosMaximos, string? Observacao);
+public record SalvarCupomRequest(string? Codigo, int PercentualDesconto, int? Meses, DateOnly? ValidoAte, int? UsosMaximos, string? Observacao,
+    int? MesesGratis = null);
 
 /// <summary>Cupons de desconto da assinatura — do produto, não de um cliente (só o Suporte). Mudar ou desativar um cupom não mexe em quem já
 /// assinou com ele (o desconto foi copiado pra assinatura). Sem exclusão: desativa. Sem histórico de auditoria (o log é por cliente e o cupom
@@ -44,7 +45,7 @@ public class PlataformaCuponsController(EscolaDbContext db, ILogger<PlataformaCu
         db.Cupons.Add(cupom);
         await db.SaveChangesAsync(ct);
         logger.LogInformation("Cupom {Codigo} criado pelo Suporte {Usuario}: {Descricao}.", cupom.Codigo, this.UsuarioIdAtual(),
-            CupomRegras.Descricao(cupom.PercentualDesconto, cupom.Meses));
+            CupomRegras.Descricao(cupom.PercentualDesconto, cupom.Meses, cupom.MesesGratis));
         return Ok(ParaDto(cupom, 0));
     }
 
@@ -81,7 +82,11 @@ public class PlataformaCuponsController(EscolaDbContext db, ILogger<PlataformaCu
 
     private static string? Validar(SalvarCupomRequest r)
     {
-        if (r.PercentualDesconto is < 1 or > 100) return "O desconto precisa ser de 1% a 100%.";
+        // 100% geraria fatura de R$ 0, que o Asaas recusa: "grátis" é por meses grátis (o teste se estende).
+        if (r.PercentualDesconto == 100) return "Para dar meses grátis, use o campo \"Meses grátis\" (desconto de 100% não gera fatura).";
+        if (r.PercentualDesconto is < 0 or > 99) return "O desconto precisa ser de 0% a 99%.";
+        if (r.MesesGratis is < 1 or > 12) return "Os meses grátis precisam ser de 1 a 12, ou vazio.";
+        if (r.PercentualDesconto == 0 && r.MesesGratis is null) return "Informe um desconto ou meses grátis.";
         if (r.Meses is < 1 or > 120) return "Informe de 1 a 120 meses, ou deixe vazio pra valer sempre.";
         if (r.UsosMaximos is < 1) return "O limite de usos precisa ser pelo menos 1, ou vazio pra não ter limite.";
         if (r.Observacao?.Length > 300) return "A observação pode ter no máximo 300 caracteres.";
@@ -91,7 +96,8 @@ public class PlataformaCuponsController(EscolaDbContext db, ILogger<PlataformaCu
     private static void Aplicar(Cupom c, SalvarCupomRequest r)
     {
         c.PercentualDesconto = r.PercentualDesconto;
-        c.Meses = r.Meses;
+        c.Meses = r.PercentualDesconto > 0 ? r.Meses : null; // sem desconto, "por quantas mensalidades" não tem o que contar
+        c.MesesGratis = r.MesesGratis;
         c.ValidoAte = r.ValidoAte;
         c.UsosMaximos = r.UsosMaximos;
         c.Observacao = string.IsNullOrWhiteSpace(r.Observacao) ? null : r.Observacao.Trim();
@@ -105,5 +111,5 @@ public class PlataformaCuponsController(EscolaDbContext db, ILogger<PlataformaCu
 
     private static CupomDto ParaDto(Cupom c, int usos) =>
         new(c.Id, c.Codigo, c.PercentualDesconto, c.Meses, c.ValidoAte, c.UsosMaximos, usos, c.Ativo, c.Observacao,
-            CupomRegras.Descricao(c.PercentualDesconto, c.Meses), c.CriadoEm);
+            CupomRegras.Descricao(c.PercentualDesconto, c.Meses, c.MesesGratis), c.CriadoEm, c.MesesGratis);
 }

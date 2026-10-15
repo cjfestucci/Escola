@@ -15,12 +15,19 @@
       <label><span class="obrigatorio">Código</span>
         <input type="text" maxlength="30" placeholder="Ex.: LANCAMENTO20" [(ngModel)]="codigo" class="maiusculas" />
       </label>
-      <label><span class="obrigatorio">Desconto (%)</span>
-        <input type="number" min="1" max="100" [(ngModel)]="percentual" />
+      <label>Meses grátis (opcional)
+        <input type="number" min="1" max="12" placeholder="Ex.: 3 para o clube piloto" [(ngModel)]="mesesGratis" />
+        <span class="ajuda">O teste do clube passa a durar esses meses; a 1ª mensalidade só vence no fim deles.</span>
       </label>
-      <label>Por quantas mensalidades (opcional)
-        <input type="number" min="1" max="120" placeholder="Vazio = todas" [(ngModel)]="meses" />
+      <label>Desconto (%) depois{{ mesesGratis ? ' dos meses grátis' : '' }} (opcional)
+        <input type="number" min="0" max="99" placeholder="0 = sem desconto" [(ngModel)]="percentual" />
+        <span class="ajuda">De 1% a 99%. Para "grátis", use os meses grátis.</span>
       </label>
+      @if (percentual) {
+        <label>Por quantas mensalidades (opcional)
+          <input type="number" min="1" max="120" placeholder="Vazio = todas" [(ngModel)]="meses" />
+        </label>
+      }
       <label>Limite de usos (opcional)
         <input type="number" min="1" placeholder="Vazio = sem limite" [(ngModel)]="usosMaximos" />
       </label>

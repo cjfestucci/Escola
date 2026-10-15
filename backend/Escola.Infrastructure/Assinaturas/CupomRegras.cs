@@ -24,8 +24,20 @@ public static class CupomRegras
     public static decimal AplicarDesconto(decimal valor, int? percentual) =>
         percentual is > 0 ? decimal.Round(valor * (100 - Math.Min(100, percentual.Value)) / 100m, 2) : valor;
 
-    public static string Descricao(int percentual, int? meses) =>
-        meses is null ? $"{percentual}% de desconto em todas as mensalidades"
-        : meses == 1 ? $"{percentual}% de desconto na 1ª mensalidade"
-        : $"{percentual}% de desconto nas {meses} primeiras mensalidades";
+    public static string Descricao(int percentual, int? meses, int? mesesGratis = null)
+    {
+        var gratis = mesesGratis is > 0 ? (mesesGratis == 1 ? "1 mês grátis" : $"{mesesGratis} meses grátis") : null;
+        if (percentual <= 0) return gratis ?? "sem desconto";
+        var desconto = meses is null ? $"{percentual}% de desconto em todas as mensalidades"
+            : meses == 1 ? $"{percentual}% de desconto na 1ª mensalidade"
+            : $"{percentual}% de desconto nas {meses} primeiras mensalidades";
+        return gratis is null ? desconto : $"{gratis} e depois {desconto}";
+    }
+
+    /// <summary>Até quando vai o teste de quem assina hoje: os meses grátis do cupom, se houver; senão os dias de teste do plano (nulo = sem
+    /// teste, paga antes de usar).</summary>
+    public static DateOnly? FimDoTeste(DateOnly hoje, int diasTeste, int? mesesGratis) =>
+        mesesGratis is > 0 ? hoje.AddMonths(mesesGratis.Value)
+        : diasTeste > 0 ? hoje.AddDays(diasTeste)
+        : null;
 }
