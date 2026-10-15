@@ -1,0 +1,10 @@
+[Unit]
+Description=Roda o backup do Gestor Tático todo dia de madrugada
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

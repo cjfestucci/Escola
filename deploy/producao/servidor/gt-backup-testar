@@ -1,0 +1,23 @@
+#!/bin/bash
+# Teste de restauração: baixa o backup mais recente do R2, abre com a chave privada (digitada, nunca gravada em disco), restaura o
+# banco num Postgres TEMPORÁRIO e compara as contagens com a produção. Não toca na produção; apaga tudo o que criou no fim.
+set -euo pipefail
+read -rsp "Chave privada dos backups (AGE-SECRET-KEY-..., não aparece na tela): " CHAVE; echo
+[[ "$CHAVE" == AGE-SECRET-KEY-* ]] || { echo "Isso não parece a chave (deve começar com AGE-SECRET-KEY-)."; exit 1; }
+TRAB=$(mktemp -d /dev/shm/gt-restore.XXXX); trap 'docker rm -f gt-restore-db >/dev/null 2>&1 || true; rm -rf "$TRAB"' EXIT
+printf '%s\n' "$CHAVE" > "$TRAB/chave"; chmod 600 "$TRAB/chave"; unset CHAVE   # em memória (/dev/shm), apagado no fim
+ULTIMO=$(rclone lsf r2:gestortatico-backup --dirs-only | grep -E '^20' | sort | tail -1 | tr -d /)
+echo "Backup mais recente no R2: $ULTIMO"
+rclone copy "r2:gestortatico-backup/$ULTIMO" "$TRAB/b"
+( cd "$TRAB/b" && sha256sum -c --quiet SHA256SUMS ) && echo "Integridade (SHA256): OK"
+age -d -i "$TRAB/chave" "$TRAB/b/banco.dump.age" > "$TRAB/banco.dump"
+for v in fotos documentos; do age -d -i "$TRAB/chave" "$TRAB/b/$v.tar.gz.age" | tar -tz > "$TRAB/$v.lista"; echo "$v: $(grep -vc '/$' "$TRAB/$v.lista" || true) arquivos no backup"; done
+docker run -d --name gt-restore-db -e POSTGRES_PASSWORD=teste -e POSTGRES_DB=restaurado postgres:16-alpine >/dev/null
+until docker exec gt-restore-db pg_isready -U postgres >/dev/null 2>&1; do sleep 1; done; sleep 2
+docker exec -i gt-restore-db pg_restore -U postgres -d restaurado --no-owner < "$TRAB/banco.dump"
+CONTA="select (select count(*) from \"Clientes\") clientes, (select count(*) from \"Alunos\") alunos, (select count(*) from \"Cobrancas\") cobrancas, (select count(*) from \"Usuarios\") usuarios, (select count(*) from \"RegistrosPresenca\") presencas;"
+R=$(docker exec gt-restore-db psql -U postgres -d restaurado -t -A -c "$CONTA")
+P=$(cd /opt/gestortatico/deploy/producao && docker compose exec -T db psql -U gestortatico -d gestortatico -t -A -c "$CONTA")
+echo "Restaurado (clientes|alunos|cobranças|usuários|presenças): $R"
+echo "Produção agora:                                          $P"
+[ "$R" = "$P" ] && echo "RESULTADO: restauração OK — o backup tem os mesmos dados da produção." || echo "RESULTADO: diferente (normal se algo mudou depois do backup das $ULTIMO)."

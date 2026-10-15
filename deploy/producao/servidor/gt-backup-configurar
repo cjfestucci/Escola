@@ -1,0 +1,14 @@
+#!/bin/bash
+# Configura o destino dos backups (Cloudflare R2) sem mostrar as chaves na tela. Grava em /root/.config/rclone/rclone.conf (chmod 600).
+set -e
+read -rp  "Endpoint S3 do R2 (https://....r2.cloudflarestorage.com): " ENDPOINT
+read -rsp "Access Key ID (não aparece na tela): " ID; echo
+read -rsp "Secret Access Key (não aparece na tela): " SEGREDO; echo
+[ -n "$ENDPOINT" ] && [ -n "$ID" ] && [ -n "$SEGREDO" ] || { echo "Faltou algum valor. Nada foi alterado."; exit 1; }
+umask 077
+rclone config create r2 s3 provider=Cloudflare access_key_id="$ID" secret_access_key="$SEGREDO" endpoint="$ENDPOINT" no_check_bucket=true no_head=true >/dev/null
+unset ID SEGREDO
+chmod 600 /root/.config/rclone/rclone.conf
+# Teste: grava e lê um arquivo pequeno (não apaga: o bucket lock não deixaria, e a regra de ciclo de vida limpa sozinha).
+echo "teste $(date -Is)" | rclone rcat r2:gestortatico-backup/teste-conexao/$(date +%Y%m%d-%H%M%S).txt
+echo "Conexão com o R2 OK."

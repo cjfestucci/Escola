@@ -1,0 +1,16 @@
+#!/bin/bash
+# Backup diário: banco (pg_dump) + volumes de fotos e documentos, criptografados com age (só a chave pública fica aqui) e enviados
+# pro Cloudflare R2. Guarda os 3 últimos também no servidor. A limpeza dos antigos no R2 é a regra de ciclo de vida do bucket.
+set -euo pipefail
+PUB=$(cat /root/.config/gestortatico/backup-chave-publica.txt)
+QUANDO=$(date +%Y-%m-%d_%H%M)
+LOCAL=/root/backups/$QUANDO; mkdir -p "$LOCAL"; chmod 700 /root/backups
+cd /opt/gestortatico/deploy/producao
+docker compose exec -T db pg_dump -U gestortatico -d gestortatico -Fc | age -r "$PUB" > "$LOCAL/banco.dump.age"
+for v in fotos documentos; do
+  tar -C /var/lib/docker/volumes/gestortatico_$v/_data -cz . | age -r "$PUB" > "$LOCAL/$v.tar.gz.age"
+done
+( cd "$LOCAL" && sha256sum *.age > SHA256SUMS )
+rclone copy "$LOCAL" "r2:gestortatico-backup/$QUANDO" --s3-no-check-bucket
+ls -1d /root/backups/20* | head -n -3 | xargs -r rm -rf
+echo "$(date -Is) backup $QUANDO ok: $(du -sh "$LOCAL" | cut -f1)" >> /var/log/gt-backup.log

@@ -52,7 +52,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 |---|---|---|---|---|
 | E1 | Contratar **VPS** no Brasil (2 vCPU / 4 GB) | 👤 | ✅ | Hostinger KVM 2 (2 vCPU, 8 GB, 100 GB NVMe), Brasil, Ubuntu 24.04, 12 meses (R$ 557,89, contratado 14/10/2026 — anotar a renovação); IP 187.127.44.70; acesso só por chave SSH `~/.ssh/gestortatico_ed25519` (cópia no Bitwarden), senha root no Bitwarden |
 | E2 | Instalar Docker, subir banco + API + app + site, **HTTPS** | 🤖 | 🟨 | 14/10/2026: servidor endurecido (SSH só por chave, ufw 22/80/443, fail2ban, atualizações automáticas, fuso SP), Docker, código por deploy key, `deploy/producao` (Postgres + API + app + Caddy) no ar com Let's Encrypt: app.gestortatico.com.br, gestortatico.com.br, www → apex. `.env` com segredos gerados no servidor. `.env` guardado no Bitwarden; SMTP de produção (chave própria do Brevo) testado do servidor em 14/10/2026; `gt-definir NOME` grava segredo no `.env` sem mostrar na tela. Falta: Suporte (hash + TOTP), Asaas |
-| E3 | **Backup** diário fora do servidor + teste de restauração | 🤖 | ⬜ | |
+| E3 | **Backup** diário fora do servidor + teste de restauração | 🤖 | ✅ | 15/10/2026: banco + fotos + documentos criptografados (age; chave privada só no Bitwarden) pro Cloudflare R2 todo dia às 03:30 (systemd), 3 últimos também no servidor; teste de restauração OK (`gt-backup-testar`, repetir a cada trimestre). Ver `deploy/producao/servidor/LEIA-ME.md` |
 | E4 | **Monitoramento** (UptimeRobot no `/healthz`) | 👤🤖 | ⬜ | |
 
 ## Configuração e validação

@@ -1,0 +1,2 @@
+# Scripts do servidor (Linux): sempre com quebra de linha LF, mesmo num checkout do Windows.
+deploy/producao/servidor/** text eol=lf

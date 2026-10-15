@@ -1,0 +1,16 @@
+#!/bin/bash
+# Cria o par de chaves dos backups (age). A chave PÚBLICA fica no servidor (só tranca); a PRIVADA aparece UMA vez aqui e é apagada.
+set -e
+PUB=/root/.config/gestortatico/backup-chave-publica.txt
+if [ -f "$PUB" ]; then echo "Já existe uma chave ($PUB). Trocar só de propósito: apague o arquivo e rode de novo."; exit 1; fi
+mkdir -p /root/.config/gestortatico; umask 077
+DIR=$(mktemp -d); TMP=$DIR/chave.txt
+age-keygen -o "$TMP"
+grep -o 'age1[0-9a-z]*' "$TMP" > "$PUB"
+echo
+echo "================  CHAVE PRIVADA DOS BACKUPS (abre os backups)  ================"
+grep '^AGE-SECRET-KEY-' "$TMP"
+echo "================================================================================"
+echo "Guarde a linha AGE-SECRET-KEY-... no Bitwarden AGORA. Ela não fica no servidor:"
+echo "sem ela, NENHUM backup pode ser aberto. Depois, limpe o terminal (cls)."
+shred -u "$TMP"; rmdir "$DIR"

@@ -1,0 +1,8 @@
+[Unit]
+Description=Backup diário do Gestor Tático (banco + fotos + documentos, criptografado, pro Cloudflare R2)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/gt-backup
