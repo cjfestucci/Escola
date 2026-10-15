@@ -12,7 +12,7 @@ Legenda de situação: ⬜ a fazer · 🟨 em andamento · ✅ concluído · ⏸
 | A1 | Criar conta no **sandbox do Asaas** (com o CNPJ) e gerar a chave de API (`$aact_hmlg_…`) | 👤 | ✅ | chave no `appsettings.Development.json` (fora do git) |
 | A2 | Validar assinatura, cupom e Pix das escolas no sandbox | 🤖👤 | ✅ | 14/10/2026: cadastro → assinatura R$ 140; pagamento → "Ativa" + valor R$ 60 sincronizado; cupom R$ 112; subconta aprovada (autoaprovação do sandbox ligada) → Pix pelo Asaas → baixa automática. Achados corrigidos: cobrança órfã quando o QR falha e cliente duplicado no Asaas |
 | A3 | Escolher e conferir se o **domínio** está livre | 👤🤖 | ✅ | gestortatico.com.br, .com e .app livres no RDAP (14/10/2026) |
-| A4 | Definir o **número de WhatsApp** de suporte (o site promete) | 👤 | ⬜ | |
+| A4 | Definir o **número de WhatsApp** de suporte | 👤 | ⏸️ | adiado para depois do 1º cliente (15/10/2026); o site passou a prometer só "Suporte por e-mail (suporte@)". Ao ligar o WhatsApp, voltar a linha do plano em `site/index.html` |
 
 ## Empresa e jurídico (os mais lentos — começar em paralelo)
 
