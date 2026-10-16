@@ -44,6 +44,41 @@
   box-shadow: var(--sombra);
 }
 
+// Cor por significado (fixa de propósito, não é a cor do clube): verde = recebido, âmbar = a vencer, vermelho = atrasado.
+// Discreta: fundo bem claro, uma faixa à esquerda e o valor na mesma cor.
+.stat--recebido,
+.stat--pendente,
+.stat--atrasado {
+  border-left-width: 4px;
+}
+
+.stat--recebido {
+  background: #f3fbf4;
+  border-left-color: #1e7e34;
+
+  .stat-valor {
+    color: #1e7e34;
+  }
+}
+
+.stat--pendente {
+  background: #fffaf0;
+  border-left-color: #d97706;
+
+  .stat-valor {
+    color: #b45309;
+  }
+}
+
+.stat--atrasado {
+  background: #fff6f5;
+  border-left-color: #b3261e;
+
+  .stat-valor {
+    color: #b3261e;
+  }
+}
+
 .stat-topo {
   display: flex;
   align-items: center;
@@ -70,8 +105,8 @@
   }
 
   &--pendente {
-    background: var(--cor-primaria-clara);
-    color: var(--cor-primaria-escura);
+    background: #fdf1d8;
+    color: #b45309;
   }
 
   &--atrasado {
