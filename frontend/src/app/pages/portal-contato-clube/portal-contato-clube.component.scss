@@ -1,0 +1,165 @@
+.container {
+  max-width: 720px;
+}
+
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0;
+}
+
+.painel {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+
+  h2 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+  }
+}
+
+.unidades {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.telefone {
+  color: var(--cor-primaria);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.endereco,
+.sem-contato {
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+// Mesmo peso visual do telefone: só o ícone leva o verde do WhatsApp (fixo de propósito — é o ícone que a pessoa reconhece).
+.whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  color: var(--cor-primaria);
+  font-weight: 600;
+  text-decoration: none;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    color: #16a34a;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.link-email {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--cor-primaria);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.enviada {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #15803d;
+}
+
+.formulario-mensagem {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  background: var(--cor-fundo);
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+    background: var(--cor-superficie);
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .nota {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--cor-texto-suave);
+  }
+}
+
+.botoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+
+  button {
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    cursor: pointer;
+  }
+
+  .secundario {
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+  }
+
+  .primario {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+}

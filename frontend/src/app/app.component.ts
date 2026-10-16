@@ -7,15 +7,18 @@ import { AvisoAssinaturaComponent } from './shared/aviso-assinatura/aviso-assina
 import { NotificacoesComponent } from './shared/notificacoes/notificacoes.component';
 import { SidebarComponent } from './shared/sidebar/sidebar.component';
 import { TopbarComponent } from './shared/topbar/topbar.component';
+import { WhatsappFlutuanteComponent } from './shared/whatsapp-flutuante/whatsapp-flutuante.component';
+import { ContextoService } from './services/contexto.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidebarComponent, TopbarComponent, NotificacoesComponent, AvisoAssinaturaComponent],
+  imports: [RouterOutlet, SidebarComponent, TopbarComponent, NotificacoesComponent, AvisoAssinaturaComponent, WhatsappFlutuanteComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
   protected readonly auth = inject(AuthService);
+  protected readonly contexto = inject(ContextoService);
   protected readonly menuAberto = signal(false);
   private readonly router = inject(Router);
 

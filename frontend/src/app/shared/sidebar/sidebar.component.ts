@@ -15,7 +15,7 @@ interface SubItemNav {
 interface ItemNav {
   rotulo: string;
   rota?: string;
-  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes' | 'estoque' | 'competicoes' | 'chamada' | 'plataforma';
+  icone: 'home' | 'users' | 'book' | 'wallet' | 'turmas' | 'matricula' | 'usuarios' | 'painel' | 'unidades' | 'fornecedores' | 'configuracoes' | 'estoque' | 'competicoes' | 'chamada' | 'plataforma' | 'ajuda';
   subitens?: SubItemNav[];
   /** Destacar só na rota exata (ex.: /plataforma não acende em /plataforma/clientes, que tem item próprio). */
   exato?: boolean;
@@ -58,6 +58,7 @@ const ITEM_PLATAFORMA: ItemNav = { rotulo: 'Plataforma', rota: '/plataforma', ic
 /** Painel do Suporte com todos os clientes do produto (assinaturas e uso). */
 const ITEM_CLIENTES: ItemNav = { rotulo: 'Clientes', rota: '/plataforma/clientes', icone: 'unidades' };
 const ITEM_USUARIOS: ItemNav = { rotulo: 'Usuários', rota: '/usuarios', icone: 'usuarios' };
+const ITEM_AJUDA: ItemNav = { rotulo: 'Ajuda', rota: '/ajuda', icone: 'ajuda' };
 const ITEM_CONFIGURACOES: ItemNav = {
   rotulo: 'Configurações',
   icone: 'configuracoes',
@@ -97,7 +98,9 @@ export class SidebarComponent {
   }
 
   protected itensPrincipais(): ItemNav[] {
-    if (this.contextoService.contexto() === 'portal') return ITENS_PORTAL;
+    // Pais falam com o clube, não com o produto: o "Fale com…" do portal mostra o contato do próprio clube.
+    if (this.contextoService.contexto() === 'portal')
+      return [...ITENS_PORTAL, { rotulo: this.segmentoService.ehClube() ? 'Fale com o clube' : 'Fale com a escola', rota: '/portal/contato', icone: 'ajuda' }];
     // Suporte (equipe do produto): só a Plataforma e as Configurações — nada de dado de aluno, saúde ou financeiro do cliente.
     if (this.contextoService.contexto() === 'suporte') return [ITEM_PLATAFORMA, ITEM_CLIENTES, this.itemConfiguracoes()];
 
@@ -113,6 +116,7 @@ export class SidebarComponent {
     // Secretaria: só Mensalidades (recebimento no balcão) e Estoque — sem contas a pagar/receber nem fornecedores.
     else if (this.auth.ehSecretaria()) itens.push(ITEM_MENSALIDADES, ITEM_ESTOQUE);
     if (this.auth.ehGestao()) itens.push(ITEM_USUARIOS, this.itemConfiguracoes());
+    itens.push(ITEM_AJUDA);
     return itens;
   }
 

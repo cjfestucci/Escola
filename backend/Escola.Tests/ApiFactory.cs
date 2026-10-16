@@ -24,10 +24,14 @@ public sealed class EmailFalso : IEmailSender
 {
     public bool Configurado => true;
     public List<(string Para, string Assunto, string Corpo)> Enviados { get; } = [];
+    /// <summary>Reply-To de cada envio que pediu um (Para → responder para).</summary>
+    public List<(string Para, string ResponderPara)> Respostas { get; } = [];
 
-    public Task EnviarAsync(string destinatarioEmail, string destinatarioNome, string assunto, string corpoHtml, CancellationToken ct = default)
+    public Task EnviarAsync(string destinatarioEmail, string destinatarioNome, string assunto, string corpoHtml, CancellationToken ct = default,
+        string? responderPara = null)
     {
         lock (Enviados) Enviados.Add((destinatarioEmail, assunto, corpoHtml));
+        if (responderPara is not null) lock (Respostas) Respostas.Add((destinatarioEmail, responderPara));
         return Task.CompletedTask;
     }
 }

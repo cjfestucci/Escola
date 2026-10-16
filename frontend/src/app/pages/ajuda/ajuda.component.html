@@ -1,0 +1,47 @@
+<div class="container">
+  <p class="subtitulo">Tem uma dúvida, encontrou um problema ou quer sugerir algo? Fale com a equipe do Gestor Tático.</p>
+
+  <section class="painel">
+    <h2>Fale conosco</h2>
+
+    @if (enviada()) {
+      <div class="enviada">
+        <p><strong>Mensagem enviada.</strong> Você vai receber uma cópia no seu e-mail, e a resposta chega nesse mesmo e-mail, normalmente em até 1 dia útil.</p>
+        <button type="button" class="secundario" (click)="novaMensagem()">Escrever outra mensagem</button>
+      </div>
+    } @else {
+      <p class="legenda-obrigatorio">Campo obrigatório</p>
+      <label><span class="obrigatorio">Assunto</span>
+        <select [(ngModel)]="assunto">
+          <option value="" disabled>Escolha o assunto</option>
+          @for (a of assuntos; track a) {
+            <option [value]="a">{{ a }}</option>
+          }
+        </select>
+      </label>
+
+      <label><span class="obrigatorio">Mensagem</span>
+        <textarea
+          rows="7"
+          [maxlength]="maximo"
+          [(ngModel)]="mensagem"
+          placeholder="Conte o que aconteceu ou o que você precisa. Se for um problema, diga o que estava tentando fazer."
+        ></textarea>
+        <span class="ajuda-campo">{{ mensagem.length }} de {{ maximo }} caracteres</span>
+      </label>
+
+      <p class="nota">
+        Junto com a mensagem vão o nome do clube, o seu nome, o seu perfil e a tela em que você estava, para a gente entender o contexto
+        sem precisar perguntar. A resposta chega no e-mail da sua conta.
+      </p>
+
+      <div class="botoes">
+        <button type="button" class="primario" [disabled]="enviando()" (click)="enviar()">
+          {{ enviando() ? 'Enviando...' : 'Enviar mensagem' }}
+        </button>
+      </div>
+    }
+  </section>
+
+  <p class="alternativa">Se preferir, escreva direto para <a href="mailto:suporte@gestortatico.com.br">suporte&#64;gestortatico.com.br</a>.</p>
+</div>

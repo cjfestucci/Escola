@@ -1,3 +1,4 @@
+import { mensagemInicialWhatsApp } from '../services/ajuda.service';
 import { somarDias } from '../shared/data-utils';
 import { DIAS_AVISO_ATESTADO, rotuloAtestado, situacaoAtestado } from './atestado.model';
 import { formatarQuantidade, formatarTamanho } from '../shared/numero-utils';
@@ -87,5 +88,15 @@ describe('assinatura', () => {
     expect(valorDoPlano(plano, 20)).toBe(60);
     expect(valorDoPlano(plano, 21)).toBe(64);
     expect(valorDoPlano(plano, 40)).toBe(140);
+  });
+});
+
+describe('mensagemInicialWhatsApp', () => {
+  it('diz quem fala e de quais atletas', () => {
+    expect(mensagemInicialWhatsApp('Paulo Costa', ['Laura (Sub-13)'])).toBe('Olá! Sou Paulo Costa, responsável por Laura (Sub-13). ');
+    expect(mensagemInicialWhatsApp('Paulo Costa', ['Laura (Sub-13)', 'Pedro (Sub-9)', 'Ana (Sub-7)']))
+      .toBe('Olá! Sou Paulo Costa, responsável por Laura (Sub-13), Pedro (Sub-9) e Ana (Sub-7). ');
+    expect(mensagemInicialWhatsApp('Paulo Costa', [])).toBe('Olá! Sou Paulo Costa. ');
+    expect(mensagemInicialWhatsApp(null, [])).toBe('Olá! ');
   });
 });

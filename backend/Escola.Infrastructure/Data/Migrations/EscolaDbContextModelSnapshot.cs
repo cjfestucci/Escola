@@ -1603,6 +1603,10 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("Endereco")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -1613,6 +1617,10 @@ namespace Escola.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Telefone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("WhatsApp")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 

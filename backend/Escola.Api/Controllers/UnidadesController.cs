@@ -43,6 +43,8 @@ public class UnidadesController(EscolaDbContext db, IAuditoriaService auditoria)
             Nome = request.Nome.Trim(),
             Endereco = string.IsNullOrWhiteSpace(request.Endereco) ? null : request.Endereco.Trim(),
             Telefone = string.IsNullOrWhiteSpace(request.Telefone) ? null : request.Telefone.Trim(),
+            WhatsApp = string.IsNullOrWhiteSpace(request.WhatsApp) ? null : request.WhatsApp.Trim(),
+            Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant(),
             Ativa = request.Ativa
         };
         db.Unidades.Add(unidade);
@@ -65,17 +67,23 @@ public class UnidadesController(EscolaDbContext db, IAuditoriaService auditoria)
         var nomeAntes = unidade.Nome;
         var enderecoAntes = unidade.Endereco;
         var telefoneAntes = unidade.Telefone;
+        var whatsAppAntes = unidade.WhatsApp;
+        var emailAntes = unidade.Email;
         var ativaAntes = unidade.Ativa;
 
         unidade.Nome = request.Nome.Trim();
         unidade.Endereco = string.IsNullOrWhiteSpace(request.Endereco) ? null : request.Endereco.Trim();
         unidade.Telefone = string.IsNullOrWhiteSpace(request.Telefone) ? null : request.Telefone.Trim();
+        unidade.WhatsApp = string.IsNullOrWhiteSpace(request.WhatsApp) ? null : request.WhatsApp.Trim();
+        unidade.Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim().ToLowerInvariant();
         unidade.Ativa = request.Ativa;
 
         var detalhe = AuditoriaDetalhe.MontarAlteracoes(
             ("Nome", nomeAntes, unidade.Nome),
             ("Endereço", enderecoAntes, unidade.Endereco),
             ("Telefone", telefoneAntes, unidade.Telefone),
+            ("WhatsApp", whatsAppAntes, unidade.WhatsApp),
+            ("E-mail", emailAntes, unidade.Email),
             ("Ativa", ativaAntes, unidade.Ativa));
 
         auditoria.Registrar(nameof(Unidade), unidade.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), detalhe);
@@ -115,6 +123,14 @@ public class UnidadesController(EscolaDbContext db, IAuditoriaService auditoria)
         return Ok(unidade.ToDto());
     }
 
-    private static string? Validar(CriarOuEditarUnidadeRequest request) =>
-        string.IsNullOrWhiteSpace(request.Nome) ? "Nome é obrigatório." : null;
+    private static string? Validar(CriarOuEditarUnidadeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Nome)) return "Nome é obrigatório.";
+        // O link do WhatsApp (wa.me) precisa de DDD + número; um número incompleto abriria uma conversa com ninguém.
+        if (!string.IsNullOrWhiteSpace(request.WhatsApp) && request.WhatsApp.Count(char.IsAsciiDigit) is not (10 or 11))
+            return "Informe o WhatsApp com DDD, ex.: (16) 99123-4567.";
+        if (!string.IsNullOrWhiteSpace(request.Email) && !System.Net.Mail.MailAddress.TryCreate(request.Email.Trim(), out _))
+            return "Informe um e-mail válido, ex.: contato@clube.com.br.";
+        return null;
+    }
 }

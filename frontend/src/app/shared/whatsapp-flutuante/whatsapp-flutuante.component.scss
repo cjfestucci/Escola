@@ -1,0 +1,41 @@
+// Atalho discreto: só o ícone num círculo, sem texto nem animação. O verde é o do WhatsApp (fixo de propósito: é o símbolo que a
+// pessoa reconhece, não a cor do clube).
+.botao-whatsapp {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease;
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  &:hover {
+    transform: scale(1.06);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--cor-primaria);
+    outline-offset: 3px;
+  }
+}
+
+@media (max-width: 600px) {
+  .botao-whatsapp {
+    right: 14px;
+    bottom: 14px;
+    width: 48px;
+    height: 48px;
+  }
+}

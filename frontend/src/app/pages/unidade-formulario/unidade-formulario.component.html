@@ -21,6 +21,16 @@
         <input type="tel" appMascara="telefone" [(ngModel)]="telefone" placeholder="Ex.: (11) 99999-9999" />
       </label>
 
+      <label>WhatsApp (opcional)
+        <input type="tel" appMascara="telefone" [(ngModel)]="whatsApp" placeholder="Ex.: (11) 99999-9999" />
+        <span class="dica-campo">Aparece para os pais em "Fale com o clube" e abre a conversa no WhatsApp.</span>
+      </label>
+
+      <label>E-mail de contato (opcional)
+        <input type="email" [(ngModel)]="email" placeholder="Ex.: contato@clube.com.br" />
+        <span class="dica-campo">Aparece para os pais em "Fale com o clube".</span>
+      </label>
+
       <label class="campo-checkbox">
         <input type="checkbox" [(ngModel)]="ativa" />
         Unidade ativa

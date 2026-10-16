@@ -123,6 +123,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/plataforma/plataforma.component').then((m) => m.PlataformaComponent)
   },
   {
+    path: 'ajuda',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Ajuda' },
+    loadComponent: () => import('./pages/ajuda/ajuda.component').then((m) => m.AjudaComponent)
+  },
+  {
     path: 'minha-conta',
     canActivate: [logadoGuard],
     data: { titulo: 'Minha conta' },
@@ -339,5 +345,12 @@ export const routes: Routes = [
     data: { titulo: 'Financeiro' },
     loadComponent: () =>
       import('./pages/portal-financeiro/portal-financeiro.component').then((m) => m.PortalFinanceiroComponent)
+  },
+  {
+    path: 'portal/contato',
+    canActivate: [portalGuard, termoPortalGuard],
+    data: { titulo: 'Fale com a escola' },
+    loadComponent: () =>
+      import('./pages/portal-contato-clube/portal-contato-clube.component').then((m) => m.PortalContatoClubeComponent)
   }
 ];

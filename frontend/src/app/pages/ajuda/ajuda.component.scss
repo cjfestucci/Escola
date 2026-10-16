@@ -1,0 +1,119 @@
+.container {
+  max-width: 720px;
+}
+
+.subtitulo {
+  color: var(--cor-texto-suave);
+  margin: 0;
+}
+
+.painel {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+  }
+
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+    background: var(--cor-superficie);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 140px;
+  }
+}
+
+.ajuda-campo {
+  font-weight: 400;
+  font-size: 0.78rem;
+  align-self: flex-end;
+}
+
+.nota {
+  font-size: 0.82rem;
+  color: var(--cor-texto-suave);
+}
+
+.botoes {
+  display: flex;
+  justify-content: flex-end;
+
+  button {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    cursor: pointer;
+  }
+}
+
+.primario {
+  background: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+  color: #fff;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.secundario {
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.enviada {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alternativa {
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+  margin-top: 12px;
+
+  a {
+    color: var(--cor-primaria);
+  }
+}

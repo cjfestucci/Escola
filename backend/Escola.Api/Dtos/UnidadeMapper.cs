@@ -9,5 +9,7 @@ public static class UnidadeMapper
         unidade.Nome,
         unidade.Endereco,
         unidade.Telefone,
-        unidade.Ativa);
+        unidade.Ativa,
+        unidade.WhatsApp,
+        unidade.Email);
 }

@@ -11,5 +11,7 @@ public class UnidadeConfiguration : IEntityTypeConfiguration<Unidade>
         builder.Property(u => u.Nome).IsRequired().HasMaxLength(100);
         builder.Property(u => u.Endereco).HasMaxLength(200);
         builder.Property(u => u.Telefone).HasMaxLength(20);
+        builder.Property(u => u.WhatsApp).HasMaxLength(20);
+        builder.Property(u => u.Email).HasMaxLength(200);
     }
 }

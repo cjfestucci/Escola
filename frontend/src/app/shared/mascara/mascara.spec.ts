@@ -1,4 +1,4 @@
-import { formatarCep, formatarCnpj, formatarCpf, formatarCpfCnpj, formatarTelefone, soDigitos } from './mascara';
+import { formatarCep, formatarCnpj, formatarCpf, formatarCpfCnpj, formatarTelefone, linkWhatsApp, soDigitos } from './mascara';
 
 describe('máscaras', () => {
   it('telefone: fixo, celular, digitação parcial e colado com +55', () => {
@@ -31,5 +31,21 @@ describe('máscaras', () => {
   it('soDigitos', () => {
     expect(soDigitos('(11) 99999-8888')).toBe('11999998888');
     expect(soDigitos(null)).toBe('');
+  });
+});
+
+describe('linkWhatsApp', () => {
+  it('monta o wa.me com o 55 do Brasil e recusa número sem DDD', () => {
+    expect(linkWhatsApp('(16) 99123-4567')).toBe('https://wa.me/5516991234567');
+    expect(linkWhatsApp('+55 16 99123-4567')).toBe('https://wa.me/5516991234567');
+    expect(linkWhatsApp('(16) 3333-4444')).toBe('https://wa.me/551633334444');
+    expect(linkWhatsApp('99123-4567')).toBeNull();
+    expect(linkWhatsApp(null)).toBeNull();
+  });
+});
+
+describe('linkWhatsApp com mensagem', () => {
+  it('leva o texto codificado no ?text=', () => {
+    expect(linkWhatsApp('(16) 99123-4567', 'Olá! Sou Ana')).toBe('https://wa.me/5516991234567?text=Ol%C3%A1!%20Sou%20Ana');
   });
 });

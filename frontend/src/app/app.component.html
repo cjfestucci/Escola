@@ -12,9 +12,13 @@
     <app-aviso-assinatura />
   }
 
-  <main class="app-conteudo">
+  <main class="app-conteudo" [class.app-conteudo--portal]="contexto.contexto() === 'portal'">
     <router-outlet></router-outlet>
   </main>
 </div>
+
+@if (auth.estaLogado() && !paginaPublica()) {
+  <app-whatsapp-flutuante />
+}
 
 <app-notificacoes />

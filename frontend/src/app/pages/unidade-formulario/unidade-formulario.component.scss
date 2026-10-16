@@ -32,7 +32,8 @@ h1 {
 
   select,
   input[type='text'],
-  input[type='tel'] {
+  input[type='tel'],
+  input[type='email'] {
     font-family: inherit;
     font-size: 1rem;
     padding: 9px 10px;
@@ -79,4 +80,10 @@ h1 {
       opacity: 0.6;
     }
   }
+}
+
+.dica-campo {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--cor-texto-suave);
 }

@@ -59,3 +59,12 @@ export function formatarPorMascara(tipo: TipoMascara, texto: string | null | und
 
 /** `maxlength` do campo: o tamanho formatado (o telefone tem folga pra colar com "+55 ").  */
 export const TAMANHO_MAXIMO: Record<TipoMascara, number> = { telefone: 20, cpf: 14, cnpj: 18, cpfCnpj: 18, cep: 9 };
+
+/** Link que abre a conversa no WhatsApp (app no celular, WhatsApp Web no computador). Número brasileiro com DDD → 55 + DDD + número;
+ * nulo se o número não tiver DDD. Com `texto`, a conversa abre com essa mensagem já escrita (a pessoa completa e envia). */
+export function linkWhatsApp(telefone: string | null | undefined, texto?: string | null): string | null {
+  const d = soDigitos(telefone);
+  const numero = d.length === 10 || d.length === 11 ? `55${d}` : (d.length === 12 || d.length === 13) && d.startsWith('55') ? d : null;
+  if (!numero) return null;
+  return texto ? `https://wa.me/${numero}?text=${encodeURIComponent(texto)}` : `https://wa.me/${numero}`;
+}

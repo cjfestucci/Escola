@@ -5,4 +5,6 @@ public record UnidadeDto(
     string Nome,
     string? Endereco,
     string? Telefone,
-    bool Ativa);
+    bool Ativa,
+    string? WhatsApp,
+    string? Email);

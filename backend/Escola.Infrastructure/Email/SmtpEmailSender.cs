@@ -15,7 +15,8 @@ public class SmtpEmailSender(IOptions<ConfiguracaoSmtp> opcoes) : IEmailSender
         !string.IsNullOrWhiteSpace(_config.Senha) &&
         !string.IsNullOrWhiteSpace(_config.RemetenteEmail);
 
-    public async Task EnviarAsync(string destinatarioEmail, string destinatarioNome, string assunto, string corpoHtml, CancellationToken ct = default)
+    public async Task EnviarAsync(string destinatarioEmail, string destinatarioNome, string assunto, string corpoHtml, CancellationToken ct = default,
+        string? responderPara = null)
     {
         if (!Configurado)
             throw new InvalidOperationException("Envio de e-mail não configurado (faltam credenciais de SMTP).");
@@ -23,6 +24,7 @@ public class SmtpEmailSender(IOptions<ConfiguracaoSmtp> opcoes) : IEmailSender
         var mensagem = new MimeMessage();
         mensagem.From.Add(new MailboxAddress(_config.RemetenteNome, _config.RemetenteEmail!));
         mensagem.To.Add(new MailboxAddress(destinatarioNome, destinatarioEmail));
+        if (!string.IsNullOrWhiteSpace(responderPara)) mensagem.ReplyTo.Add(MailboxAddress.Parse(responderPara));
         mensagem.Subject = assunto;
         // Todo e-mail sai no layout da marca (ModeloEmail), com a versão em texto puro junto.
         mensagem.Body = new BodyBuilder

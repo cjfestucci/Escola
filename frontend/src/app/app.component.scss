@@ -13,6 +13,11 @@
   flex: 1;
 }
 
+// Portal dos pais: espaço no fim da página pro atalho do WhatsApp (canto inferior direito) nunca cobrir o último conteúdo.
+.app-conteudo--portal {
+  padding-bottom: 88px;
+}
+
 .app-backdrop {
   position: fixed;
   inset: 0;
