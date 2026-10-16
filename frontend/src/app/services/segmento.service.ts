@@ -1,6 +1,7 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 import { resolverFotoUrl } from '../shared/registro-rotina-display';
 
 export type Segmento = 'escola' | 'clube';
@@ -35,6 +36,7 @@ function normalizar(valor: string | null | undefined): Segmento | null {
  */
 @Injectable({ providedIn: 'root' })
 export class SegmentoService {
+  private readonly auth = inject(AuthService);
   private readonly doCliente = signal<Segmento>(this.lerCache() ?? this.padraoDoAmbiente());
   private readonly override = signal<Segmento | null>(this.lerOverride());
 
@@ -43,7 +45,7 @@ export class SegmentoService {
   private readonly _logoUrl = signal<string | null>(this.lerLogo());
   /** URL completa da logo do cliente (ao lado do nome do app), ou nulo — aí vale o ícone padrão do segmento. */
   readonly logoUrl = computed(() => {
-    const caminho = this._logoUrl();
+    const caminho = this.auth.estaLogado() ? this._logoUrl() : null;
     return caminho ? resolverFotoUrl(caminho) : null;
   });
 
@@ -55,13 +57,16 @@ export class SegmentoService {
   readonly rotuloResponsaveis = computed(() => (this.ehClube() ? 'Contatos' : 'Responsáveis'));
   readonly rotuloPortal = computed(() => (this.ehClube() ? 'Portal da Família' : 'Portal dos Pais'));
   private readonly _nomeEscola = signal<string | null>(this.lerNomeEscola());
+  /** O nome em cache só vale com sessão: sem login (tela de entrar, ou servidor fora do ar e o app abrindo do cache do PWA), é sempre
+   * a marca do produto — nunca o nome da última escola que usou o aparelho. */
+  private readonly nomeDaSessao = computed(() => (this.auth.estaLogado() ? this._nomeEscola() : null));
   /** Nome no topo do menu: o da escola da sessão; sem login (tela de login de todas as escolas), a marca do produto. */
-  readonly nomeApp = computed(() => this._nomeEscola() ?? NOME_PRODUTO);
+  readonly nomeApp = computed(() => this.nomeDaSessao() ?? NOME_PRODUTO);
   /** Sem escola na sessão: as telas de login/senha mostram o símbolo da marca (SIMBOLO_PRODUTO) em vez do ícone. */
-  readonly semEscola = computed(() => this._nomeEscola() === null);
+  readonly semEscola = computed(() => this.nomeDaSessao() === null);
   readonly simboloProduto = SIMBOLO_PRODUTO;
   /** Sem escola na sessão vale o ícone da marca (futebol); com escola, o do segmento dela. */
-  readonly iconeApp = computed(() => (this._nomeEscola() === null || this.ehClube() ? '⚽' : '🏫'));
+  readonly iconeApp = computed(() => (this.nomeDaSessao() === null || this.ehClube() ? '⚽' : '🏫'));
 
   readonly mostrarRotinaDiaria = computed(() => !this.ehClube());
   readonly mostrarDiarioClasse = computed(() => !this.ehClube());

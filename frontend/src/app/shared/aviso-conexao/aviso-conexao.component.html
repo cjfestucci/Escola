@@ -1,0 +1,18 @@
+@if (conexao.servidorFora() || conexao.semInternet()) {
+  <div class="aviso-conexao" role="status" aria-live="polite">
+    <span class="texto">
+      @if (conexao.semInternet()) {
+        <strong>Você está sem internet.</strong> Assim que a conexão voltar, o sistema reconecta sozinho.
+      } @else {
+        <strong>Estamos com instabilidade.</strong> Pode ser uma manutenção — o sistema tenta reconectar sozinho a cada 15 segundos.
+      }
+    </span>
+    <button type="button" [disabled]="tentando()" (click)="tentar()">{{ tentando() ? 'Tentando...' : 'Tentar agora' }}</button>
+  </div>
+} @else if (conexao.voltou()) {
+  <div class="aviso-conexao aviso-conexao--voltou" role="status" aria-live="polite">
+    <span class="texto"><strong>Conexão de volta.</strong> Recarregue para ver as informações atualizadas.</span>
+    <button type="button" (click)="recarregar()">Recarregar</button>
+    <button type="button" class="fechar" aria-label="Fechar aviso" (click)="conexao.voltou.set(false)">×</button>
+  </div>
+}

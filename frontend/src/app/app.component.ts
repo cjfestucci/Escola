@@ -8,11 +8,12 @@ import { NotificacoesComponent } from './shared/notificacoes/notificacoes.compon
 import { SidebarComponent } from './shared/sidebar/sidebar.component';
 import { TopbarComponent } from './shared/topbar/topbar.component';
 import { WhatsappFlutuanteComponent } from './shared/whatsapp-flutuante/whatsapp-flutuante.component';
+import { AvisoConexaoComponent } from './shared/aviso-conexao/aviso-conexao.component';
 import { ContextoService } from './services/contexto.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidebarComponent, TopbarComponent, NotificacoesComponent, AvisoAssinaturaComponent, WhatsappFlutuanteComponent],
+  imports: [RouterOutlet, SidebarComponent, TopbarComponent, NotificacoesComponent, AvisoAssinaturaComponent, WhatsappFlutuanteComponent, AvisoConexaoComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
