@@ -23,8 +23,20 @@ public class SmtpEmailSender(IOptions<ConfiguracaoSmtp> opcoes) : IEmailSender
 
         var mensagem = new MimeMessage();
         mensagem.From.Add(new MailboxAddress(_config.RemetenteNome, _config.RemetenteEmail!));
-        mensagem.To.Add(new MailboxAddress(destinatarioNome, destinatarioEmail));
-        if (!string.IsNullOrWhiteSpace(responderPara)) mensagem.ReplyTo.Add(MailboxAddress.Parse(responderPara));
+        // Modo seguro (dev): nada sai pra destinatário de verdade; o original fica visível no assunto.
+        var redirecionar = _config.RedirecionarTudoPara;
+        if (!string.IsNullOrWhiteSpace(redirecionar))
+        {
+            mensagem.To.Add(new MailboxAddress(destinatarioNome, redirecionar));
+            assunto = $"[TESTE → {destinatarioEmail}] {assunto}";
+        }
+        else
+        {
+            mensagem.To.Add(new MailboxAddress(destinatarioNome, destinatarioEmail));
+        }
+        // No modo seguro o "responder" também fica no endereço de teste (senão a resposta iria pro e-mail fictício).
+        if (!string.IsNullOrWhiteSpace(responderPara))
+            mensagem.ReplyTo.Add(MailboxAddress.Parse(string.IsNullOrWhiteSpace(redirecionar) ? responderPara : redirecionar));
         mensagem.Subject = assunto;
         // Todo e-mail sai no layout da marca (ModeloEmail), com a versão em texto puro junto.
         mensagem.Body = new BodyBuilder
