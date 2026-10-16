@@ -6,6 +6,7 @@ using Escola.Api.Auth;
 using Escola.Api.Servicos;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Documentos;
 using Escola.Infrastructure.Assinaturas;
 using Escola.Infrastructure.Auth;
 using Escola.Infrastructure.Clientes;
@@ -107,14 +108,14 @@ public class AssinaturasController(
                 $"Muitos cadastros seguidos. Tente novamente em {Math.Max(1, (int)Math.Ceiling(restante.TotalMinutes))} minutos.");
 
         var nomeClube = request.NomeClube?.Trim() ?? string.Empty;
-        var documento = SoDigitos(request.CpfCnpj);
+        var documento = DocumentoBr.Normalizar(request.CpfCnpj); // CNPJ alfanumérico: mantém as letras
         var cidade = request.Cidade?.Trim() ?? string.Empty;
         var nomeAdmin = request.NomeAdmin?.Trim() ?? string.Empty;
         var email = request.Email?.Trim() ?? string.Empty;
         var celular = SoDigitos(request.Celular);
 
         if (nomeClube.Length < 3 || nomeClube.Length > 200) return BadRequest("Informe o nome do clube (de 3 a 200 caracteres).");
-        if (documento.Length == 11 ? !ChavePix.CpfValido(documento) : documento.Length != 14 || !ChavePix.CnpjValido(documento))
+        if (!DocumentoBr.CpfOuCnpjValido(documento))
             return BadRequest("Informe um CPF ou CNPJ válido.");
         if (cidade.Length < 2 || cidade.Length > 120) return BadRequest("Informe a cidade.");
         if (request.Atletas < 1 || request.Atletas > 5000) return BadRequest("Informe quantos atletas o clube tem (de 1 a 5.000).");

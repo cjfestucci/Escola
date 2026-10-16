@@ -329,4 +329,32 @@ public partial class AssinaturaHttpTests(ApiFactory api) : IClassFixture<ApiFact
 
     [GeneratedRegex(@"token=([A-Za-z0-9_\-]+)")]
     private static partial Regex TokenDoLink();
+
+}
+
+/// <summary>Classe própria (outra fábrica): os cadastros daqui não gastam o freio de 5 por IP dos testes de <see cref="AssinaturaHttpTests"/>.</summary>
+public class AssinaturaCnpjAlfanumericoHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
+{
+    private static object Cadastro(string email, string cpfCnpj) => new
+    {
+        nomeClube = "Clube CNPJ Novo", cpfCnpj, cidade = "Campinas", atletas = 40,
+        nomeAdmin = "Dono", email, celular = "(19) 99999-8888", aceiteTermos = true
+    };
+
+    [Fact]
+    public async Task ClubeComCnpjAlfanumericoConsegueAssinar()
+    {
+        // CNPJ novo da Receita (letras nas 12 primeiras posições): antes as letras eram descartadas e o cadastro recusado.
+        var email = $"cnpj.alfa.{Guid.NewGuid():N}@clube.test";
+        var resposta = await api.CreateClient().PostAsJsonAsync("/api/assinaturas", Cadastro(email, "12.abc.345/01DE-35"));
+        Assert.True(resposta.IsSuccessStatusCode, await resposta.Content.ReadAsStringAsync());
+
+        using var db = api.Contexto(ApiFactory.ClienteId);
+        Assert.Equal("12ABC34501DE35", (await db.Assinaturas.IgnoreQueryFilters().SingleAsync(a => a.EmailCobranca == email)).CpfCnpj);
+        var clienteAsaas = api.Asaas.Chamadas.Last(c => c.Metodo == "POST" && c.Caminho == "/customers" && c.Corpo!["email"]?.GetValue<string>() == email);
+        Assert.Equal("12ABC34501DE35", clienteAsaas.Corpo!["cpfCnpj"]!.GetValue<string>());
+
+        Assert.Equal(HttpStatusCode.BadRequest,
+            (await api.CreateClient().PostAsJsonAsync("/api/assinaturas", Cadastro($"x{email}", "12.ABC.345/01DE-36"))).StatusCode);
+    }
 }

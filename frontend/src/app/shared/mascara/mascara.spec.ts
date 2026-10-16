@@ -1,4 +1,4 @@
-import { formatarCep, formatarCnpj, formatarCpf, formatarCpfCnpj, formatarTelefone, linkWhatsApp, soDigitos } from './mascara';
+import { formatarCep, formatarCnpj, formatarCpf, formatarCpfCnpj, formatarTelefone, linkWhatsApp, soDigitos, soDocumento } from './mascara';
 
 describe('máscaras', () => {
   it('telefone: fixo, celular, digitação parcial e colado com +55', () => {
@@ -47,5 +47,18 @@ describe('linkWhatsApp', () => {
 describe('linkWhatsApp com mensagem', () => {
   it('leva o texto codificado no ?text=', () => {
     expect(linkWhatsApp('(16) 99123-4567', 'Olá! Sou Ana')).toBe('https://wa.me/5516991234567?text=Ol%C3%A1!%20Sou%20Ana');
+  });
+});
+
+describe('CNPJ alfanumérico', () => {
+  it('formata com letras nas 12 primeiras posições e só números nos dígitos verificadores', () => {
+    expect(formatarCnpj('12abc34501de35')).toBe('12.ABC.345/01DE-35');
+    expect(formatarCnpj('12ABC34501DEX35')).toBe('12.ABC.345/01DE-35'); // letra no lugar do dígito verificador é ignorada
+    expect(soDocumento('12.abc.345/01de-35')).toBe('12ABC34501DE35');
+  });
+
+  it('CPF ou CNPJ: uma letra já vira CNPJ', () => {
+    expect(formatarCpfCnpj('12ABC')).toBe('12.ABC');
+    expect(formatarCpfCnpj('52998224725')).toBe('529.982.247-25');
   });
 });

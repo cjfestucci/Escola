@@ -4,6 +4,7 @@ using System.Text.Json;
 using Escola.Api.Auth;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Documentos;
 using Escola.Infrastructure.Auditoria;
 using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Data;
@@ -253,9 +254,9 @@ public class PagamentosController(
         if (string.IsNullOrWhiteSpace(r.Nome)) return (null, "Informe o nome ou a razão social.");
         if (string.IsNullOrWhiteSpace(r.Email) || !r.Email.Contains('@')) return (null, "Informe um e-mail válido.");
 
-        var documento = Digitos(r.CpfCnpj);
+        var documento = DocumentoBr.Normalizar(r.CpfCnpj); // CNPJ alfanumérico: mantém as letras
         var ehCpf = documento.Length == 11;
-        if (ehCpf ? !ChavePix.CpfValido(documento) : documento.Length != 14 || !ChavePix.CnpjValido(documento))
+        if (!DocumentoBr.CpfOuCnpjValido(documento))
             return (null, "CPF ou CNPJ inválido.");
 
         string? tipoEmpresa = null;

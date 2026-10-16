@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../shared/mascara/mascara.directive';
-import { soDigitos } from '../../shared/mascara/mascara';
+import { soDigitos, soDocumento } from '../../shared/mascara/mascara';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
@@ -115,7 +115,7 @@ export class AssinarComponent implements OnInit {
   }
 
   continuar(): void {
-    const documento = soDigitos(this.cpfCnpj);
+    const documento = soDocumento(this.cpfCnpj);
     if (this.nomeClube.trim().length < 3) return this.notificacao.erro('Informe o nome do clube.');
     if (documento.length === 11 ? !cpfValido(documento) : !cnpjValido(documento)) return this.notificacao.erro('Informe um CPF ou CNPJ válido.');
     if (this.cidade.trim().length < 2) return this.notificacao.erro('Informe a cidade.');
@@ -138,7 +138,7 @@ export class AssinarComponent implements OnInit {
     this.assinaturas
       .cadastrar({
         nomeClube: this.nomeClube.trim(),
-        cpfCnpj: soDigitos(this.cpfCnpj),
+        cpfCnpj: soDocumento(this.cpfCnpj),
         cidade: this.cidade.trim(),
         atletas: this.atletas(),
         nomeAdmin: this.nomeAdmin.trim(),

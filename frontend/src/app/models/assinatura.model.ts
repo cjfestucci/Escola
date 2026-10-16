@@ -99,11 +99,14 @@ export function cpfValido(cpf: string): boolean {
   return digito(9) === Number(cpf[9]) && digito(10) === Number(cpf[10]);
 }
 
+/** CNPJ numérico ou alfanumérico (letras nas 12 primeiras posições, dígitos verificadores numéricos), sem pontuação e em maiúsculas
+ * (`soDocumento`). Cada caractere vale "código ASCII − 48" ('0'–'9' = 0–9, 'A' = 17…), a mesma regra do backend (`DocumentoBr`). */
 export function cnpjValido(cnpj: string): boolean {
-  if (!/^\d{14}$/.test(cnpj) || /^(\d)\1{13}$/.test(cnpj)) return false;
+  if (!/^[0-9A-Z]{12}\d{2}$/.test(cnpj) || /^(.)\1{13}$/.test(cnpj)) return false;
+  const valor = (c: string) => c.charCodeAt(0) - 48;
   const digito = (n: number) => {
     const pesos = n === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-    const soma = pesos.reduce((total, peso, i) => total + Number(cnpj[i]) * peso, 0);
+    const soma = pesos.reduce((total, peso, i) => total + valor(cnpj[i]) * peso, 0);
     const resto = soma % 11;
     return resto < 2 ? 0 : 11 - resto;
   };

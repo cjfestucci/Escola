@@ -6,7 +6,7 @@ import { TAMANHO_MAXIMO, TipoMascara, formatarPorMascara } from './mascara';
  * Máscara de digitação: `<input appMascara="telefone" [(ngModel)]="telefone" />` (também `cpf`, `cnpj`, `cpfCnpj`, `cep`).
  * Substitui o value accessor padrão do ngModel: formata o que chega do modelo (dado antigo sem máscara aparece formatado) e o que é
  * digitado/colado, devolvendo ao modelo o texto já formatado. O cursor fica depois do mesmo dígito em que estava, pra editar no meio
- * do número não pular pro fim. Define `inputmode="numeric"` e o `maxlength` certo sozinha.
+ * do número não pular pro fim. Define o `inputmode` (numérico; texto nos de CNPJ, que pode ter letras) e o `maxlength` sozinha.
  */
 @Directive({
   selector: 'input[appMascara]',
@@ -23,7 +23,13 @@ export class MascaraDirective implements ControlValueAccessor {
 
   ngOnInit(): void {
     const campo = this.elemento.nativeElement;
-    if (!campo.getAttribute('inputmode')) this.renderer.setAttribute(campo, 'inputmode', 'numeric');
+    // CNPJ pode ter letras (CNPJ alfanumérico): teclado de texto, já em maiúsculas. Os demais, teclado numérico.
+    const aceitaLetras = this.appMascara() === 'cnpj' || this.appMascara() === 'cpfCnpj';
+    if (!campo.getAttribute('inputmode')) this.renderer.setAttribute(campo, 'inputmode', aceitaLetras ? 'text' : 'numeric');
+    if (aceitaLetras) {
+      this.renderer.setAttribute(campo, 'autocapitalize', 'characters');
+      this.renderer.setAttribute(campo, 'spellcheck', 'false');
+    }
     this.renderer.setAttribute(campo, 'maxlength', String(TAMANHO_MAXIMO[this.appMascara()]));
   }
 
@@ -41,14 +47,14 @@ export class MascaraDirective implements ControlValueAccessor {
   aoDigitar(): void {
     const campo = this.elemento.nativeElement;
     const bruto = campo.value;
-    // Quantos dígitos havia antes do cursor: depois de formatar, o cursor volta pra logo após esse mesmo dígito.
-    const digitosAntes = bruto.slice(0, campo.selectionStart ?? bruto.length).replace(/\D/g, '').length;
+    // Quantos caracteres (números, ou letras do CNPJ) havia antes do cursor: depois de formatar, o cursor volta pra logo após o mesmo.
+    const digitosAntes = bruto.slice(0, campo.selectionStart ?? bruto.length).replace(/[^0-9A-Za-z]/g, '').length;
     const formatado = formatarPorMascara(this.appMascara(), bruto);
     if (formatado !== bruto) {
       campo.value = formatado;
       let pos = 0;
       for (let vistos = 0; pos < formatado.length && vistos < digitosAntes; pos++) {
-        if (/\d/.test(formatado[pos])) vistos++;
+        if (/[0-9A-Za-z]/.test(formatado[pos])) vistos++;
       }
       if (document.activeElement === campo) campo.setSelectionRange(pos, pos);
     }

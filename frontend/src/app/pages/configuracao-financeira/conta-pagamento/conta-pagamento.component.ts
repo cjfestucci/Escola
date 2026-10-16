@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../../shared/mascara/mascara.directive';
-import { soDigitos } from '../../../shared/mascara/mascara';
+import { soDigitos, soDocumento } from '../../../shared/mascara/mascara';
 
 import { ContaPagamento, TIPOS_EMPRESA, TipoEmpresa, rotuloSituacaoGateway } from '../../../models/pagamento.model';
 import { AuthService } from '../../../services/auth.service';
@@ -59,7 +59,7 @@ export class ContaPagamentoComponent implements OnInit {
 
   /** CPF = titular pessoa física (pede nascimento); CNPJ = empresa (pede o tipo). Decidido pela quantidade de dígitos. */
   get ehCnpj(): boolean {
-    return soDigitos(this.cpfCnpj).length > 11;
+    return soDocumento(this.cpfCnpj).length > 11;
   }
 
   ngOnInit(): void {
@@ -68,9 +68,9 @@ export class ContaPagamentoComponent implements OnInit {
   }
 
   conectar(): void {
-    const documento = soDigitos(this.cpfCnpj);
+    const documento = soDocumento(this.cpfCnpj);
     if (!this.nome.trim() || !this.email.trim()) return this.notificacao.erro('Informe o nome do titular e o e-mail.');
-    if (documento.length !== 11 && documento.length !== 14) return this.notificacao.erro('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos).');
+    if (documento.length !== 11 && documento.length !== 14) return this.notificacao.erro('Informe um CPF (11 números) ou CNPJ (14 caracteres).');
     if (this.ehCnpj && !this.tipoEmpresa) return this.notificacao.erro('Selecione o tipo de empresa.');
 
     let dataNascimento: string | null = null;

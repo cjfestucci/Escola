@@ -1,4 +1,5 @@
 using Escola.Domain.Enums;
+using Escola.Infrastructure.Documentos;
 
 namespace Escola.Infrastructure.Pagamentos;
 
@@ -29,13 +30,14 @@ public static class ChavePix
             }
             case TipoChavePix.Cnpj:
             {
-                var digitos = SoDigitos(texto);
-                if (digitos.Length != 14 || !CnpjValido(digitos))
+                // CNPJ alfanumérico (letras nas 12 primeiras posições) também vale; guarda sem pontuação, letras em maiúsculas.
+                var cnpj = DocumentoBr.Normalizar(texto);
+                if (!DocumentoBr.CnpjValido(cnpj))
                 {
-                    erro = "CNPJ inválido. Informe os 14 números do CNPJ (ex.: 12.345.678/0001-95).";
+                    erro = "CNPJ inválido. Informe os 14 caracteres do CNPJ (ex.: 12.345.678/0001-95 ou 12.ABC.345/01DE-35).";
                     return null;
                 }
-                return digitos;
+                return cnpj;
             }
             case TipoChavePix.Telefone:
             {
@@ -92,36 +94,9 @@ public static class ChavePix
 
     private static string SoDigitos(string texto) => new(texto.Where(char.IsDigit).ToArray());
 
-    /// <summary>CPF com dígitos verificadores corretos (só dígitos, 11 caracteres).</summary>
-    public static bool CpfValido(string cpf)
-    {
-        if (cpf.Distinct().Count() == 1) return false;
+    /// <summary>CPF com dígitos verificadores corretos (ver <see cref="DocumentoBr"/>).</summary>
+    public static bool CpfValido(string cpf) => DocumentoBr.CpfValido(cpf);
 
-        for (var tamanho = 9; tamanho <= 10; tamanho++)
-        {
-            var soma = 0;
-            for (var i = 0; i < tamanho; i++) soma += (cpf[i] - '0') * (tamanho + 1 - i);
-            var digito = soma * 10 % 11 % 10;
-            if (cpf[tamanho] - '0' != digito) return false;
-        }
-        return true;
-    }
-
-    /// <summary>CNPJ com dígitos verificadores corretos (só dígitos, 14 caracteres).</summary>
-    public static bool CnpjValido(string cnpj)
-    {
-        if (cnpj.Distinct().Count() == 1) return false;
-
-        int[] pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-        int[] pesos2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-        return DigitoCnpj(cnpj, pesos1) == cnpj[12] - '0' && DigitoCnpj(cnpj, pesos2) == cnpj[13] - '0';
-    }
-
-    private static int DigitoCnpj(string cnpj, int[] pesos)
-    {
-        var soma = 0;
-        for (var i = 0; i < pesos.Length; i++) soma += (cnpj[i] - '0') * pesos[i];
-        var resto = soma % 11;
-        return resto < 2 ? 0 : 11 - resto;
-    }
+    /// <summary>CNPJ, numérico ou alfanumérico, com dígitos verificadores corretos (ver <see cref="DocumentoBr"/>).</summary>
+    public static bool CnpjValido(string cnpj) => DocumentoBr.CnpjValido(cnpj);
 }

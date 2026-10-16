@@ -100,3 +100,12 @@ describe('mensagemInicialWhatsApp', () => {
     expect(mensagemInicialWhatsApp(null, [])).toBe('Olá! ');
   });
 });
+
+describe('cnpjValido (alfanumérico)', () => {
+  it('aceita o exemplo oficial da Receita e continua aceitando o numérico', () => {
+    expect(cnpjValido('12ABC34501DE35')).toBeTrue();
+    expect(cnpjValido('12ABC34501DE36')).toBeFalse();
+    expect(cnpjValido('11444777000161')).toBeTrue();
+    expect(cnpjValido('12ABC34501DE3A')).toBeFalse();
+  });
+});

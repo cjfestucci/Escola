@@ -1,9 +1,15 @@
-/** Máscaras de digitação dos documentos e contatos brasileiros. O backend sempre guarda/valida pelos dígitos, então a máscara é só
- * apresentação: o que vai pro modelo é o texto formatado, e quem precisa dos dígitos usa `soDigitos`. */
+/** Máscaras de digitação dos documentos e contatos brasileiros. O backend sempre guarda/valida sem a pontuação, então a máscara é só
+ * apresentação: o que vai pro modelo é o texto formatado, e quem precisa do valor limpo usa `soDigitos` (telefone, CPF, CEP) ou
+ * `soDocumento` (CPF/CNPJ — o CNPJ alfanumérico da Receita tem letras nas 12 primeiras posições). */
 export type TipoMascara = 'telefone' | 'cpf' | 'cnpj' | 'cpfCnpj' | 'cep';
 
 export function soDigitos(texto: string | null | undefined): string {
   return (texto ?? '').replace(/\D/g, '');
+}
+
+/** CPF/CNPJ sem pontuação, letras em maiúsculas: "12.abc.345/01de-35" → "12ABC34501DE35". */
+export function soDocumento(texto: string | null | undefined): string {
+  return (texto ?? '').toUpperCase().replace(/[^0-9A-Z]/g, '');
 }
 
 /** Encaixa os dígitos no padrão (`#` = um dígito), parando onde os dígitos acabam — assim o separador só aparece depois que o
@@ -33,14 +39,21 @@ export function formatarCpf(texto: string | null | undefined): string {
   return aplicar(soDigitos(texto).slice(0, 11), '###.###.###-##');
 }
 
+/** CNPJ, inclusive o alfanumérico: letras ou números nas 12 primeiras posições; as 2 últimas (dígitos verificadores) só números. */
 export function formatarCnpj(texto: string | null | undefined): string {
-  return aplicar(soDigitos(texto).slice(0, 14), '##.###.###/####-##');
+  let valor = '';
+  for (const c of soDocumento(texto)) {
+    if (valor.length >= 14) break;
+    if (valor.length >= 12 && !/\d/.test(c)) continue;
+    valor += c;
+  }
+  return aplicar(valor, '##.###.###/####-##');
 }
 
-/** CPF até 11 dígitos; a partir do 12º vira CNPJ. */
+/** CPF até 11 números; vira CNPJ a partir do 12º caractere ou assim que aparece uma letra (CNPJ alfanumérico). */
 export function formatarCpfCnpj(texto: string | null | undefined): string {
-  const d = soDigitos(texto);
-  return d.length <= 11 ? formatarCpf(d) : formatarCnpj(d);
+  const valor = soDocumento(texto);
+  return valor.length <= 11 && /^\d*$/.test(valor) ? formatarCpf(valor) : formatarCnpj(valor);
 }
 
 export function formatarCep(texto: string | null | undefined): string {
