@@ -147,6 +147,8 @@ Pedido do usuário (rumo ao produto vendido pelo site, com o cliente se cadastra
 
 ### Dados fictícios de desenvolvimento (escola de futebol)
 
+**Regra (desde 2026-10-16, pedido do usuário): dado fictício nunca pode parecer real — no dev e no clube Demonstração de produção.** E-mail só em domínio reservado (`@example.com`, `*.test`) ou endereço nosso (`@gestortatico.com.br`); **sem telefone/WhatsApp** inventado (pode ser de alguém); **sem CPF/CNPJ** com cara de verdadeiro; e nada em `.dev` (é um TLD real — `escola.dev`, `rotinaescola.dev` podem ter dono). Motivo: um teste local mandou cópia pra `paulo.costa@hotmail.com` (responsável do seed), e a Demonstração tinha 63 telefones inventados (apagados em 16/10/2026, cópia em `/root/demo-telefones-*.csv` no servidor). O modo seguro do SMTP (`Smtp:RedirecionarTudoPara`) protege o envio, mas não substitui dados limpos. **Ao gerar/regerar qualquer dataset, seguir isso.**
+
 O banco de dev (`escola_dev`) foi limpo e repovoado, **só para o cliente padrão** (renomeado "Escola de Futebol Craque do Amanhã"), simulando uma escola em produção: 100 atletas em 8 turmas (Sub-7…Sub-17), 118 responsáveis, ~820 cobranças (mensalidades pagas, a vencer, atrasadas e algumas canceladas/bloqueando atleta), contas a pagar/receber, fornecedores, estoque com itens baixos e zerados, campeonatos + 93 jogos com convocação/súmula, cartões (suspensos e pendurados reais), 216 logs de auditoria. Nomes, CNPJs e e-mails são fictícios.
 
 - Logins (senha de todos: `escola123`): `admin@escola.dev`, `coordenacao@escola.dev`, `financeiro@escola.dev`, treinadores `<nome.sobrenome>@escola.dev` (ex.: `rodrigo.mendes@escola.dev`) e pais pelo e-mail do responsável (ex.: `paulo.costa@hotmail.com`).

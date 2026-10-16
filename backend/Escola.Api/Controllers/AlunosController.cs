@@ -252,7 +252,11 @@ public class AlunosController(
             if (vinculoExistente is not null)
             {
                 vinculoExistente.Responsavel.Nome = input.Nome.Trim();
-                vinculoExistente.Responsavel.Email = input.Email.Trim();
+                var emailNovo = input.Email.Trim();
+                if (!string.Equals(vinculoExistente.Responsavel.Email, emailNovo, StringComparison.OrdinalIgnoreCase)
+                    && await AcompanharEmailNaContaAsync(vinculoExistente.ResponsavelId, emailNovo))
+                    novosVinculos.Add(vinculoExistente.ResponsavelId); // convite vai pro e-mail novo
+                vinculoExistente.Responsavel.Email = emailNovo;
                 vinculoExistente.Responsavel.Telefone = input.Telefone;
                 var cpfNovo = string.IsNullOrWhiteSpace(input.Cpf) ? null : SoDigitos(input.Cpf);
                 if (cpfNovo != vinculoExistente.Responsavel.Cpf)
@@ -312,6 +316,19 @@ public class AlunosController(
             db.AlunoResponsaveis.RemoveRange(vinculosRemover);
 
         return novosVinculos;
+    }
+
+    /// <summary>O e-mail de um responsável já salvo mudou: a conta do portal acompanha (é o login dele). Devolve se precisa de convite
+    /// no e-mail novo — conta ainda pendente, ou responsável sem conta (o convite cria). Se o e-mail novo já for de outra conta, não
+    /// mexe: o envio do convite avisa.</summary>
+    private async Task<bool> AcompanharEmailNaContaAsync(Guid responsavelId, string emailNovo)
+    {
+        var conta = await db.Usuarios.FirstOrDefaultAsync(u => u.ResponsavelId == responsavelId && u.Papel == PapelUsuario.Responsavel);
+        if (await db.Usuarios.AnyAsync(u => u.Email.ToLower() == emailNovo.ToLower() && (conta == null || u.Id != conta.Id)))
+            return conta is null; // e-mail de outra conta: o convite explica (sem conta) ou nada muda (com conta)
+        if (conta is null) return true;
+        conta.Email = emailNovo;
+        return conta.SenhaHash == SenhaHasher.ConvitePendente;
     }
 
     private IQueryable<Aluno> ComIncludes() =>

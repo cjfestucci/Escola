@@ -71,6 +71,45 @@ public class TermoMatriculaHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task EmailCorrigidoDepoisDeSalvoCriaAContaEMandaOConvite()
+    {
+        // Caso real (16/10/2026): o responsável foi salvo com o e-mail de alguém da equipe (sem conta no portal) e depois corrigido.
+        var emailEquipe = $"secretaria-{Guid.NewGuid():N}@teste.com";
+        var gestao = await api.ClienteLogadoAsync(PapelUsuario.Admin, emailEquipe);
+        Guid turmaId;
+        using (var db = api.Contexto(ApiFactory.ClienteId))
+        {
+            turmaId = BancoDeTeste.NovaTurma(db, "Turma Email Corrigido").Id;
+            await db.SaveChangesAsync();
+        }
+
+        var criado = await gestao.PostAsJsonAsync("/api/alunos", new
+        {
+            nome = "Atleta Email Corrigido", dataNascimento = "2015-05-05", turmaId, fotoUrl = (string?)null,
+            responsaveis = new[] { new { id = (Guid?)null, nome = "Pai Teste", email = emailEquipe, telefone = (string?)null, responsavelFinanceiro = true } }
+        });
+        Assert.Equal(HttpStatusCode.Created, criado.StatusCode);
+        var corpo = await criado.Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Equal("Aviso", corpo.GetProperty("convites")[0].GetProperty("tipo").GetString()); // e-mail de outra conta: sem login
+        var alunoId = corpo.GetProperty("id").GetGuid();
+        var responsavelId = corpo.GetProperty("responsaveis")[0].GetProperty("id").GetGuid();
+
+        var emailPai = $"pai-corrigido-{Guid.NewGuid():N}@teste.com";
+        var editado = await gestao.PutAsJsonAsync($"/api/alunos/{alunoId}", new
+        {
+            nome = "Atleta Email Corrigido", dataNascimento = "2015-05-05", turmaId, fotoUrl = (string?)null,
+            responsaveis = new[] { new { id = (Guid?)responsavelId, nome = "Pai Teste", email = emailPai, telefone = (string?)null, responsavelFinanceiro = true } }
+        });
+        Assert.Equal(HttpStatusCode.OK, editado.StatusCode);
+        var convite = (await editado.Content.ReadFromJsonAsync<JsonElement>(Json)).GetProperty("convites")[0];
+        Assert.Equal("Convite", convite.GetProperty("tipo").GetString());
+        Assert.Equal(emailPai, convite.GetProperty("email").GetString());
+
+        // O convite funciona: o pai cria a senha e entra.
+        await AceitarConviteEEntrarAsync(emailPai);
+    }
+
+    [Fact]
     public async Task MatriculaSoEfetivaDepoisDoAceiteDoTermo()
     {
         var gestao = await api.ClienteLogadoAsync(PapelUsuario.Coordenador);

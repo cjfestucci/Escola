@@ -1,3 +1,4 @@
+using Escola.Domain.Entities;
 using System.Net;
 using Escola.Domain.Enums;
 using Escola.Infrastructure;
@@ -46,9 +47,23 @@ public sealed class ConviteMatriculaService(
             var usuario = await db.Usuarios.FirstOrDefaultAsync(u => u.ResponsavelId == responsavel.Id && u.Papel == PapelUsuario.Responsavel);
             if (usuario is null)
             {
-                resultado.Add(new(responsavel.Id, responsavel.Nome, responsavel.Email, "Aviso", false, null,
-                    "Este e-mail já é usado por uma conta da equipe, então não há login no portal para aceitar o termo."));
-                continue;
+                // Sem conta no portal: só é de propósito quando o e-mail é de outra conta (ex.: alguém da equipe que também é
+                // responsável). Fora isso — ex.: o e-mail foi corrigido depois de salvo com um endereço já usado — cria a conta agora,
+                // com convite pendente, em vez de deixar o responsável sem como aceitar o termo (bug achado em 16/10/2026).
+                var emailEmUso = await db.Usuarios.AnyAsync(u => u.Email.ToLower() == responsavel.Email.ToLower());
+                if (emailEmUso)
+                {
+                    resultado.Add(new(responsavel.Id, responsavel.Nome, responsavel.Email, "Aviso", false, null,
+                        "Este e-mail já é usado por outra conta (por exemplo, de alguém da equipe), então não há login no portal para aceitar o termo. Use outro e-mail para este responsável."));
+                    continue;
+                }
+                usuario = new Usuario
+                {
+                    Id = Guid.NewGuid(), Nome = responsavel.Nome, Email = responsavel.Email,
+                    SenhaHash = SenhaHasher.ConvitePendente, Papel = PapelUsuario.Responsavel, ResponsavelId = responsavel.Id
+                };
+                db.Usuarios.Add(usuario);
+                await db.SaveChangesAsync();
             }
 
             if (!usuario.Ativo && usuario.SenhaHash != SenhaHasher.ConvitePendente)
