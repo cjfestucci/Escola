@@ -54,51 +54,51 @@ public static class DbInitializer
 
         var professoraAna = new Usuario
         {
-            Id = Guid.NewGuid(), Nome = "Professora Ana", Email = "ana@escola.dev",
+            Id = Guid.NewGuid(), Nome = "Professora Ana", Email = "ana@escola.test",
             SenhaHash = senhaDevHash, Papel = PapelUsuario.Educador
         };
         var professoraBia = new Usuario
         {
-            Id = Guid.NewGuid(), Nome = "Professora Bia", Email = "bia@escola.dev",
+            Id = Guid.NewGuid(), Nome = "Professora Bia", Email = "bia@escola.test",
             SenhaHash = senhaDevHash, Papel = PapelUsuario.Educador
         };
         var professorCaio = new Usuario
         {
-            Id = Guid.NewGuid(), Nome = "Professor Caio", Email = "caio@escola.dev",
+            Id = Guid.NewGuid(), Nome = "Professor Caio", Email = "caio@escola.test",
             SenhaHash = senhaDevHash, Papel = PapelUsuario.Educador
         };
         var educadores = new[] { professoraAna, professoraBia, professorCaio };
 
         var admin = new Usuario
         {
-            Id = Guid.NewGuid(), Nome = "Admin Geral", Email = "admin@escola.dev",
+            Id = Guid.NewGuid(), Nome = "Admin Geral", Email = "admin@escola.test",
             SenhaHash = senhaDevHash, Papel = PapelUsuario.Admin
         };
         var coordenadora = new Usuario
         {
-            Id = Guid.NewGuid(), Nome = "Coordenadora Marina", Email = "coordenacao@escola.dev",
+            Id = Guid.NewGuid(), Nome = "Coordenadora Marina", Email = "coordenacao@escola.test",
             SenhaHash = senhaDevHash, Papel = PapelUsuario.Coordenador
         };
         var financeiro = new Usuario
         {
-            Id = Guid.NewGuid(), Nome = "Financeiro Tatiane", Email = "financeiro@escola.dev",
+            Id = Guid.NewGuid(), Nome = "Financeiro Tatiane", Email = "financeiro@escola.test",
             SenhaHash = senhaDevHash, Papel = PapelUsuario.Financeiro
         };
 
         // (nome do aluno, data de nascimento, turma, educador responsável pelos registros,
         //  nome do responsável, e-mail do responsável, telefone, segundo responsável opcional)
-        var dados = new (string Aluno, DateOnly Nasc, Turma Turma, Usuario Educador, string Resp1, string Email1, string Tel1, string? Resp2)[]
+        var dados = new (string Aluno, DateOnly Nasc, Turma Turma, Usuario Educador, string Resp1, string Email1, string? Tel1, string? Resp2)[]
         {
-            ("Lucas Souza", new DateOnly(2024, 3, 10), turmaBercario1, professoraAna, "Carla Souza", "carla@example.com", "11999990000", null),
-            ("Maria Eduarda", new DateOnly(2023, 11, 2), turmaBercario1, professoraAna, "Roberto Lima", "roberto.lima@example.com", "11988880001", null),
-            ("Pedro Henrique", new DateOnly(2024, 1, 20), turmaBercario2, professoraAna, "Fernanda Alves", "fernanda.alves@example.com", "11988880002", null),
-            ("Sofia Martins", new DateOnly(2023, 9, 15), turmaBercario2, professoraAna, "Diego Martins", "diego.martins@example.com", "11988880003", null),
-            ("Miguel Costa", new DateOnly(2022, 6, 5), turmaMaternal1, professoraBia, "Juliana Costa", "juliana.costa@example.com", "11988880004", null),
-            ("Alice Ferreira", new DateOnly(2022, 8, 22), turmaMaternal1, professoraBia, "Bruno Ferreira", "bruno.ferreira@example.com", "11988880005", "Patrícia Ferreira"),
-            ("Arthur Santos", new DateOnly(2022, 4, 30), turmaMaternal1, professoraBia, "Camila Santos", "camila.santos@example.com", "11988880006", null),
-            ("Laura Oliveira", new DateOnly(2021, 5, 18), turmaJardim1, professorCaio, "Rafael Oliveira", "rafael.oliveira@example.com", "11988880007", null),
-            ("Heitor Almeida", new DateOnly(2021, 2, 9), turmaJardim1, professorCaio, "Vanessa Almeida", "vanessa.almeida@example.com", "11988880008", null),
-            ("Valentina Rocha", new DateOnly(2021, 7, 27), turmaJardim1, professorCaio, "Marcos Rocha", "marcos.rocha@example.com", "11988880009", null)
+            ("Lucas Souza", new DateOnly(2024, 3, 10), turmaBercario1, professoraAna, "Carla Souza", "carla@example.com", null, null),
+            ("Maria Eduarda", new DateOnly(2023, 11, 2), turmaBercario1, professoraAna, "Roberto Lima", "roberto.lima@example.com", null, null),
+            ("Pedro Henrique", new DateOnly(2024, 1, 20), turmaBercario2, professoraAna, "Fernanda Alves", "fernanda.alves@example.com", null, null),
+            ("Sofia Martins", new DateOnly(2023, 9, 15), turmaBercario2, professoraAna, "Diego Martins", "diego.martins@example.com", null, null),
+            ("Miguel Costa", new DateOnly(2022, 6, 5), turmaMaternal1, professoraBia, "Juliana Costa", "juliana.costa@example.com", null, null),
+            ("Alice Ferreira", new DateOnly(2022, 8, 22), turmaMaternal1, professoraBia, "Bruno Ferreira", "bruno.ferreira@example.com", null, "Patrícia Ferreira"),
+            ("Arthur Santos", new DateOnly(2022, 4, 30), turmaMaternal1, professoraBia, "Camila Santos", "camila.santos@example.com", null, null),
+            ("Laura Oliveira", new DateOnly(2021, 5, 18), turmaJardim1, professorCaio, "Rafael Oliveira", "rafael.oliveira@example.com", null, null),
+            ("Heitor Almeida", new DateOnly(2021, 2, 9), turmaJardim1, professorCaio, "Vanessa Almeida", "vanessa.almeida@example.com", null, null),
+            ("Valentina Rocha", new DateOnly(2021, 7, 27), turmaJardim1, professorCaio, "Marcos Rocha", "marcos.rocha@example.com", null, null)
         };
 
         var alunos = new List<Aluno>();
@@ -238,10 +238,10 @@ public static class DbInitializer
 
         var contasEquipe = new (string Nome, string Email, PapelUsuario Papel)[]
         {
-            ("Admin Geral", "admin@escola.dev", PapelUsuario.Admin),
-            ("Coordenadora Marina", "coordenacao@escola.dev", PapelUsuario.Coordenador),
-            ("Financeiro Tatiane", "financeiro@escola.dev", PapelUsuario.Financeiro),
-            ("Secretaria Paula", "secretaria@escola.dev", PapelUsuario.Secretaria)
+            ("Admin Geral", "admin@escola.test", PapelUsuario.Admin),
+            ("Coordenadora Marina", "coordenacao@escola.test", PapelUsuario.Coordenador),
+            ("Financeiro Tatiane", "financeiro@escola.test", PapelUsuario.Financeiro),
+            ("Secretaria Paula", "secretaria@escola.test", PapelUsuario.Secretaria)
         };
         foreach (var conta in contasEquipe)
         {

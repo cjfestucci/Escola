@@ -20,7 +20,7 @@
 
     <form class="formulario" (ngSubmit)="enviar()">
       <label><span class="obrigatorio">E-mail</span>
-        <input type="email" [(ngModel)]="email" name="email" placeholder="voce@escola.dev" autocomplete="username" />
+        <input type="email" [(ngModel)]="email" name="email" placeholder="seu.email@exemplo.com" autocomplete="username" />
       </label>
 
       <button type="submit" class="botao-entrar" [disabled]="enviando()">

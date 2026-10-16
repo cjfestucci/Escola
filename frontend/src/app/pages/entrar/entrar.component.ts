@@ -28,7 +28,7 @@ export class EntrarComponent {
   }
 
   // Só em dev, pra agilizar teste manual — nunca preenche sozinho em produção.
-  email = environment.production ? '' : 'admin@escola.dev';
+  email = environment.production ? '' : 'admin@escola.test';
   senha = environment.production ? '' : 'escola123';
 
   readonly entrando = signal(false);
