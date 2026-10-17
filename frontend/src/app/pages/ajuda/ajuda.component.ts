@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { ASSUNTOS_FALE_CONOSCO, AjudaService, AssuntoFaleConosco, MENSAGEM_MAXIMA, MENSAGEM_MINIMA } from '../../services/ajuda.service';
 import { NotificacaoService } from '../../services/notificacao.service';
+import { environment } from '../../../environments/environment';
 
 /** Ajuda da equipe do clube: o Fale conosco manda a mensagem por e-mail pro suporte do produto, já com o clube, a conta, o perfil e a
  * tela de onde a pessoa veio — quem responde não precisa perguntar nada disso. */
@@ -19,6 +20,7 @@ export class AjudaComponent {
 
   protected readonly assuntos = ASSUNTOS_FALE_CONOSCO;
   protected readonly maximo = MENSAGEM_MAXIMA;
+  protected readonly urlGuias = environment.urlSite + '/ajuda.html';
 
   /** A tela em que a pessoa estava antes de abrir a Ajuda (contexto pro suporte). */
   private readonly paginaDeOrigem: string | null =

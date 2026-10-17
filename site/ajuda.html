@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Central de Ajuda — Gestor Tático</title>
+  <meta name="description" content="Guias passo a passo do Gestor Tático: cadastrar atletas, convidar treinadores, fazer a chamada, gerar mensalidades, montar a convocação e mais.">
+  <link rel="icon" href="marca/simbolo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="container">
+    <a class="marca" href="index.html">
+      <img src="marca/simbolo.svg" alt="">
+      <span>Gestor <strong>Tático</strong></span>
+    </a>
+    <nav class="menu">
+      <a href="index.html#recursos">Recursos</a>
+      <a href="index.html#precos">Preços</a>
+      <a class="entrar" data-app="entrar" href="#">Entrar</a>
+      <a class="botao botao--primario" data-app="assinar" href="#">Teste grátis</a>
+    </nav>
+  </div>
+</header>
+
+<main class="documento ajuda">
+  <div class="container">
+    <h1>Central de Ajuda</h1>
+    <p class="versao">Guias passo a passo para colocar o clube no ar e usar o Gestor Tático no dia a dia.</p>
+
+    <label class="busca-ajuda">
+      <span class="sr-only">Buscar nos guias</span>
+      <input type="search" id="busca-ajuda" placeholder="Buscar: chamada, mensalidade, convite, senha…" autocomplete="off">
+    </label>
+    <p class="sem-resultado" id="sem-resultado" hidden>Nenhum guia encontrado. Tente outra palavra ou <a href="#problemas">veja os problemas comuns</a>.</p>
+
+    <div class="grupos-ajuda" id="indice-ajuda">
+      <div>
+        <h4>Começando</h4>
+        <ol>
+          <li><a href="#primeiros-passos">Primeiros passos: dados do clube e contatos</a></li>
+          <li><a href="#equipe">Convidar treinadores e a equipe</a></li>
+          <li><a href="#turmas">Criar as categorias (turmas)</a></li>
+          <li><a href="#atletas">Cadastrar atletas e convidar os pais</a></li>
+          <li><a href="#recebimento">Configurar o recebimento por Pix</a></li>
+        </ol>
+      </div>
+      <div>
+        <h4>Dia a dia</h4>
+        <ol start="6">
+          <li><a href="#mensalidades">Gerar mensalidades e dar baixa</a></li>
+          <li><a href="#chamada">Fazer a chamada do treino</a></li>
+          <li><a href="#jogos">Jogos, convocação e súmula</a></li>
+        </ol>
+        <h4>Famílias e dúvidas</h4>
+        <ol start="9">
+          <li><a href="#portal-familia">Portal da Família (para os pais)</a></li>
+          <li><a href="#problemas">Problemas comuns</a></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 1 -->
+    <section class="guia" id="primeiros-passos">
+      <h2>1. Primeiros passos: dados do clube e contatos</h2>
+      <p class="quem">Quem faz: <strong>Administrador</strong> (a pessoa que assinou o sistema).</p>
+      <p>Depois de criar a sua senha pelo e-mail de boas-vindas, comece deixando o clube com a sua cara e com os contatos que os pais vão ver.</p>
+      <h3>Nome, logo e cor</h3>
+      <ol class="passo-a-passo">
+        <li>No menu, abra <strong>Configurações → Geral</strong>.</li>
+        <li>Em <strong>Dados da escola</strong>, confira o nome do clube e o fuso horário (o padrão é o de Brasília).</li>
+        <li>Em <strong>Logo da escola</strong>, envie a logo em PNG, JPG ou WEBP (até 2 MB). Ela aparece no menu e na tela de entrar.</li>
+        <li>Em <strong>Cor principal</strong>, escolha uma das cores ou informe a sua e clique em <strong>Salvar</strong>.</li>
+      </ol>
+      <h3>Endereço, telefone, WhatsApp e e-mail</h3>
+      <ol class="passo-a-passo">
+        <li>Abra <strong>Unidades</strong> e clique no lápis ✏️ da <strong>Unidade Principal</strong> (ou em <strong>+ Nova Unidade</strong>, se o clube tem mais de um local de treino).</li>
+        <li>Preencha endereço, telefone, <strong>WhatsApp</strong> e <strong>e-mail</strong>. Todos são opcionais.</li>
+        <li>Salve. Esses contatos aparecem para os pais em <strong>Fale com o clube</strong>: o WhatsApp vira um botão que abre a conversa, e o e-mail vira um formulário para o pai mandar mensagem.</li>
+      </ol>
+      <p class="dica"><strong>Dica:</strong> mudou a cor e não gostou? Use <strong>Restaurar cor padrão</strong>. Toda alteração fica registrada no histórico 🕘 da tela.</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="guia" id="equipe">
+      <h2>2. Convidar treinadores e a equipe</h2>
+      <p class="quem">Quem faz: <strong>Administrador</strong> ou <strong>Coordenador</strong>.</p>
+      <p>Cada pessoa da equipe tem o próprio acesso, com a própria senha. Você não precisa criar nem saber a senha de ninguém: o sistema manda um convite por e-mail.</p>
+      <ol class="passo-a-passo">
+        <li>Abra <strong>Usuários</strong> e clique em <strong>+ Nova Conta</strong>.</li>
+        <li>Informe o nome, o e-mail e o <strong>papel</strong> da pessoa (veja a tabela abaixo).</li>
+        <li>Salve. A pessoa recebe um e-mail para confirmar o endereço e criar a senha. O convite vale por 7 dias.</li>
+        <li>Enquanto ela não aceitar, a conta aparece como <strong>Convite pendente</strong>. Se o e-mail não chegou, use <strong>Reenviar convite</strong>.</li>
+      </ol>
+      <table>
+        <thead><tr><th>Papel</th><th>O que pode fazer</th></tr></thead>
+        <tbody>
+          <tr><td>Administrador</td><td>Tudo, inclusive dados do clube, logo, assinatura e conta de pagamento.</td></tr>
+          <tr><td>Coordenador</td><td>Tudo do dia a dia: atletas, turmas, financeiro, usuários e configurações (menos nome/logo do clube).</td></tr>
+          <tr><td>Professor (treinador)</td><td>Faz a chamada, agenda jogos e monta a convocação <strong>das turmas em que está vinculado</strong>. Consulta o resto.</td></tr>
+          <tr><td>Financeiro</td><td>Mensalidades, contas a pagar e a receber, fornecedores e estoque.</td></tr>
+          <tr><td>Secretaria</td><td>Cadastro de atletas, recebimento no balcão (marcar como paga) e estoque. Não dá desconto nem cancela cobrança.</td></tr>
+        </tbody>
+      </table>
+      <p class="dica"><strong>Importante:</strong> para o treinador conseguir fazer a chamada, ele precisa estar vinculado à turma (veja o próximo guia, campo <strong>Professor</strong>).</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="guia" id="turmas">
+      <h2>3. Criar as categorias (turmas)</h2>
+      <p class="quem">Quem faz: <strong>Administrador</strong> ou <strong>Coordenador</strong>.</p>
+      <p>No Gestor Tático, cada categoria (Sub-9, Sub-11, Sub-13…) é uma <strong>turma</strong>. A chamada, os jogos e as mensalidades são organizados por ela.</p>
+      <ol class="passo-a-passo">
+        <li>Abra <strong>Turmas (cadastro)</strong> e clique em <strong>+ Nova Turma</strong>.</li>
+        <li>Dê um nome (ex.: <em>Sub-11</em>), escolha a unidade, o período e os horários do treino.</li>
+        <li>Em <strong>Professor</strong>, escolha o treinador responsável.</li>
+        <li>Em <strong>Valor da mensalidade</strong>, informe quanto cada atleta da turma paga por mês. Sem valor, a turma fica de fora da geração automática das mensalidades.</li>
+        <li>Salve e repita para as outras categorias.</li>
+      </ol>
+      <p class="dica"><strong>Dica:</strong> uma turma que deixou de existir não precisa ser apagada. Use <strong>Desativar</strong>: o histórico de chamadas e jogos continua guardado.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="guia" id="atletas">
+      <h2>4. Cadastrar atletas e convidar os pais</h2>
+      <p class="quem">Quem faz: <strong>Administrador</strong>, <strong>Coordenador</strong> ou <strong>Secretaria</strong>.</p>
+      <ol class="passo-a-passo">
+        <li>Abra <strong>Atletas</strong> e clique em <strong>+ Novo(a) Atleta</strong>.</li>
+        <li>Na aba <strong>Dados</strong>, preencha nome, data de nascimento e turma. Posição e foto são opcionais.</li>
+        <li>Na aba <strong>Contatos</strong>, cadastre ao menos um responsável com <strong>nome e e-mail</strong>. Marque como <strong>Financeiro</strong> quem paga a mensalidade. O CPF é opcional, mas é necessário para o Pix com baixa automática.</li>
+        <li>Salve. O responsável recebe o e-mail <strong>“Confirme a matrícula”</strong>, cria a senha e aceita o termo de matrícula e de uso de dados (LGPD) no Portal da Família.</li>
+      </ol>
+      <h3>Matrícula “Aguardando aceite”</h3>
+      <p>Até um responsável aceitar o termo, o atleta aparece com o selo <strong>⏳ Aguardando aceite</strong> e fica de fora da geração de mensalidades. O treino, a chamada e a convocação funcionam normalmente.</p>
+      <ul>
+        <li>O pai diz que não recebeu? Abra o atleta, aba <strong>Contatos</strong>, e clique em <strong>Reenviar e-mail da matrícula</strong>.</li>
+        <li>Se o e-mail não puder ser entregue, o sistema mostra um link para você mandar ao pai pelo WhatsApp.</li>
+      </ul>
+      <h3>Ficha de saúde e atestado</h3>
+      <p>Depois de salvar o atleta, a aba <strong>Ficha de saúde</strong> aparece: alergias, medicamentos, contato de emergência, a data de validade do atestado médico e os documentos anexados (exames, laudos). Os pais veem, mas não alteram.</p>
+      <p class="dica"><strong>Dica:</strong> a lista de atletas filtra por <strong>Aguardando aceite</strong>, <strong>Bloqueados</strong> (mensalidade muito atrasada) e <strong>atestado vencido</strong>. O Dashboard também avisa esses casos no quadro ⚠️ Atenção.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="guia" id="recebimento">
+      <h2>5. Configurar o recebimento por Pix</h2>
+      <p class="quem">Quem faz: <strong>Administrador</strong> ou <strong>Coordenador</strong>.</p>
+      <ol class="passo-a-passo">
+        <li>Abra <strong>Configurações → Financeiro</strong>.</li>
+        <li>Em <strong>Recebimento por Pix</strong>, escolha o tipo da chave (CPF, CNPJ, telefone, e-mail ou aleatória), informe a chave, o nome do recebedor e a cidade.</li>
+        <li>Em <strong>Formas de pagamento</strong>, marque o que o clube aceita: Pix e/ou pagamento na sede (com um texto de instruções, ex.: “dinheiro ou cartão na secretaria, de segunda a sexta”).</li>
+        <li>Em <strong>Mensalidades e atraso</strong>, defina o dia de vencimento e, se quiser, a multa e os juros por atraso.</li>
+        <li>Em <strong>Bloqueio por atraso</strong> (opcional), defina depois de quantos dias de atraso o atleta aparece como bloqueado.</li>
+        <li>Clique em <strong>Salvar</strong>.</li>
+      </ol>
+      <p>Com a chave cadastrada, cada mensalidade ganha um código <strong>Pix copia e cola</strong> e um QR Code, que os pais veem no portal e recebem por e-mail. O valor já inclui multa e juros do dia, se houver.</p>
+      <p class="dica"><strong>Atenção:</strong> confira a chave com cuidado. Uma chave errada gera um código que o banco do pai recusa.</p>
+    </section>
+
+    <!-- 6 -->
+    <section class="guia" id="mensalidades">
+      <h2>6. Gerar mensalidades e dar baixa</h2>
+      <p class="quem">Quem faz: <strong>Administrador</strong>, <strong>Coordenador</strong> ou <strong>Financeiro</strong> (a Secretaria dá baixa).</p>
+      <h3>Gerar o mês inteiro de uma vez</h3>
+      <ol class="passo-a-passo">
+        <li>Abra <strong>Financeiro → Mensalidades</strong> e clique em <strong>📅 Gerar mensalidades</strong>.</li>
+        <li>Escolha o mês, o ano e, se quiser, uma turma só.</li>
+        <li>Clique em <strong>Pré-visualizar</strong>. Nada é gravado ainda: a lista mostra quem vai receber cobrança, quem já tem, quem é isento e quem está sem valor.</li>
+        <li>Conferiu? Clique em <strong>Gerar</strong>. Pode gerar de novo sem medo: quem já tem a mensalidade do mês não ganha outra.</li>
+      </ol>
+      <p>O valor vem da turma, com o desconto do atleta (bolsa, irmãos…) aplicado. O desconto é definido no cadastro do atleta, pelo Administrador ou Coordenador.</p>
+      <h3>Dar baixa num pagamento</h3>
+      <ul>
+        <li>Recebeu por fora (dinheiro, transferência, Pix na chave)? Encontre a cobrança e clique em <strong>Marcar paga</strong>.</li>
+        <li>Marcou por engano? Clique em <strong>Marcar pendente</strong>.</li>
+        <li>Quer reenviar a cobrança para o pai? Use o ✉️. Para mostrar o código Pix, use o 💠.</li>
+        <li>Cobrança lançada errada? Use o 🚫 para cancelar. Ela fica na lista como cancelada, com o histórico.</li>
+      </ul>
+      <p class="dica"><strong>Dica:</strong> os filtros por status, mês e turma ajudam a achar quem está atrasado. O Dashboard mostra o recebido no mês e o total em aberto.</p>
+    </section>
+
+    <!-- 7 -->
+    <section class="guia" id="chamada">
+      <h2>7. Fazer a chamada do treino</h2>
+      <p class="quem">Quem faz: o <strong>Professor</strong> da turma (ou a coordenação).</p>
+      <ol class="passo-a-passo">
+        <li>Abra <strong>Chamada</strong> e escolha a turma. O professor vê só as turmas dele.</li>
+        <li>Confira a data. Para lançar um treino que já passou, use as setas ‹ › ou o calendário.</li>
+        <li>Clique em <strong>✓ Todos presentes</strong> e depois ajuste só quem faltou: <strong>Falta</strong> ou <strong>Justificada</strong>.</li>
+        <li>Clique em <strong>Salvar chamada</strong>. Todos os atletas precisam estar marcados.</li>
+      </ol>
+      <p>Ao lado de cada nome aparece a frequência do período escolhido (verde, amarelo ou vermelho). Quem tem <strong>3 ou mais faltas seguidas</strong> ganha um selo 🔴 e aparece no Dashboard, para a coordenação falar com a família.</p>
+      <p class="dica"><strong>Dica:</strong> a falta justificada não conta contra a frequência. Os pais acompanham a frequência do filho no portal.</p>
+    </section>
+
+    <!-- 8 -->
+    <section class="guia" id="jogos">
+      <h2>8. Jogos, convocação e súmula</h2>
+      <p class="quem">Quem faz: <strong>Professor</strong> da turma ou a coordenação. Campeonatos são criados pela coordenação.</p>
+      <h3>Agendar o jogo</h3>
+      <ol class="passo-a-passo">
+        <li>Se o jogo faz parte de um campeonato, crie-o antes em <strong>Competições → Campeonatos</strong> (com o número de amarelos que suspende).</li>
+        <li>Abra <strong>Competições → Jogos</strong> e clique em <strong>+ Novo jogo</strong>.</li>
+        <li>Escolha a turma, o adversário, a data, o horário, o local, o mando de campo e o campeonato (ou <em>Amistoso</em>). Salve.</li>
+      </ol>
+      <h3>Convocação</h3>
+      <ol class="passo-a-passo">
+        <li>Na aba <strong>Convocação e súmula</strong>, marque os atletas convocados e quem é <strong>Titular</strong>. Salve.</li>
+        <li>O quadro <strong>⚠️ Atenção — disciplina</strong> avisa quem está suspenso ou pendurado. Aparecem também a frequência e o atestado vencido de cada atleta. São só avisos: a decisão é sua.</li>
+      </ol>
+      <p>Assim que houver convocados, os pais veem no portal se o filho foi convocado.</p>
+      <h3>Depois do jogo</h3>
+      <ol class="passo-a-passo">
+        <li>Na aba <strong>Dados do jogo</strong>, mude a situação para <strong>Realizado</strong> e informe o placar. Salve.</li>
+        <li>Na aba <strong>Convocação e súmula</strong>, lance os gols e os cartões de cada atleta. Salve.</li>
+      </ol>
+      <p>O detalhe do campeonato mostra a campanha do time, os artilheiros e quem está suspenso ou pendurado para o próximo jogo.</p>
+    </section>
+
+    <!-- 9 -->
+    <section class="guia" id="portal-familia">
+      <h2>9. Portal da Família (para os pais)</h2>
+      <p class="quem">Para: <strong>pais e responsáveis</strong>. O clube pode mandar o link desta parte para as famílias.</p>
+      <h3>Primeiro acesso</h3>
+      <ol class="passo-a-passo">
+        <li>Quando o clube cadastra o seu filho, você recebe um e-mail <strong>“Confirme a matrícula”</strong>. Procure também no lixo eletrônico ou spam.</li>
+        <li>Clique no botão do e-mail e crie a sua senha (mínimo de 8 caracteres).</li>
+        <li>Leia o termo de matrícula e de uso dos dados, marque <strong>Li e concordo</strong> e clique em <strong>Aceitar e continuar</strong>.</li>
+        <li>Pronto. Nas próximas vezes, entre com o seu e-mail e a senha em <a data-app="entrar" href="#">app.gestortatico.com.br</a>.</li>
+      </ol>
+      <h3>O que você encontra no portal</h3>
+      <ul>
+        <li><strong>Meus Filhos</strong>: frequência nos treinos, ficha de saúde, próximos jogos, se foi convocado e os últimos resultados.</li>
+        <li><strong>Financeiro</strong>: as mensalidades de todos os filhos, com o código <strong>Pix copia e cola</strong> e o QR Code para pagar.</li>
+        <li><strong>Fale com o clube</strong>: endereço, telefone, WhatsApp e e-mail do clube.</li>
+      </ul>
+      <p class="dica"><strong>Dica:</strong> no celular, abra o portal no navegador e use “Adicionar à tela inicial” para ter um atalho como se fosse um aplicativo.</p>
+    </section>
+
+    <!-- 10 -->
+    <section class="guia" id="problemas">
+      <h2>10. Problemas comuns</h2>
+
+      <h3>O pai não recebeu o e-mail da matrícula</h3>
+      <ol class="passo-a-passo">
+        <li>Peça para ele procurar no lixo eletrônico, spam ou na aba “Promoções”.</li>
+        <li>Confira se o e-mail está escrito certo na aba <strong>Contatos</strong> do atleta. Se estava errado, corrija e salve.</li>
+        <li>Clique em <strong>Reenviar e-mail da matrícula</strong>. Se aparecer um link, copie e mande pelo WhatsApp.</li>
+      </ol>
+
+      <h3>O treinador não recebeu o convite ou o link venceu</h3>
+      <p>Em <strong>Usuários</strong>, na conta dele, clique em <strong>Reenviar convite</strong>. O convite vale por 7 dias.</p>
+
+      <h3>Alguém esqueceu a senha</h3>
+      <p>Na tela de entrar, clique em <strong>Esqueceu a senha?</strong> e informe o e-mail. O link chega em poucos minutos e vale por 1 hora. Para a equipe, a coordenação também pode usar <strong>Enviar link de nova senha</strong> em Usuários.</p>
+
+      <h3>O treinador não consegue salvar a chamada ou o jogo</h3>
+      <p>Ele só lança nas turmas em que é professor. Em <strong>Turmas (cadastro)</strong>, abra a turma e escolha o nome dele no campo <strong>Professor</strong>.</p>
+
+      <h3>O atleta não entrou na geração de mensalidades</h3>
+      <ul>
+        <li>A matrícula ainda está <strong>Aguardando aceite</strong> do responsável (veja o guia 4).</li>
+        <li>A turma está sem <strong>Valor da mensalidade</strong> (veja o guia 3).</li>
+        <li>O atleta tem 100% de desconto (isento) ou está desativado.</li>
+      </ul>
+
+      <h3>Entrei e o sistema pediu um código</h3>
+      <p>A conta tem a verificação em duas etapas ligada. Use o código que chegou no seu e-mail ou o do app autenticador. Perdeu o acesso? A coordenação pode remover a verificação em <strong>Usuários</strong>.</p>
+    </section>
+
+    <div class="resumo-doc contato-ajuda">
+      <p><strong>Não encontrou o que procurava?</strong> Dentro do sistema, use <strong>Ajuda → Fale conosco</strong>, ou escreva para
+      <a href="mailto:suporte@gestortatico.com.br">suporte@gestortatico.com.br</a>. Respondemos normalmente em até 1 dia útil.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="rodape">
+  <div class="container">
+    <div>
+      <a class="marca" href="index.html">
+        <img src="marca/simbolo-fundo-escuro.svg" alt="">
+        <span>Gestor <strong>Tático</strong></span>
+      </a>
+      <p>Gestão para escolas de futebol e clubes.</p>
+    </div>
+    <div>
+      <h4>Produto</h4>
+      <ul>
+        <li><a href="index.html#recursos">Recursos</a></li>
+        <li><a href="index.html#precos">Preços</a></li>
+        <li><a data-app="assinar" href="#">Teste grátis</a></li>
+        <li><a data-app="entrar" href="#">Entrar</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Institucional</h4>
+      <ul>
+        <li><a href="ajuda.html">Central de Ajuda</a></li>
+        <li><a href="privacidade.html">Política de Privacidade</a></li>
+        <li><a href="termos.html">Termos de Uso</a></li>
+      </ul>
+    </div>
+    <div class="copyright">© <span class="ano"></span> Gestor Tático. Todos os direitos reservados.</div>
+  </div>
+</footer>
+
+<script src="precos.js"></script>
+<script src="paginas.js"></script>
+<script>
+  // Busca: mostra só os guias que têm todas as palavras digitadas (sem diferenciar acento nem maiúscula).
+  (function () {
+    const campo = document.getElementById('busca-ajuda');
+    const guias = Array.from(document.querySelectorAll('.guia'));
+    const indice = document.getElementById('indice-ajuda');
+    const semResultado = document.getElementById('sem-resultado');
+    const normalizar = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const textos = guias.map((g) => normalizar(g.textContent));
+    campo.addEventListener('input', () => {
+      const palavras = normalizar(campo.value).split(/\s+/).filter(Boolean);
+      let visiveis = 0;
+      guias.forEach((g, i) => {
+        const mostra = palavras.every((p) => textos[i].includes(p));
+        g.hidden = !mostra;
+        if (mostra) visiveis++;
+      });
+      indice.hidden = palavras.length > 0;
+      semResultado.hidden = visiveis > 0;
+    });
+  })();
+</script>
+</body>
+</html>
