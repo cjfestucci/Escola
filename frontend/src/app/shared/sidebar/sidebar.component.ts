@@ -58,7 +58,14 @@ const ITEM_PLATAFORMA: ItemNav = { rotulo: 'Plataforma', rota: '/plataforma', ic
 /** Painel do Suporte com todos os clientes do produto (assinaturas e uso). */
 const ITEM_CLIENTES: ItemNav = { rotulo: 'Clientes', rota: '/plataforma/clientes', icone: 'unidades' };
 const ITEM_USUARIOS: ItemNav = { rotulo: 'Usuários', rota: '/usuarios', icone: 'usuarios' };
-const ITEM_AJUDA: ItemNav = { rotulo: 'Ajuda', rota: '/ajuda', icone: 'ajuda' };
+const ITEM_AJUDA: ItemNav = {
+  rotulo: 'Ajuda',
+  icone: 'ajuda',
+  subitens: [
+    { rotulo: 'Guias de uso', rota: '/ajuda/guias' },
+    { rotulo: 'Fale conosco', rota: '/ajuda/fale-conosco' }
+  ]
+};
 const ITEM_CONFIGURACOES: ItemNav = {
   rotulo: 'Configurações',
   icone: 'configuracoes',
@@ -141,7 +148,7 @@ export class SidebarComponent {
 
   private expandirGruposComRotaAtiva(): void {
     const url = this.router.url;
-    const ativos = [ITEM_COMPETICOES, ITEM_FINANCEIRO, ITEM_ESTOQUE, this.itemConfiguracoes()].filter((item) => item.subitens?.some((sub) => url.startsWith(sub.rota)));
+    const ativos = [ITEM_COMPETICOES, ITEM_FINANCEIRO, ITEM_ESTOQUE, this.itemConfiguracoes(), ITEM_AJUDA].filter((item) => item.subitens?.some((sub) => url.startsWith(sub.rota)));
     if (ativos.length === 0) return;
     this.gruposExpandidos.update((atual) => new Set([...atual, ...ativos.map((item) => item.rotulo)]));
   }

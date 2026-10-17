@@ -1,44 +1,21 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Central de Ajuda — Gestor Tático</title>
-  <meta name="description" content="Guias passo a passo do Gestor Tático: cadastrar atletas, convidar treinadores, fazer a chamada, gerar mensalidades, montar a convocação e mais.">
-  <link rel="icon" href="marca/simbolo.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="estilo.css">
-</head>
-<body>
+<div class="container guias-uso">
+  <p class="subtitulo">
+    Passo a passo das tarefas do dia a dia. Não encontrou o que procurava? <a routerLink="/ajuda/fale-conosco">Fale conosco</a>.
+  </p>
 
-<header class="topo">
-  <div class="container">
-    <a class="marca" href="index.html">
-      <img src="marca/simbolo.svg" alt="">
-      <span>Gestor <strong>Tático</strong></span>
-    </a>
-    <nav class="menu">
-      <a href="index.html#recursos">Recursos</a>
-      <a href="index.html#precos">Preços</a>
-      <a class="entrar" data-app="entrar" href="#">Entrar</a>
-      <a class="botao botao--primario" data-app="assinar" href="#">Teste grátis</a>
-    </nav>
-  </div>
-</header>
+  <input
+    type="search"
+    class="busca"
+    placeholder="Buscar: chamada, mensalidade, convite, senha…"
+    aria-label="Buscar nos guias"
+    (input)="buscar($any($event.target).value)"
+  />
+  @if (semResultado()) {
+    <p class="sem-resultado">Nenhum guia encontrado. Tente outra palavra ou <a routerLink="/ajuda/fale-conosco">fale conosco</a>.</p>
+  }
 
-<main class="documento ajuda">
-  <div class="container">
-    <h1>Central de Ajuda</h1>
-    <p class="versao">Guias passo a passo para colocar o clube no ar e usar o Gestor Tático no dia a dia.</p>
-
-    <label class="busca-ajuda">
-      <span class="sr-only">Buscar nos guias</span>
-      <input type="search" id="busca-ajuda" placeholder="Buscar: chamada, mensalidade, convite, senha…" autocomplete="off">
-    </label>
-    <p class="sem-resultado" id="sem-resultado" hidden>Nenhum guia encontrado. Tente outra palavra ou <a href="#problemas">veja os problemas comuns</a>.</p>
-
+  <!-- Os links do índice são âncoras: aoClicar rola até o guia. Mudou um botão, menu ou fluxo citado aqui, atualize o guia. -->
+  <section class="painel conteudo-guias" (click)="aoClicar($event)">
     <div class="grupos-ajuda" id="indice-ajuda">
       <div>
         <h4>Começando</h4>
@@ -225,13 +202,13 @@
     <!-- 9 -->
     <section class="guia" id="portal-familia">
       <h2>9. Portal da Família (para os pais)</h2>
-      <p class="quem">Para: <strong>pais e responsáveis</strong>. O clube pode mandar o link desta parte para as famílias.</p>
+      <p class="quem">O que os <strong>pais e responsáveis</strong> veem e como entram. Use para orientar as famílias.</p>
       <h3>Primeiro acesso</h3>
       <ol class="passo-a-passo">
         <li>Quando o clube cadastra o seu filho, você recebe um e-mail <strong>“Confirme a matrícula”</strong>. Procure também no lixo eletrônico ou spam.</li>
         <li>Clique no botão do e-mail e crie a sua senha (mínimo de 8 caracteres).</li>
         <li>Leia o termo de matrícula e de uso dos dados, marque <strong>Li e concordo</strong> e clique em <strong>Aceitar e continuar</strong>.</li>
-        <li>Pronto. Nas próximas vezes, entre com o seu e-mail e a senha em <a data-app="entrar" href="#">app.gestortatico.com.br</a>.</li>
+        <li>Pronto. Nas próximas vezes, entre com o seu e-mail e a senha em <strong>app.gestortatico.com.br</strong>.</li>
       </ol>
       <h3>O que você encontra no portal</h3>
       <ul>
@@ -272,67 +249,5 @@
       <h3>Entrei e o sistema pediu um código</h3>
       <p>A conta tem a verificação em duas etapas ligada. Use o código que chegou no seu e-mail ou o do app autenticador. Perdeu o acesso? A coordenação pode remover a verificação em <strong>Usuários</strong>.</p>
     </section>
-
-    <div class="resumo-doc contato-ajuda">
-      <p><strong>Não encontrou o que procurava?</strong> Dentro do sistema, use <strong>Ajuda → Fale conosco</strong>, ou escreva para
-      <a href="mailto:suporte@gestortatico.com.br">suporte@gestortatico.com.br</a>. Respondemos normalmente em até 1 dia útil.</p>
-    </div>
-  </div>
-</main>
-
-<footer class="rodape">
-  <div class="container">
-    <div>
-      <a class="marca" href="index.html">
-        <img src="marca/simbolo-fundo-escuro.svg" alt="">
-        <span>Gestor <strong>Tático</strong></span>
-      </a>
-      <p>Gestão para escolas de futebol e clubes.</p>
-    </div>
-    <div>
-      <h4>Produto</h4>
-      <ul>
-        <li><a href="index.html#recursos">Recursos</a></li>
-        <li><a href="index.html#precos">Preços</a></li>
-        <li><a data-app="assinar" href="#">Teste grátis</a></li>
-        <li><a data-app="entrar" href="#">Entrar</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Institucional</h4>
-      <ul>
-        <li><a href="ajuda.html">Central de Ajuda</a></li>
-        <li><a href="privacidade.html">Política de Privacidade</a></li>
-        <li><a href="termos.html">Termos de Uso</a></li>
-      </ul>
-    </div>
-    <div class="copyright">© <span class="ano"></span> Gestor Tático. Todos os direitos reservados.</div>
-  </div>
-</footer>
-
-<script src="precos.js"></script>
-<script src="paginas.js"></script>
-<script>
-  // Busca: mostra só os guias que têm todas as palavras digitadas (sem diferenciar acento nem maiúscula).
-  (function () {
-    const campo = document.getElementById('busca-ajuda');
-    const guias = Array.from(document.querySelectorAll('.guia'));
-    const indice = document.getElementById('indice-ajuda');
-    const semResultado = document.getElementById('sem-resultado');
-    const normalizar = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-    const textos = guias.map((g) => normalizar(g.textContent));
-    campo.addEventListener('input', () => {
-      const palavras = normalizar(campo.value).split(/\s+/).filter(Boolean);
-      let visiveis = 0;
-      guias.forEach((g, i) => {
-        const mostra = palavras.every((p) => textos[i].includes(p));
-        g.hidden = !mostra;
-        if (mostra) visiveis++;
-      });
-      indice.hidden = palavras.length > 0;
-      semResultado.hidden = visiveis > 0;
-    });
-  })();
-</script>
-</body>
-</html>
+  </section>
+</div>

@@ -67,8 +67,7 @@
   display: flex;
   justify-content: flex-end;
 
-  button,
-  a {
+  button {
     font-family: inherit;
     font-size: 0.95rem;
     font-weight: 600;
@@ -76,7 +75,6 @@
     border-radius: 8px;
     border: 1px solid var(--cor-borda);
     cursor: pointer;
-    text-decoration: none;
   }
 }
 

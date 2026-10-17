@@ -124,8 +124,19 @@ export const routes: Routes = [
   },
   {
     path: 'ajuda',
+    pathMatch: 'full',
+    redirectTo: 'ajuda/guias'
+  },
+  {
+    path: 'ajuda/guias',
     canActivate: [equipeGuard],
-    data: { titulo: 'Ajuda' },
+    data: { titulo: 'Guias de uso' },
+    loadComponent: () => import('./pages/ajuda-guias/ajuda-guias.component').then((m) => m.AjudaGuiasComponent)
+  },
+  {
+    path: 'ajuda/fale-conosco',
+    canActivate: [equipeGuard],
+    data: { titulo: 'Fale conosco' },
     loadComponent: () => import('./pages/ajuda/ajuda.component').then((m) => m.AjudaComponent)
   },
   {

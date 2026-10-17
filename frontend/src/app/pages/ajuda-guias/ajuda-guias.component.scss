@@ -1,0 +1,125 @@
+// Guias de uso: o conteúdo está no próprio template.
+.guias-uso {
+  max-width: 860px;
+
+  .subtitulo {
+    color: var(--cor-texto-suave);
+    margin: 0 0 14px;
+  }
+
+  .busca {
+    width: 100%;
+    font: inherit;
+    padding: 10px 14px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    background: var(--cor-superficie);
+    margin-bottom: 14px;
+    box-sizing: border-box;
+  }
+
+  .sem-resultado {
+    color: var(--cor-texto-suave);
+  }
+
+  .painel {
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    padding: 20px 24px;
+  }
+
+  .conteudo-guias {
+    line-height: 1.55;
+
+    h2 {
+      font-size: 1.2rem;
+      margin: 26px 0 6px;
+      scroll-margin-top: 16px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin: 18px 0 6px;
+    }
+
+    h4 {
+      margin: 4px 0 6px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--cor-texto-suave);
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    ul,
+    ol {
+      padding-left: 22px;
+      margin: 0 0 12px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .passo-a-passo li::marker {
+      font-weight: 700;
+    }
+
+    a {
+      color: var(--cor-primaria);
+    }
+
+    .grupos-ajuda {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 4px 28px;
+      background: var(--cor-fundo);
+      border-radius: 8px;
+      padding: 14px 18px;
+    }
+
+    .guia {
+      border-top: 1px solid var(--cor-borda);
+      margin-top: 24px;
+    }
+
+    .quem {
+      color: var(--cor-texto-suave);
+      font-size: 0.9rem;
+    }
+
+    .dica {
+      background: var(--cor-fundo);
+      border-left: 4px solid #16a34a;
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0 14px;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--cor-borda);
+    }
+
+    th {
+      background: var(--cor-fundo);
+    }
+  }
+}
+
+@media (max-width: 560px) {
+  .guias-uso .painel {
+    padding: 14px;
+  }
+}
