@@ -20,7 +20,8 @@ using Microsoft.Extensions.Options;
 
 namespace Escola.Api.Controllers;
 
-public record CupomPublicoDto(string Codigo, int PercentualDesconto, int? Meses, string Descricao, int? MesesGratis = null);
+/// <param name="Restantes">Quantos cadastros ainda podem usar o cupom (nulo = sem limite) — o site mostra "próximos N assinantes".</param>
+public record CupomPublicoDto(string Codigo, int PercentualDesconto, int? Meses, string Descricao, int? MesesGratis = null, int? Restantes = null);
 
 /// <param name="PrecoFixo">Valor mínimo, que já cobre <c>AtletasIncluidos</c> atletas.</param>
 /// <param name="PrecoPorAtleta">Valor de cada atleta acima dos incluídos.</param>
@@ -75,26 +76,27 @@ public class AssinaturasController(
             return StatusCode(StatusCodes.Status429TooManyRequests,
                 $"Muitas tentativas. Tente novamente em {Math.Max(1, (int)Math.Ceiling(restante.TotalMinutes))} minutos.");
 
-        var (cupom, motivo) = await CupomValidoAsync(codigo, ct);
+        var (cupom, motivo, usos) = await CupomValidoAsync(codigo, ct);
         if (motivo is not null)
         {
             limitador.RegistrarFalha(chave); // só os errados contam
             return NotFound(motivo);
         }
         return Ok(new CupomPublicoDto(cupom!.Codigo, cupom.PercentualDesconto, cupom.Meses,
-            CupomRegras.Descricao(cupom.PercentualDesconto, cupom.Meses, cupom.MesesGratis), cupom.MesesGratis));
+            CupomRegras.Descricao(cupom.PercentualDesconto, cupom.Meses, cupom.MesesGratis), cupom.MesesGratis,
+            cupom.UsosMaximos is { } maximo ? Math.Max(0, maximo - usos) : null));
     }
 
     private const int ConsultasDeCupomPorIp = 10;
 
-    private async Task<(Cupom? Cupom, string? Motivo)> CupomValidoAsync(string codigo, CancellationToken ct)
+    private async Task<(Cupom? Cupom, string? Motivo, int Usos)> CupomValidoAsync(string codigo, CancellationToken ct)
     {
         var normalizado = CupomRegras.Normalizar(codigo);
         var cupom = await db.Cupons.AsNoTracking().FirstOrDefaultAsync(c => c.Codigo == normalizado, ct);
         var usos = cupom is null ? 0 : await db.Assinaturas.IgnoreQueryFilters().CountAsync(a => a.CupomCodigo == cupom.Codigo, ct);
         // Sem login não há escola: o "hoje" é o do fuso padrão do produto.
         var motivo = CupomRegras.MotivoInvalido(cupom, await relogio.HojeAsync(), usos);
-        return (motivo is null ? cupom : null, motivo);
+        return (motivo is null ? cupom : null, motivo, usos);
     }
 
     [HttpPost]
@@ -127,7 +129,7 @@ public class AssinaturasController(
         Cupom? cupom = null;
         if (!string.IsNullOrWhiteSpace(request.Cupom))
         {
-            (cupom, var motivo) = await CupomValidoAsync(request.Cupom, ct);
+            (cupom, var motivo, _) = await CupomValidoAsync(request.Cupom, ct);
             if (motivo is not null) return BadRequest(motivo);
         }
 

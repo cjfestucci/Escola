@@ -24,8 +24,14 @@ app.gestortatico.com.br {
 gestortatico.com.br {
 	import seguranca
 	encode zstd gzip
-	root * /srv/site
-	file_server
+	# Só a consulta de cupom vai pro app (a faixa da campanha mostra as vagas restantes); o resto da API não é exposto aqui.
+	handle /api/assinaturas/cupom/* {
+		reverse_proxy app:80
+	}
+	handle {
+		root * /srv/site
+		file_server
+	}
 }
 
 www.gestortatico.com.br {

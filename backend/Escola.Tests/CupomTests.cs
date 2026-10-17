@@ -78,6 +78,7 @@ public class CupomMesesGratisHttpTests(ApiFactory api) : IClassFixture<ApiFactor
         var anonimo = api.CreateClient();
         var conferido = await anonimo.GetFromJsonAsync<JsonElement>("/api/assinaturas/cupom/PILOTO", Json);
         Assert.Equal(3, conferido.GetProperty("mesesGratis").GetInt32());
+        Assert.Equal(1, conferido.GetProperty("restantes").GetInt32()); // limite de 1 uso, nenhum usado ainda
 
         var email = $"piloto.{Guid.NewGuid():N}@clube.test";
         var resposta = await anonimo.PostAsJsonAsync("/api/assinaturas", new

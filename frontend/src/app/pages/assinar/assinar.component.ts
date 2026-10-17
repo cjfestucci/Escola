@@ -75,7 +75,9 @@ export class AssinarComponent implements OnInit {
     return cupom ? Math.round(cheio * (100 - cupom.percentualDesconto)) / 100 : cheio;
   });
 
-  aplicarCupom(): void {
+  /** @param silencioso Cupom que veio no link do site: se não vale mais (ex.: esgotou), só não aplica — sem mensagem de erro pra quem nem
+   * digitou nada. */
+  aplicarCupom(silencioso = false): void {
     const codigo = this.cupomDigitado.trim();
     if (!codigo) return;
     this.aplicandoCupom.set(true);
@@ -88,6 +90,10 @@ export class AssinarComponent implements OnInit {
       error: (erro) => {
         this.aplicandoCupom.set(false);
         this.cupom.set(null);
+        if (silencioso) {
+          this.cupomDigitado = '';
+          return;
+        }
         this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Cupom inválido.');
       }
     });
@@ -102,6 +108,12 @@ export class AssinarComponent implements OnInit {
     // O simulador do site institucional manda a quantidade de atletas.
     const atletas = Number(this.rota.snapshot.queryParamMap.get('atletas'));
     if (Number.isInteger(atletas) && atletas > 0 && atletas <= 5000) this.atletas.set(atletas);
+    // O site manda o cupom da campanha nos botões (`?cupom=BEMVINDO25`): já aplicado, sem o visitante digitar.
+    const cupom = this.rota.snapshot.queryParamMap.get('cupom')?.trim();
+    if (cupom) {
+      this.cupomDigitado = cupom.slice(0, 30);
+      this.aplicarCupom(true);
+    }
 
     this.assinaturas.plano().subscribe({
       next: (plano) => this.plano.set(plano),

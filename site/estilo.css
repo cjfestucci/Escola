@@ -300,3 +300,8 @@ p { margin: 0 0 1em; }
 /* Dado da empresa ainda não preenchido: fica gritante de propósito, pra não ir pro ar assim. */
 .preencher { background: #FDE68A; color: #78350F; padding: 0 4px; border-radius: 4px; font-weight: 700; }
 @media (max-width: 560px) { .documento table, .documento thead, .documento tbody, .documento tr, .documento th, .documento td { display: block; } .documento thead { display: none; } .documento td { border-bottom: 0; padding: 4px 0; } .documento tr { border-bottom: 1px solid var(--borda); padding: 10px 0; } }
+
+/* Faixa da campanha (cupom do site) — acima do topo, some quando o cupom esgota. */
+.faixa-oferta { background: var(--marinho); color: #fff; font-size: .92rem; text-align: center; }
+.faixa-oferta .container { padding: 10px 16px; }
+.faixa-oferta strong { color: #86EFAC; }

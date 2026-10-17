@@ -13,6 +13,11 @@
 </head>
 <body>
 
+<!-- Campanha do site (cupom em precos.js): só aparece enquanto o cupom vale e ainda tem vagas; paginas.js preenche. -->
+<div class="faixa-oferta" id="faixa-oferta" hidden>
+  <div class="container"><span id="texto-oferta"></span></div>
+</div>
+
 <header class="topo">
   <div class="container">
     <a class="marca" href="#">
@@ -363,9 +368,11 @@
     document.getElementById('atletas-qtd').textContent = atletas;
     document.getElementById('total').textContent = formatarReais(total);
     document.getElementById('por-atleta').textContent = formatarReais(total / atletas);
-    document.getElementById('assinar-simulado').href = URL_APP + '/assinar?atletas=' + atletas;
+    document.getElementById('assinar-simulado').href = urlAssinar(atletas);
   }
   faixa.addEventListener('input', atualizarSimulador);
+  // O cupom da campanha chega depois (consulta ao servidor): o link do simulador passa a levá-lo.
+  document.addEventListener('cupom-site', atualizarSimulador);
   atualizarSimulador();
 </script>
 </body>
