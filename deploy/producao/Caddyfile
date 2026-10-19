@@ -31,6 +31,8 @@
 app.gestortatico.com.br {
 	import seguranca
 	import csp-app
+	# O app (login, telas internas) fica fora do Google: quem aparece nas buscas é o site (gestortatico.com.br).
+	header X-Robots-Tag "noindex, nofollow"
 	encode zstd gzip
 	reverse_proxy app:80
 }
