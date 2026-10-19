@@ -9,13 +9,28 @@
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
+		# Ninguém exibe o app ou o site dentro de outra página (golpe do clique disfarçado). O frame-ancestors da CSP faz o mesmo nos navegadores novos.
+		X-Frame-Options DENY
+		Permissions-Policy "geolocation=(), microphone=(), payment=(), usb=()"
 		-Server
 	}
+}
+
+# CSP: só scripts do próprio domínio (nada embutido no HTML — o build do Angular está com inlineCritical desligado, e o site
+# carrega tudo de arquivos .js). Estilo embutido é liberado: o Angular injeta o CSS dos componentes em <style>.
+# Imagem data:/blob: = QR Code do Pix/2FA e documentos baixados. Ao incluir um recurso de fora (fonte, script, API), liberar aqui.
+(csp-app) {
+	header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+}
+
+(csp-site) {
+	header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 }
 
 # O sistema (app Angular + API, servidos pelo nginx do contêiner "app").
 app.gestortatico.com.br {
 	import seguranca
+	import csp-app
 	encode zstd gzip
 	reverse_proxy app:80
 }
@@ -23,6 +38,7 @@ app.gestortatico.com.br {
 # Site institucional (estático, pasta site/ do repositório).
 gestortatico.com.br {
 	import seguranca
+	import csp-site
 	encode zstd gzip
 	# Só a consulta de cupom vai pro app (a faixa da campanha mostra as vagas restantes); o resto da API não é exposto aqui.
 	handle /api/assinaturas/cupom/* {
