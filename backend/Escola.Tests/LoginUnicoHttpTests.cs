@@ -141,7 +141,7 @@ public class LoginUnicoHttpTests : IClassFixture<ApiFactory>
         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login.Token);
         var logado = await http.GetFromJsonAsync<JsonElement>("/api/configuracao/escola", Json);
         Assert.Equal("America/Manaus", logado.GetProperty("fusoHorario").GetString());
-        Assert.Equal("/uploads/logo-b.png", logado.GetProperty("logoUrl").GetString());
+        Assert.StartsWith("/uploads/logo-b.png?exp=", logado.GetProperty("logoUrl").GetString()); // link assinado (UrlArquivo)
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using Escola.Api.Servicos;
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Infrastructure.Storage;
@@ -32,6 +33,6 @@ public class UploadsController(IFotoStorage fotoStorage) : ControllerBase
             return BadRequest("Formato de imagem não suportado. Use JPEG, PNG, WEBP ou GIF.");
 
         var url = await fotoStorage.SalvarAsync(stream, $"imagem{tipo.Value.Extensao}", tipo.Value.ContentType, ct);
-        return Ok(new UploadResultDto(url));
+        return Ok(new UploadResultDto(UrlArquivo.Assinar(url)!));
     }
 }

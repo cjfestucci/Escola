@@ -1,3 +1,4 @@
+using Escola.Api.Servicos;
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Domain.Entities;
@@ -35,6 +36,7 @@ public class ResponsaveisController(EscolaDbContext db, IAuditoriaService audito
                 ar.Aluno.Id, ar.Aluno.Nome, ar.Aluno.DataNascimento, ar.Aluno.FotoUrl,
                 ar.Aluno.TurmaId, ar.Aluno.Turma.Nome, ar.Aluno.Ativo, ar.Aluno.Posicao, false, null, ar.Aluno.MatriculaConfirmadaEm == null))
             .ToListAsync();
+        alunos = alunos.Select(a => a with { FotoUrl = UrlArquivo.Assinar(a.FotoUrl) }).ToList();
 
         var bloqueados = await bloqueio.ObterBloqueadosAsync(alunos.Select(a => a.Id).ToList());
         return Ok(alunos.Select(a => a with { Bloqueado = bloqueados.Contains(a.Id) }).ToList());

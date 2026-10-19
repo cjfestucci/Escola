@@ -92,6 +92,7 @@ builder.Services.AddDbContext<EscolaDbContext>(options => options
 var jwtChave = builder.Configuration["Jwt:Chave"]
     ?? throw new InvalidOperationException("Configuração Jwt:Chave ausente.");
 var jwtEmissor = builder.Configuration["Jwt:Emissor"] ?? "RotinaEscola";
+UrlArquivo.Configurar(jwtChave); // chave das assinaturas dos links de /uploads (fotos e logos)
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -274,6 +275,22 @@ if (proxiesNaFrente > 0)
 app.UseHttpsRedirection();
 
 app.UseCors(FrontendCorsPolicy);
+
+// Fotos e logos em /uploads só saem com link assinado e dentro do prazo (UrlArquivo): quem não recebeu o link por uma rota com
+// permissão não abre a foto de um atleta. Sem assinatura válida: 404 (não revela que o arquivo existe).
+app.Use(async (contexto, proximo) =>
+{
+    if (contexto.Request.Path.StartsWithSegments("/uploads"))
+    {
+        if (!UrlArquivo.Valida(contexto.Request.Path.Value!, contexto.Request.Query["exp"], contexto.Request.Query["sig"], DateTime.UtcNow))
+        {
+            contexto.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+        contexto.Response.Headers.CacheControl = "private, max-age=86400";
+    }
+    await proximo();
+});
 
 app.UseStaticFiles();
 

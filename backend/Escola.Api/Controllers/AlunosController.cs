@@ -71,7 +71,7 @@ public class AlunosController(
             Id = Guid.NewGuid(),
             Nome = request.Nome.Trim(),
             DataNascimento = request.DataNascimento,
-            FotoUrl = request.FotoUrl,
+            FotoUrl = UrlArquivo.Normalizar(request.FotoUrl),
             TurmaId = request.TurmaId,
             Posicao = request.Posicao,
             DescontoMensalidadePercentual = request.DescontoMensalidadePercentual,
@@ -114,7 +114,7 @@ public class AlunosController(
         aluno.MotivoDesconto = string.IsNullOrWhiteSpace(request.MotivoDesconto) ? null : request.MotivoDesconto.Trim();
         aluno.Nome = request.Nome.Trim();
         aluno.DataNascimento = request.DataNascimento;
-        aluno.FotoUrl = request.FotoUrl;
+        aluno.FotoUrl = UrlArquivo.Normalizar(request.FotoUrl);
         aluno.TurmaId = request.TurmaId;
         aluno.Posicao = request.Posicao;
 

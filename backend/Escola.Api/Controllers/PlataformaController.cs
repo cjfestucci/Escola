@@ -102,7 +102,7 @@ public class PlataformaController(
     public async Task<ActionResult<LogoDto>> EnviarLogo(IFormFile arquivo, CancellationToken ct)
     {
         var (url, erro) = await identidade.SalvarLogoAsync(arquivo, this.UsuarioIdAtual(), ct);
-        return erro is not null ? BadRequest(erro) : Ok(new LogoDto(url));
+        return erro is not null ? BadRequest(erro) : Ok(new LogoDto(UrlArquivo.Assinar(url)));
     }
 
     [HttpDelete("logo")]

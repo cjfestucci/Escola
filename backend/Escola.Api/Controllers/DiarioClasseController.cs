@@ -1,3 +1,4 @@
+using Escola.Api.Servicos;
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
@@ -159,5 +160,5 @@ public class DiarioClasseController(EscolaDbContext db, IAuditoriaService audito
     }
 
     private static List<FotoDiarioClasse> MontarFotos(List<string>? urls) =>
-        (urls ?? []).Select((url, indice) => new FotoDiarioClasse { Id = Guid.NewGuid(), Url = url, Ordem = indice }).ToList();
+        (urls ?? []).Select((url, indice) => new FotoDiarioClasse { Id = Guid.NewGuid(), Url = UrlArquivo.Normalizar(url)!, Ordem = indice }).ToList();
 }

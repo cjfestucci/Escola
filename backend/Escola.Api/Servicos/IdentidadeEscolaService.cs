@@ -91,6 +91,6 @@ public sealed class IdentidadeEscolaService(EscolaDbContext db, IClienteAtual cl
         config?.FusoHorario ?? RelogioEscola.FusoPadrao,
         config?.CorPrincipal,
         cliente?.Segmento ?? SegmentoCliente.Escola,
-        config?.LogoUrl,
+        UrlArquivo.Assinar(config?.LogoUrl),
         cliente?.Nome);
 }

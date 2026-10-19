@@ -1,3 +1,4 @@
+using Escola.Api.Servicos;
 using Escola.Domain.Entities;
 
 namespace Escola.Api.Dtos;
@@ -38,7 +39,7 @@ public static class RegistroRotinaMapper
         Categoria: string.Empty,
         r.RegistradoEm,
         r.Observacao,
-        FotoUrls: r.Fotos.OrderBy(f => f.Ordem).Select(f => f.Url).ToList(),
+        FotoUrls: r.Fotos.OrderBy(f => f.Ordem).Select(f => UrlArquivo.Assinar(f.Url)!).ToList(),
         CriadoPorNome: r.CriadoPor?.Nome ?? string.Empty,
         Refeicao: null,
         StatusAlimentacao: null,

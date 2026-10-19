@@ -1,3 +1,4 @@
+using Escola.Api.Servicos;
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
@@ -241,5 +242,5 @@ public class RotinaController(EscolaDbContext db, IAuditoriaService auditoria, I
     }
 
     private static List<FotoRegistro> MontarFotos(List<string>? urls) =>
-        (urls ?? []).Select((url, indice) => new FotoRegistro { Id = Guid.NewGuid(), Url = url, Ordem = indice }).ToList();
+        (urls ?? []).Select((url, indice) => new FotoRegistro { Id = Guid.NewGuid(), Url = UrlArquivo.Normalizar(url)!, Ordem = indice }).ToList();
 }

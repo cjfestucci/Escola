@@ -1,3 +1,4 @@
+using Escola.Api.Servicos;
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
@@ -254,7 +255,7 @@ public class PresencaController(EscolaDbContext db, IAuditoriaService auditoria,
             .Select(a => new { a.Id, a.Nome, a.FotoUrl })
             .ToListAsync();
 
-        var itens = alunos.Select(a => new ChamadaItemDto(a.Id, a.Nome, a.FotoUrl, porAluno.TryGetValue(a.Id, out var r) ? r.Status : null)).ToList();
+        var itens = alunos.Select(a => new ChamadaItemDto(a.Id, a.Nome, UrlArquivo.Assinar(a.FotoUrl), porAluno.TryGetValue(a.Id, out var r) ? r.Status : null)).ToList();
         return new ChamadaDto(
             turmaId, data, registros.Count > 0, itens,
             registros.Count(r => r.Status == StatusPresenca.Presente),
