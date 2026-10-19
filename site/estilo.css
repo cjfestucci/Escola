@@ -317,3 +317,12 @@ p { margin: 0 0 1em; }
 .artigo .faq { margin: 0; max-width: none; }
 .artigo .relacionados { border-top: 1px solid var(--borda); margin-top: 44px; }
 .artigo .relacionados ul { list-style: none; padding: 0; }
+.artigo .aviso-artigo { font-size: .9rem; color: var(--texto-suave); border-left: 3px solid var(--borda); padding-left: 12px; }
+
+/* Página inicial: links pros artigos */
+.guias-site { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.guia-site { display: block; text-decoration: none; color: inherit; background: #fff; border: 1px solid var(--borda); border-radius: var(--raio); padding: 20px 22px; transition: box-shadow .2s, transform .2s; }
+.guia-site:hover { box-shadow: var(--sombra); transform: translateY(-2px); }
+.guia-site h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.guia-site p { margin: 0; color: var(--texto-suave); font-size: .93rem; }
+@media (max-width: 860px) { .guias-site { grid-template-columns: 1fr; } }
