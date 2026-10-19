@@ -66,6 +66,8 @@ services:
       Assinatura__DiasToleranciaAtraso: ${ASSINATURA_DIAS_TOLERANCIA:-7}
       Assinatura__ExclusaoAutomatica: ${ASSINATURA_EXCLUSAO_AUTOMATICA:-false}
       Assinatura__WebhookToken: ${ASSINATURA_WEBHOOK_TOKEN:-}
+      # Aviso pra equipe a cada clube que se cadastra pelo site (um ou mais e-mails separados por vírgula; vazio = sem aviso).
+      Assinatura__EmailAvisoCadastro: ${ASSINATURA_EMAIL_AVISO_CADASTRO:-cleber@gestortatico.com.br,suporte@gestortatico.com.br}
       # Captcha do cadastro pelo site (Cloudflare Turnstile). Sem as duas, o /assinar funciona sem captcha.
       Turnstile__SiteKey: ${TURNSTILE_SITE_KEY:-}
       Turnstile__SecretKey: ${TURNSTILE_SECRET_KEY:-}

@@ -55,6 +55,8 @@ public class AssinaturasController(
     ClienteAtual clienteAtual,
     IRelogioEscola relogio,
     VerificadorCaptcha captcha,
+    Escola.Infrastructure.Email.IEmailSender email,
+    IConfiguration config,
     ILogger<AssinaturasController> logger) : ControllerBase
 {
     /// <summary>Cadastros por IP numa janela de 15 minutos — cada cadastro cria um cliente de verdade (e um cliente no gateway).</summary>
@@ -145,9 +147,56 @@ public class AssinaturasController(
         var resultado = await assinaturas.CadastrarAsync(
             new DadosCadastroAssinatura(nomeClube, documento, cidade, request.Atletas, nomeAdmin, email, celular, ip, navegador, cupom), ct);
         logger.LogInformation("Novo cliente pela assinatura do site: {ClienteId} ({Situacao}).", resultado.ClienteId, resultado.Situacao);
+        await AvisarNovoCadastroAsync(new DadosCadastroAssinatura(nomeClube, documento, cidade, request.Atletas, nomeAdmin, email, celular, ip,
+            navegador, cupom), resultado, ct);
 
         return Ok(new CadastroAssinaturaDto(resultado.Situacao.ToString(), resultado.TesteAte, resultado.ValorMensal,
             resultado.LinkPagamento, resultado.EmailEnviado));
+    }
+
+    /// <summary>Avisa a equipe do produto que um clube se cadastrou pelo site (<c>Assinatura:EmailAvisoCadastro</c>; vazio = sem aviso).
+    /// Falhar aqui nunca desfaz o cadastro: o clube já foi criado, o aviso é só pra gente.</summary>
+    private async Task AvisarNovoCadastroAsync(DadosCadastroAssinatura dados, ResultadoCadastroAssinatura resultado, CancellationToken ct)
+    {
+        // Um ou mais endereços, separados por vírgula ou ponto e vírgula.
+        var destinos = (config["Assinatura:EmailAvisoCadastro"] ?? string.Empty)
+            .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (destinos.Length == 0) return;
+
+        static string H(string? texto) => System.Net.WebUtility.HtmlEncode(texto ?? string.Empty);
+        var situacao = resultado.TesteAte is { } fimTeste
+            ? $"Em teste grátis até {fimTeste:dd/MM/yyyy}"
+            : resultado.Situacao == SituacaoAssinatura.AguardandoPagamento ? "Aguardando o 1º pagamento" : resultado.Situacao.ToString();
+        var cupom = dados.Cupom is { } c ? $"{H(c.Codigo)} ({H(CupomRegras.Descricao(c.PercentualDesconto, c.Meses, c.MesesGratis))})" : "nenhum";
+        var corpo = $"""
+            <p><strong>Novo clube cadastrado pelo site</strong></p>
+            <p style="margin:0 0 16px;padding:14px 16px;background:#F3F5F7;border-radius:8px;">
+            Clube: <strong>{H(dados.NomeClube)}</strong><br>
+            CPF/CNPJ: {H(dados.CpfCnpj)}<br>
+            Cidade: {H(dados.Cidade)}<br>
+            Atletas informados: {dados.Atletas}<br>
+            Mensalidade: {resultado.ValorMensal.ToString("C", new System.Globalization.CultureInfo("pt-BR"))}<br>
+            Situação: {H(situacao)}<br>
+            Cupom: {cupom}
+            </p>
+            <p>Administrador: {H(dados.NomeAdmin)}<br>
+            E-mail: {H(dados.Email)}<br>
+            Celular: {H(dados.Celular)}</p>
+            <p style="font-size:13px;color:#555">Convite de acesso {(resultado.EmailEnviado ? "enviado" : "<strong>não enviado</strong> (confira o SMTP)")} ao administrador.
+            Id do cliente: {resultado.ClienteId}. Acompanhe em Plataforma → Clientes.</p>
+            """;
+        foreach (var destino in destinos)
+        {
+            try
+            {
+                await email.EnviarAsync(destino, $"Equipe {Escola.Infrastructure.MarcaProduto.Nome}", $"Novo clube cadastrado: {dados.NomeClube}", corpo, ct,
+                    responderPara: dados.Email);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Clube {ClienteId} cadastrado, mas o aviso por e-mail para {Destino} falhou.", resultado.ClienteId, destino);
+            }
+        }
     }
 
     /// <summary>Aviso do Asaas (conta raiz) sobre uma fatura da assinatura. <b>O corpo nunca é confiado</b>: só diz qual assinatura
