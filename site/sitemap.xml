@@ -2,6 +2,10 @@
 <!-- Páginas do site para o Google. Página nova no site = uma entrada aqui (e trocar o lastmod quando o texto mudar). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://gestortatico.com.br/</loc><lastmod>2026-10-19</lastmod><priority>1.0</priority></url>
+  <url><loc>https://gestortatico.com.br/sistema-para-escolinha-de-futebol.html</loc><lastmod>2026-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://gestortatico.com.br/mensalidade-escolinha-de-futebol.html</loc><lastmod>2026-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://gestortatico.com.br/chamada-e-frequencia-de-atletas.html</loc><lastmod>2026-10-19</lastmod><priority>0.8</priority></url>
+  <url><loc>https://gestortatico.com.br/convocacao-sumula-e-cartoes.html</loc><lastmod>2026-10-19</lastmod><priority>0.8</priority></url>
   <url><loc>https://gestortatico.com.br/termos.html</loc><lastmod>2026-10-15</lastmod><priority>0.3</priority></url>
   <url><loc>https://gestortatico.com.br/privacidade.html</loc><lastmod>2026-10-15</lastmod><priority>0.3</priority></url>
 </urlset>

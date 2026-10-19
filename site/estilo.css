@@ -220,7 +220,7 @@ p { margin: 0 0 1em; }
 
 /* Rodapé */
 .rodape { background: #0A1F2B; color: #A9C1CE; padding: 48px 0 32px; font-size: .92rem; }
-.rodape .container { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px; }
+.rodape .container { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
 .rodape .marca { color: #fff; margin-bottom: 12px; }
 .rodape h4 { color: #fff; margin: 0 0 12px; font-size: .95rem; }
 .rodape ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
@@ -305,3 +305,15 @@ p { margin: 0 0 1em; }
 .faixa-oferta { background: var(--marinho); color: #fff; font-size: .92rem; text-align: center; }
 .faixa-oferta .container { padding: 10px 16px; }
 .faixa-oferta strong { color: #86EFAC; }
+
+/* Páginas de conteúdo (artigos: sistema-para-escolinha-de-futebol.html etc.), em cima de .documento */
+.artigo .trilha { font-size: .88rem; color: var(--texto-suave); margin-bottom: 14px; }
+.artigo .trilha a { color: var(--texto-suave); }
+.artigo h1 { margin-bottom: 20px; line-height: 1.15; }
+.artigo .resumo-doc p { font-size: 1.05rem; }
+.artigo .cta-artigo { background: var(--marinho); color: #fff; border-radius: var(--raio); padding: 28px; margin: 44px 0 8px; text-align: center; }
+.artigo .cta-artigo h2 { margin: 0 0 8px; color: #fff; }
+.artigo .cta-artigo p { color: #C9D7DF; margin: 0 0 20px; }
+.artigo .faq { margin: 0; max-width: none; }
+.artigo .relacionados { border-top: 1px solid var(--borda); margin-top: 44px; }
+.artigo .relacionados ul { list-style: none; padding: 0; }
