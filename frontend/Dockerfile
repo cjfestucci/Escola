@@ -1,6 +1,6 @@
 # Site (Angular) servido pelo nginx, que também repassa /api e /uploads pra API — assim o navegador fala com um endereço só
 # (o app em produção chama '/api', ver src/environments/environment.ts). Contexto de build: a pasta frontend/.
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
