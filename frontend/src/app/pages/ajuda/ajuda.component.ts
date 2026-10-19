@@ -22,7 +22,7 @@ export class AjudaComponent {
 
   /** A tela em que a pessoa estava antes de abrir a Ajuda (contexto pro suporte). */
   private readonly paginaDeOrigem: string | null =
-    inject(Router).lastSuccessfulNavigation?.previousNavigation?.finalUrl?.toString() ?? null;
+    inject(Router).lastSuccessfulNavigation()?.previousNavigation?.finalUrl?.toString() ?? null;
 
   assunto: AssuntoFaleConosco | '' = '';
   mensagem = '';
