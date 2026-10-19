@@ -117,6 +117,9 @@ public class AuthController(
     /// <summary>Falhas (senha ou código) que bloqueiam a conta por 15 minutos. A do Suporte é mais apertada: tem mais poder.</summary>
     private const int LimiteFalhasLogin = 8;
     private const int LimiteFalhasLoginSuporte = 5;
+    /// <summary>Senhas erradas por IP em 15 minutos, somando todos os e-mails. Folgado de propósito: um clube inteiro pode sair pelo
+    /// mesmo IP (Wi-Fi da sede, operadora de celular).</summary>
+    private const int LimiteFalhasLoginPorIp = 30;
 
     [HttpPost("entrar")]
     public async Task<ActionResult<LoginRespostaDto>> Entrar(LoginRequest request)
@@ -124,10 +127,14 @@ public class AuthController(
         var email = request.Email.Trim().ToLowerInvariant();
         // Freio por e-mail (o login é um só pra todas as escolas).
         var chave = email;
+        // Freio por IP: o por e-mail não pega quem testa uma senha comum em centenas de e-mails diferentes. Não é zerado por um
+        // login certo (senão bastaria entrar na própria conta pra continuar tentando nas dos outros).
+        var chaveIp = $"login-ip:{HttpContext.Connection.RemoteIpAddress?.ToString() ?? "desconhecido"}";
 
         // Freio por conta (vale pra senha E pro código do segundo fator): sem ele, 1 milhão de códigos de 6 dígitos é questão de minutos.
         var ehEmailDoSuporte = string.Equals(email, config["Suporte:Email"]?.Trim(), StringComparison.OrdinalIgnoreCase);
-        if (limitador.EstaBloqueado(chave, ehEmailDoSuporte ? LimiteFalhasLoginSuporte : LimiteFalhasLogin, out var restante))
+        if (limitador.EstaBloqueado(chave, ehEmailDoSuporte ? LimiteFalhasLoginSuporte : LimiteFalhasLogin, out var restante)
+            || limitador.EstaBloqueado(chaveIp, LimiteFalhasLoginPorIp, out restante))
         {
             var minutos = Math.Max(1, (int)Math.Ceiling(restante.TotalMinutes));
             return StatusCode(StatusCodes.Status429TooManyRequests, $"Muitas tentativas. Tente novamente em {minutos} {(minutos == 1 ? "minuto" : "minutos")}.");
@@ -139,6 +146,8 @@ public class AuthController(
             .Where(u => u.Email.ToLower() == email)
             .Select(u => new { Usuario = u, ClienteId = EF.Property<Guid>(u, EscolaDbContext.ColunaCliente) })
             .ToListAsync();
+        // E-mail sem conta: confere contra um hash fictício, pra demorar o mesmo que um e-mail cadastrado com a senha errada.
+        if (contas.Count == 0) SenhaHasher.Verificar(request.Senha, SenhaHasher.ConvitePendente);
         var validas = contas.Where(c => SenhaHasher.Verificar(request.Senha, c.Usuario.SenhaHash)).ToList();
         if (request.ClienteId is { } escolhido)
             validas = validas.Where(c => c.ClienteId == escolhido).ToList();
@@ -146,6 +155,7 @@ public class AuthController(
         if (validas.Count == 0)
         {
             limitador.RegistrarFalha(chave);
+            limitador.RegistrarFalha(chaveIp);
             return Unauthorized("E-mail ou senha inválidos.");
         }
 

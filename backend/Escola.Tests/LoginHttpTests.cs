@@ -118,3 +118,23 @@ public class LoginHttpTests : IClassFixture<ApiFactory>
         Assert.True((await suporte.Content.ReadFromJsonAsync<ApiFactory.LoginResposta>())!.RequerSegundoFator);
     }
 }
+
+/// <summary>Freio de login por IP (fixture própria: o contador de falhas é da instância da API e somaria com os outros testes).</summary>
+public class LoginPorIpHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
+{
+    [Fact]
+    public async Task MuitasSenhasErradasEmEmailsDiferentesBloqueiamOIp()
+    {
+        var http = api.CreateClient();
+        var email = $"vitima-{Guid.NewGuid():N}@teste.com";
+        api.CriarUsuario(PapelUsuario.Admin, email);
+
+        // Uma senha comum testada em 30 e-mails diferentes: nenhuma conta chega a 8 falhas, mas o IP sim.
+        for (var i = 0; i < 30; i++)
+            Assert.Equal(HttpStatusCode.Unauthorized, (await api.EntrarAsync(http, $"chute-{i}-{Guid.NewGuid():N}@teste.com", "Senha123")).StatusCode);
+
+        var bloqueado = await api.EntrarAsync(http, email, "Senha-de-Teste-1");
+        Assert.Equal((HttpStatusCode)429, bloqueado.StatusCode);
+        Assert.Contains("Muitas tentativas", await bloqueado.Content.ReadAsStringAsync());
+    }
+}

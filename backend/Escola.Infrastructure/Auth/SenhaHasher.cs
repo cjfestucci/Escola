@@ -20,10 +20,19 @@ public static class SenhaHasher
         return $"{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
     }
 
+    /// <summary>Salt fixo usado só pra gastar o mesmo tempo quando não há hash de verdade pra conferir.</summary>
+    private static readonly byte[] SaltFicticio = new byte[TamanhoSalt];
+
     public static bool Verificar(string senha, string senhaHash)
     {
         var partes = senhaHash.Split('.');
-        if (partes.Length != 2) return false;
+        if (partes.Length != 2)
+        {
+            // Sem hash de verdade (convite pendente, ou nenhuma conta com esse e-mail — ver AuthController): faz a mesma conta e recusa.
+            // Responder mais rápido aqui deixaria descobrir, pelo tempo de resposta, quais e-mails têm conta.
+            Rfc2898DeriveBytes.Pbkdf2(senha, SaltFicticio, Iteracoes, HashAlgorithmName.SHA256, TamanhoHash);
+            return false;
+        }
 
         var salt = Convert.FromBase64String(partes[0]);
         var hashEsperado = Convert.FromBase64String(partes[1]);

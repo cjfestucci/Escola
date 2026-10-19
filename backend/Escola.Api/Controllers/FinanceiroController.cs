@@ -573,7 +573,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             ? (presencialHtml.Length > 0 ? string.Empty : "<p>Entre em contato com a escola para combinar o pagamento.</p>")
             : $"""
                <p>Pague com Pix copiando o código abaixo no app do seu banco:</p>
-               <p style="margin:0 0 16px;font-family:monospace;font-size:13px;word-break:break-all;background:#F3F5F7;padding:12px;border-radius:8px;">{codigoPix}</p>
+               <p style="margin:0 0 16px;font-family:monospace;font-size:13px;word-break:break-all;background:#F3F5F7;padding:12px;border-radius:8px;">{WebUtility.HtmlEncode(codigoPix)}</p>
                """;
 
         return $"""
