@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
+import { CaptchaComponent } from '../../shared/captcha/captcha.component';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../shared/mascara/mascara.directive';
 import { soDigitos, soDocumento } from '../../shared/mascara/mascara';
@@ -26,7 +27,7 @@ type Etapa = 'clube' | 'voce' | 'pronto';
 /** Cadastro pelo site: o clube vira cliente sozinho. Pública (sem login), como a tela de entrar. */
 @Component({
   selector: 'app-assinar',
-  imports: [FormsModule, MascaraDirective],
+  imports: [FormsModule, MascaraDirective, CaptchaComponent],
   templateUrl: './assinar.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './assinar.component.scss'
@@ -49,6 +50,9 @@ export class AssinarComponent implements OnInit {
   readonly etapa = signal<Etapa>('clube');
   readonly enviando = signal(false);
   readonly resultado = signal<CadastroAssinaturaResposta | null>(null);
+  /** Token do captcha (Turnstile), quando o cadastro exige; vale um envio só. */
+  readonly tokenCaptcha = signal<string | null>(null);
+  private readonly captcha = viewChild(CaptchaComponent);
 
   nomeClube = '';
   cpfCnpj = '';
@@ -146,6 +150,8 @@ export class AssinarComponent implements OnInit {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return this.notificacao.erro('Informe um e-mail válido.');
     if (![10, 11].includes(soDigitos(this.celular).length)) return this.notificacao.erro('Informe o celular com DDD.');
     if (!this.aceite) return this.notificacao.erro('É preciso aceitar os Termos de Uso e a Política de Privacidade.');
+    if (this.plano()?.chaveCaptcha && !this.tokenCaptcha())
+      return this.notificacao.erro('Aguarde a verificação de segurança logo acima do botão (ou marque a caixa, se ela pedir).');
 
     this.enviando.set(true);
     this.assinaturas
@@ -158,7 +164,8 @@ export class AssinarComponent implements OnInit {
         email,
         celular: soDigitos(this.celular),
         aceiteTermos: this.aceite,
-        cupom: this.cupom()?.codigo ?? null
+        cupom: this.cupom()?.codigo ?? null,
+        tokenCaptcha: this.tokenCaptcha()
       })
       .subscribe({
         next: (resultado) => {
@@ -168,6 +175,7 @@ export class AssinarComponent implements OnInit {
         },
         error: (erro) => {
           this.enviando.set(false);
+          this.captcha()?.reiniciar(); // o token já foi gasto nesse envio
           this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível concluir a assinatura. Tente de novo.');
         }
       });

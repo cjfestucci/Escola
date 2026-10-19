@@ -25,11 +25,12 @@ public record CupomPublicoDto(string Codigo, int PercentualDesconto, int? Meses,
 
 /// <param name="PrecoFixo">Valor mínimo, que já cobre <c>AtletasIncluidos</c> atletas.</param>
 /// <param name="PrecoPorAtleta">Valor de cada atleta acima dos incluídos.</param>
-public record PlanoAssinaturaDto(decimal PrecoFixo, decimal PrecoPorAtleta, int DiasTeste, string VersaoTermos, int AtletasIncluidos);
+/// <param name="ChaveCaptcha">Chave pública do Turnstile pra tela mostrar o captcha; nula = cadastro sem captcha.</param>
+public record PlanoAssinaturaDto(decimal PrecoFixo, decimal PrecoPorAtleta, int DiasTeste, string VersaoTermos, int AtletasIncluidos, string? ChaveCaptcha = null);
 
 public record CadastroAssinaturaRequest(
     string? NomeClube, string? CpfCnpj, string? Cidade, int Atletas,
-    string? NomeAdmin, string? Email, string? Celular, bool AceiteTermos, string? Cupom = null);
+    string? NomeAdmin, string? Email, string? Celular, bool AceiteTermos, string? Cupom = null, string? TokenCaptcha = null);
 
 public record CadastroAssinaturaDto(string Situacao, DateOnly? TesteAte, decimal ValorMensal, string? LinkPagamento, bool EmailEnviado);
 
@@ -53,6 +54,7 @@ public class AssinaturasController(
     LimitadorTentativasLogin limitador,
     ClienteAtual clienteAtual,
     IRelogioEscola relogio,
+    VerificadorCaptcha captcha,
     ILogger<AssinaturasController> logger) : ControllerBase
 {
     /// <summary>Cadastros por IP numa janela de 15 minutos — cada cadastro cria um cliente de verdade (e um cliente no gateway).</summary>
@@ -63,7 +65,7 @@ public class AssinaturasController(
     public ActionResult<PlanoAssinaturaDto> Plano()
     {
         var o = opcoes.Value;
-        return Ok(new PlanoAssinaturaDto(o.PrecoFixo, o.PrecoPorAtleta, Math.Max(0, o.DiasTeste), AssinaturaService.VersaoTermosUso, Math.Max(0, o.AtletasIncluidos)));
+        return Ok(new PlanoAssinaturaDto(o.PrecoFixo, o.PrecoPorAtleta, Math.Max(0, o.DiasTeste), AssinaturaService.VersaoTermosUso, Math.Max(0, o.AtletasIncluidos), captcha.ChavePublica));
     }
 
     /// <summary>Confere um cupom na tela de cadastro (antes de assinar) e diz o desconto. Com freio por IP: não serve pra adivinhar cupons.</summary>
@@ -132,6 +134,10 @@ public class AssinaturasController(
             (cupom, var motivo, _) = await CupomValidoAsync(request.Cupom, ct);
             if (motivo is not null) return BadRequest(motivo);
         }
+
+        // Captcha (Turnstile) por último, depois dos campos: o token vale uma vez só, e um erro de digitação não gasta a verificação à toa.
+        if (!await captcha.ValidarAsync(request.TokenCaptcha, ip, ct))
+            return BadRequest("Não foi possível confirmar que você não é um robô. Faça a verificação de novo e tente outra vez.");
 
         limitador.RegistrarFalha(chave); // conta todo cadastro aceito pra validação, não só os que falham
         var navegador = Request.Headers.UserAgent.ToString() is { Length: > 0 } ua ? ua[..Math.Min(ua.Length, 500)] : null;

@@ -66,6 +66,9 @@ services:
       Assinatura__DiasToleranciaAtraso: ${ASSINATURA_DIAS_TOLERANCIA:-7}
       Assinatura__ExclusaoAutomatica: ${ASSINATURA_EXCLUSAO_AUTOMATICA:-false}
       Assinatura__WebhookToken: ${ASSINATURA_WEBHOOK_TOKEN:-}
+      # Captcha do cadastro pelo site (Cloudflare Turnstile). Sem as duas, o /assinar funciona sem captcha.
+      Turnstile__SiteKey: ${TURNSTILE_SITE_KEY:-}
+      Turnstile__SecretKey: ${TURNSTILE_SECRET_KEY:-}
     volumes:
       - fotos:/app/wwwroot/uploads
       - documentos:/app/dados-privados

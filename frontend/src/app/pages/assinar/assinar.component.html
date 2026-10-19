@@ -99,6 +99,9 @@
                 <a [href]="urlSite + '/privacidade.html'" target="_blank" rel="noopener">Política de Privacidade</a> do Gestor Tático.
               </span>
             </label>
+            @if (plano()?.chaveCaptcha; as chave) {
+              <app-captcha class="inteiro" [chave]="chave" (token)="tokenCaptcha.set($event)" />
+            }
             <div class="acoes inteiro">
               <button type="button" class="botao botao--secundario" (click)="voltar()">Voltar</button>
               <button type="submit" class="botao botao--primario" [disabled]="enviando()">

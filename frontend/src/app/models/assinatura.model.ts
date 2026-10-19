@@ -8,6 +8,8 @@ export interface PlanoAssinatura {
   atletasIncluidos: number;
   diasTeste: number;
   versaoTermos: string;
+  /** Chave pública do captcha (Cloudflare Turnstile) do cadastro; nula = cadastro sem captcha. */
+  chaveCaptcha?: string | null;
 }
 
 export interface CadastroAssinaturaRequest {
@@ -20,6 +22,7 @@ export interface CadastroAssinaturaRequest {
   celular: string;
   aceiteTermos: boolean;
   cupom?: string | null;
+  tokenCaptcha?: string | null;
 }
 
 export interface CupomPublico {

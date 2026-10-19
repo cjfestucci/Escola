@@ -18,9 +18,9 @@
 
 # CSP: só scripts do próprio domínio (nada embutido no HTML — o build do Angular está com inlineCritical desligado, e o site
 # carrega tudo de arquivos .js). Estilo embutido é liberado: o Angular injeta o CSS dos componentes em <style>.
-# Imagem data:/blob: = QR Code do Pix/2FA e documentos baixados. Ao incluir um recurso de fora (fonte, script, API), liberar aqui.
+# Imagem data:/blob: = QR Code do Pix/2FA e documentos baixados; challenges.cloudflare.com = captcha (Turnstile) do /assinar. Ao incluir um recurso de fora (fonte, script, API), liberar aqui.
 (csp-app) {
-	header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	header Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 }
 
 (csp-site) {

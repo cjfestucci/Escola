@@ -191,6 +191,8 @@ builder.Services.AddHttpClient<IProvedorPix, BbPixClient>(cliente => cliente.Tim
 builder.Services.Configure<OpcoesAsaas>(builder.Configuration.GetSection(OpcoesAsaas.Secao));
 var asaas = builder.Configuration.GetSection(OpcoesAsaas.Secao).Get<OpcoesAsaas>() ?? new OpcoesAsaas();
 builder.Services.AddHttpClient<AsaasApi>(cliente => cliente.Timeout = TimeSpan.FromSeconds(20));
+// Captcha do cadastro pelo site (Turnstile); sem Turnstile:* configurado, o cadastro segue sem captcha.
+builder.Services.AddHttpClient<VerificadorCaptcha>(cliente => cliente.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton(new CofreSegredos(builder.Configuration["Segredos:Chave"]));
 builder.Services.AddScoped<IProvedorPixResolver, ProvedorPixResolver>();
 
