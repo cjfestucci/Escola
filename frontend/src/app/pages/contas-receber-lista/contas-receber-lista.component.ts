@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ContaReceber } from '../../models/conta-receber.model';
@@ -15,6 +15,7 @@ type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado' | 'cancelada';
   selector: 'app-contas-receber-lista',
   imports: [FormsModule, CalendarioComponent, DecimalPipe, LogsModalComponent],
   templateUrl: './contas-receber-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './contas-receber-lista.component.scss'
 })
 export class ContasReceberListaComponent implements OnInit {

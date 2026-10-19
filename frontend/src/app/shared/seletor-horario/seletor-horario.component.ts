@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 const HORAS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
@@ -10,6 +10,7 @@ const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
   selector: 'app-seletor-horario',
   imports: [FormsModule],
   templateUrl: './seletor-horario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './seletor-horario.component.scss'
 })
 export class SeletorHorarioComponent {

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -28,6 +28,7 @@ type StatusFiltro = 'todas' | 'ativas' | 'inativas';
   selector: 'app-turmas-lista',
   imports: [FormsModule, LogsModalComponent],
   templateUrl: './turmas-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './turmas-lista.component.scss'
 })
 export class TurmasListaComponent implements OnInit {

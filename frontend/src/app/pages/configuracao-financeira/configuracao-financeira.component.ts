@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { PixAutomaticoStatus, TipoChavePix } from '../../models/cobranca.model';
@@ -63,6 +63,7 @@ function inferirTipo(chave: string): TipoChavePix | '' {
   selector: 'app-configuracao-financeira',
   imports: [FormsModule, LogsModalComponent, ContaPagamentoComponent],
   templateUrl: './configuracao-financeira.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './configuracao-financeira.component.scss'
 })
 export class ConfiguracaoFinanceiraComponent implements OnInit {

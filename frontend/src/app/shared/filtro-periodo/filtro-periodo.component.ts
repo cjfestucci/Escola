@@ -1,4 +1,4 @@
-import { Component, computed, output, signal } from '@angular/core';
+import { Component, computed, output, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { CalendarioComponent } from '../calendario/calendario.component';
 import { formatarDataAbsoluta, hojeIso, somarDias } from '../data-utils';
@@ -27,6 +27,7 @@ export function periodoPadrao(): PeriodoEscolhido {
   selector: 'app-filtro-periodo',
   imports: [CalendarioComponent],
   templateUrl: './filtro-periodo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './filtro-periodo.component.scss'
 })
 export class FiltroPeriodoComponent {

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -20,6 +20,7 @@ type TipoFiltro = 'todos' | TipoMovimentacaoEstoque;
   selector: 'app-movimentacoes-estoque',
   imports: [FormsModule, CalendarioComponent, RouterLink],
   templateUrl: './movimentacoes-estoque.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './movimentacoes-estoque.component.scss'
 })
 export class MovimentacoesEstoqueComponent implements OnInit {

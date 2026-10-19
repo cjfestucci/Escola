@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Cupom } from '../../../models/plataforma.model';
@@ -12,6 +12,7 @@ import { formatarDataAbsoluta, hojeIso } from '../../../shared/data-utils';
   selector: 'app-cupons',
   imports: [FormsModule, CalendarioComponent],
   templateUrl: './cupons.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './cupons.component.scss'
 })
 export class CuponsComponent implements OnInit {

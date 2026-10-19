@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -13,6 +13,7 @@ import { SegmentoService } from '../../services/segmento.service';
   selector: 'app-entrar',
   imports: [FormsModule, RouterLink],
   templateUrl: './entrar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './entrar.component.scss'
 })
 export class EntrarComponent {

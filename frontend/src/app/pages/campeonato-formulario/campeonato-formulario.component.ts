@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -11,6 +11,7 @@ import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
   selector: 'app-campeonato-formulario',
   imports: [FormsModule, CalendarioComponent],
   templateUrl: './campeonato-formulario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './campeonato-formulario.component.scss'
 })
 export class CampeonatoFormularioComponent implements OnInit {

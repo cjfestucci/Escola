@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -15,6 +15,7 @@ type StatusFiltro = 'todos' | 'ativos' | 'inativos';
   selector: 'app-campeonatos-lista',
   imports: [FormsModule, RouterLink, LogsModalComponent],
   templateUrl: './campeonatos-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './campeonatos-lista.component.scss'
 })
 export class CampeonatosListaComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { CuponsComponent } from './cupons/cupons.component';
@@ -28,6 +28,7 @@ const FILTROS: { valor: Filtro; rotulo: string }[] = [
   selector: 'app-plataforma-clientes',
   imports: [FormsModule, CuponsComponent],
   templateUrl: './plataforma-clientes.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './plataforma-clientes.component.scss'
 })
 export class PlataformaClientesComponent implements OnInit {

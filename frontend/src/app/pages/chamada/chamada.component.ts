@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ChamadaItem, FALTAS_SEGUIDAS_PARA_ALERTA, FrequenciaAluno, StatusPresenca } from '../../models/presenca.model';
@@ -19,6 +19,7 @@ import { resolverFotoUrl } from '../../shared/registro-rotina-display';
   selector: 'app-chamada',
   imports: [CalendarioComponent, LogsModalComponent, FiltroPeriodoComponent],
   templateUrl: './chamada.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './chamada.component.scss'
 })
 export class ChamadaComponent implements OnInit {

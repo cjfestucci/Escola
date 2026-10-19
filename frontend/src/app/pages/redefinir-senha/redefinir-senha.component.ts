@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -14,6 +14,7 @@ const TAMANHO_MINIMO_SENHA = 8;
   selector: 'app-redefinir-senha',
   imports: [FormsModule],
   templateUrl: './redefinir-senha.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './redefinir-senha.component.scss'
 })
 export class RedefinirSenhaComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../shared/mascara/mascara.directive';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -35,6 +35,7 @@ type Aba = 'dados' | 'responsaveis' | 'saude';
   selector: 'app-matricula-formulario',
   imports: [FormsModule, MascaraDirective, SeletorArquivoComponent, CalendarioComponent, LogsModalComponent, DocumentosSaudeComponent],
   templateUrl: './matricula-formulario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './matricula-formulario.component.scss'
 })
 export class MatriculaFormularioComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
 
@@ -20,6 +20,7 @@ const TITULOS_CLUBE: Record<string, string> = {
   selector: 'app-topbar',
   imports: [RouterLink],
   templateUrl: './topbar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './topbar.component.scss'
 })
 export class TopbarComponent {

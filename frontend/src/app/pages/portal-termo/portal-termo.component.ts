@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -14,6 +14,7 @@ import { TermoService } from '../../services/termo.service';
   selector: 'app-portal-termo',
   imports: [FormsModule],
   templateUrl: './portal-termo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './portal-termo.component.scss'
 })
 export class PortalTermoComponent implements OnInit {

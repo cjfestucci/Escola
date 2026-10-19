@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import {
@@ -23,6 +23,7 @@ import { linkWhatsApp } from '../../shared/mascara/mascara';
   selector: 'app-portal-contato-clube',
   imports: [FormsModule],
   templateUrl: './portal-contato-clube.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './portal-contato-clube.component.scss'
 })
 export class PortalContatoClubeComponent implements OnInit {

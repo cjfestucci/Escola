@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 /**
@@ -9,6 +9,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
   selector: 'app-ajuda-guias',
   imports: [RouterLink],
   templateUrl: './ajuda-guias.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './ajuda-guias.component.scss'
 })
 export class AjudaGuiasComponent {

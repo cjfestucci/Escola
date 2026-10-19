@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -16,6 +16,7 @@ import { linkWhatsApp } from '../mascara/mascara';
   selector: 'app-whatsapp-flutuante',
   imports: [RouterLink, NgTemplateOutlet],
   templateUrl: './whatsapp-flutuante.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './whatsapp-flutuante.component.scss'
 })
 export class WhatsappFlutuanteComponent {

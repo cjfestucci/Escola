@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -20,6 +20,7 @@ import { SegmentoService } from '../../services/segmento.service';
   selector: 'app-plataforma',
   imports: [FormsModule, RouterLink, LogsModalComponent, SeletorArquivoComponent],
   templateUrl: './plataforma.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './plataforma.component.scss'
 })
 export class PlataformaComponent implements OnInit {

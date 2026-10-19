@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../shared/mascara/mascara.directive';
 import { soDigitos } from '../../shared/mascara/mascara';
@@ -11,6 +11,7 @@ import { UnidadeService } from '../../services/unidade.service';
   selector: 'app-unidade-formulario',
   imports: [FormsModule, MascaraDirective],
   templateUrl: './unidade-formulario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './unidade-formulario.component.scss'
 })
 export class UnidadeFormularioComponent implements OnInit {

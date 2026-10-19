@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -18,6 +18,7 @@ type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado' | 'cancelada';
   selector: 'app-contas-pagar-lista',
   imports: [FormsModule, CalendarioComponent, DecimalPipe, RouterLink, LogsModalComponent],
   templateUrl: './contas-pagar-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './contas-pagar-lista.component.scss'
 })
 export class ContasPagarListaComponent implements OnInit {

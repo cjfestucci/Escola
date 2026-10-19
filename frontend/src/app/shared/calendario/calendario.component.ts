@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 
 import { hojeIso } from '../data-utils';
 
@@ -29,6 +29,7 @@ interface CelulaDia {
   selector: 'app-calendario',
   imports: [],
   templateUrl: './calendario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './calendario.component.scss'
 })
 export class CalendarioComponent implements OnChanges {

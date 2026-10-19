@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnInit, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { DocumentoSaude } from '../../models/documento-saude.model';
 import { DocumentoSaudeService } from '../../services/documento-saude.service';
@@ -15,6 +15,7 @@ const TAMANHO_MAXIMO_BYTES = 10 * 1024 * 1024;
   selector: 'app-documentos-saude',
   imports: [SeletorArquivoComponent],
   templateUrl: './documentos-saude.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './documentos-saude.component.scss'
 })
 export class DocumentosSaudeComponent implements OnInit {

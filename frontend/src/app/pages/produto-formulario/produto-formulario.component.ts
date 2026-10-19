@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -21,6 +21,7 @@ export const UNIDADES_MEDIDA = [
   selector: 'app-produto-formulario',
   imports: [FormsModule],
   templateUrl: './produto-formulario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './produto-formulario.component.scss'
 })
 export class ProdutoFormularioComponent implements OnInit {

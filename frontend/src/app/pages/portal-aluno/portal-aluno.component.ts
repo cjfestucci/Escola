@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
@@ -37,6 +37,7 @@ import {
   selector: 'app-portal-aluno',
   imports: [CalendarioComponent, DocumentosSaudeComponent, NgTemplateOutlet, FiltroPeriodoComponent],
   templateUrl: './portal-aluno.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './portal-aluno.component.scss'
 })
 export class PortalAlunoComponent implements OnInit {

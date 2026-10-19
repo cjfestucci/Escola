@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -11,6 +11,7 @@ import { NotificacaoService } from '../../services/notificacao.service';
   selector: 'app-ajuda',
   imports: [FormsModule, RouterLink],
   templateUrl: './ajuda.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './ajuda.component.scss'
 })
 export class AjudaComponent {

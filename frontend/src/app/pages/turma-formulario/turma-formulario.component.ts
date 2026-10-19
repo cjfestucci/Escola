@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -15,6 +15,7 @@ import { SeletorHorarioComponent } from '../../shared/seletor-horario/seletor-ho
   selector: 'app-turma-formulario',
   imports: [FormsModule, SeletorHorarioComponent],
   templateUrl: './turma-formulario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './turma-formulario.component.scss'
 })
 export class TurmaFormularioComponent implements OnInit {

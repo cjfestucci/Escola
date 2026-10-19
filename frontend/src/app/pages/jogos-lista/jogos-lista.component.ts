@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -17,6 +17,7 @@ type SituacaoFiltro = 'todas' | StatusJogo;
   selector: 'app-jogos-lista',
   imports: [FormsModule, LogsModalComponent, NgTemplateOutlet],
   templateUrl: './jogos-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './jogos-lista.component.scss'
 })
 export class JogosListaComponent implements OnInit {

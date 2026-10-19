@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -13,6 +13,7 @@ type StatusFiltro = 'todos' | 'ativos' | 'inativos';
   selector: 'app-fornecedores-lista',
   imports: [FormsModule, RouterLink, LogsModalComponent],
   templateUrl: './fornecedores-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './fornecedores-lista.component.scss'
 })
 export class FornecedoresListaComponent implements OnInit {

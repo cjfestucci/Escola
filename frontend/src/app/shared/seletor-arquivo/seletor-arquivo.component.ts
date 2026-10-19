@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 
 /** Botão de escolher arquivo em português — o <input type="file"> nativo mostra
  * "Choose File / No file chosen" seguindo o idioma do navegador, não da página. */
@@ -6,6 +6,7 @@ import { Component, input, output } from '@angular/core';
   selector: 'app-seletor-arquivo',
   imports: [],
   templateUrl: './seletor-arquivo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './seletor-arquivo.component.scss'
 })
 export class SeletorArquivoComponent {

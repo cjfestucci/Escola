@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, inject, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { LogAuditoria } from '../../models/log-auditoria.model';
 import { LogAuditoriaService } from '../../services/log-auditoria.service';
@@ -16,6 +16,7 @@ const ROTULOS_ACAO: Record<LogAuditoria['acao'], string> = {
   selector: 'app-logs-modal',
   imports: [],
   templateUrl: './logs-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './logs-modal.component.scss'
 })
 export class LogsModalComponent implements OnInit {

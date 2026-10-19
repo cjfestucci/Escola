@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -36,6 +36,7 @@ interface LinhaConvocacao {
   selector: 'app-jogo-formulario',
   imports: [FormsModule, CalendarioComponent, SeletorHorarioComponent],
   templateUrl: './jogo-formulario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './jogo-formulario.component.scss'
 })
 export class JogoFormularioComponent implements OnInit {

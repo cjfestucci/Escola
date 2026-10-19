@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
@@ -12,6 +12,7 @@ import { formatarDataAbsoluta } from '../../shared/data-utils';
   selector: 'app-campeonato-detalhe',
   imports: [RouterLink],
   templateUrl: './campeonato-detalhe.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './campeonato-detalhe.component.scss'
 })
 export class CampeonatoDetalheComponent implements OnInit {

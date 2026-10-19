@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import QRCode from 'qrcode';
@@ -16,6 +16,7 @@ type Etapa = 'status' | 'ativando' | 'ativandoEmail' | 'codigos' | 'desativando'
   selector: 'app-minha-conta',
   imports: [FormsModule, NgTemplateOutlet],
   templateUrl: './minha-conta.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './minha-conta.component.scss'
 })
 export class MinhaContaComponent implements OnInit {

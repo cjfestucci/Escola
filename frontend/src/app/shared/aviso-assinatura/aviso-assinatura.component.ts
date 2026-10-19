@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AssinaturaService } from '../../services/assinatura.service';
@@ -20,6 +20,7 @@ import { formatarDataAbsoluta } from '../data-utils';
       </div>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: `
     .aviso {
       display: flex;

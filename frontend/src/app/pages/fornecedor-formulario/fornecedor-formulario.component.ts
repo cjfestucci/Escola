@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../shared/mascara/mascara.directive';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { FornecedorService } from '../../services/fornecedor.service';
   selector: 'app-fornecedor-formulario',
   imports: [FormsModule, MascaraDirective],
   templateUrl: './fornecedor-formulario.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './fornecedor-formulario.component.scss'
 })
 export class FornecedorFormularioComponent implements OnInit {

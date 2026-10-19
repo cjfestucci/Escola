@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { formatarReais } from '../../models/assinatura.model';
 import { AssinaturaService } from '../../services/assinatura.service';
@@ -10,6 +10,7 @@ import { formatarDataAbsoluta } from '../../shared/data-utils';
 @Component({
   selector: 'app-assinatura',
   templateUrl: './assinatura.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './assinatura.component.scss'
 })
 export class AssinaturaComponent implements OnInit {

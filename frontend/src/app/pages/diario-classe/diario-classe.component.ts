@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -20,6 +20,7 @@ const MAX_FOTOS = 4;
   selector: 'app-diario-classe',
   imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent, LogsModalComponent],
   templateUrl: './diario-classe.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './diario-classe.component.scss'
 })
 export class DiarioClasseComponent implements OnInit {

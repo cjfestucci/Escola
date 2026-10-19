@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { NotificacaoService } from '../../services/notificacao.service';
 
@@ -6,6 +6,7 @@ import { NotificacaoService } from '../../services/notificacao.service';
   selector: 'app-notificacoes',
   imports: [],
   templateUrl: './notificacoes.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './notificacoes.component.scss'
 })
 export class NotificacoesComponent {

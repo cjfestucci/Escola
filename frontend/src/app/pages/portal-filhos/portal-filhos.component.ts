@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Aluno } from '../../models/aluno.model';
@@ -9,6 +9,7 @@ import { SessaoService } from '../../services/sessao.service';
   selector: 'app-portal-filhos',
   imports: [],
   templateUrl: './portal-filhos.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './portal-filhos.component.scss'
 })
 export class PortalFilhosComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { ConexaoService } from '../../services/conexao.service';
 
@@ -7,6 +7,7 @@ import { ConexaoService } from '../../services/conexao.service';
 @Component({
   selector: 'app-aviso-conexao',
   templateUrl: './aviso-conexao.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './aviso-conexao.component.scss'
 })
 export class AvisoConexaoComponent {

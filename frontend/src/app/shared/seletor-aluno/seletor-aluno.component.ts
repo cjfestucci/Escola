@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, inject, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { Aluno } from '../../models/aluno.model';
@@ -8,6 +8,7 @@ import { Aluno } from '../../models/aluno.model';
   selector: 'app-seletor-aluno',
   imports: [FormsModule],
   templateUrl: './seletor-aluno.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './seletor-aluno.component.scss'
 })
 export class SeletorAlunoComponent {

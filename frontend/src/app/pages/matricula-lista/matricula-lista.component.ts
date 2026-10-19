@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -24,6 +24,7 @@ type AtestadoFiltro = '' | 'pendente' | 'vencido' | 'vencendo' | 'sem';
   selector: 'app-matricula-lista',
   imports: [FormsModule, LogsModalComponent],
   templateUrl: './matricula-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './matricula-lista.component.scss'
 })
 export class MatriculaListaComponent implements OnInit {

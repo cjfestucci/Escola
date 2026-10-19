@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { FUSOS_HORARIOS } from '../../models/configuracao-escola.model';
@@ -14,6 +14,7 @@ import { COR_PADRAO, CORES_SUGERIDAS, aplicarTema, corValida, normalizarCor, pro
   selector: 'app-configuracao-geral',
   imports: [FormsModule, LogsModalComponent, SeletorArquivoComponent],
   templateUrl: './configuracao-geral.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './configuracao-geral.component.scss'
 })
 export class ConfiguracaoGeralComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -12,6 +12,7 @@ import { SegmentoService } from '../../services/segmento.service';
   selector: 'app-esqueci-senha',
   imports: [FormsModule],
   templateUrl: './esqueci-senha.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './esqueci-senha.component.scss'
 })
 export class EsqueciSenhaComponent {

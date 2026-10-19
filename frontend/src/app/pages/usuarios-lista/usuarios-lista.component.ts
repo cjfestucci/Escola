@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../services/auth.service';
@@ -19,6 +19,7 @@ const ROTULO_PAPEL: Record<PapelEquipe, string> = {
   selector: 'app-usuarios-lista',
   imports: [FormsModule, LogsModalComponent],
   templateUrl: './usuarios-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './usuarios-lista.component.scss'
 })
 export class UsuariosListaComponent implements OnInit {

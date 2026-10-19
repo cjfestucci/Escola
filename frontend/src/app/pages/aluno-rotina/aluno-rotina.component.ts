@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -37,6 +37,7 @@ type AcaoRapida = CategoriaRegistro | null;
   selector: 'app-aluno-rotina',
   imports: [FormsModule, CalendarioComponent, SeletorArquivoComponent, SeletorHorarioComponent, LogsModalComponent],
   templateUrl: './aluno-rotina.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './aluno-rotina.component.scss'
 })
 export class AlunoRotinaComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 
@@ -15,6 +15,7 @@ import { ContextoService } from './services/contexto.service';
   selector: 'app-root',
   imports: [RouterOutlet, SidebarComponent, TopbarComponent, NotificacoesComponent, AvisoAssinaturaComponent, WhatsappFlutuanteComponent, AvisoConexaoComponent],
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.scss'
 })
 export class AppComponent {

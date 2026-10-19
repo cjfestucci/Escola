@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../../shared/mascara/mascara.directive';
 import { soDigitos, soDocumento } from '../../../shared/mascara/mascara';
@@ -16,6 +16,7 @@ import { MESES_PT_BR, formatarDataHoraAbsoluta, hojeIso } from '../../../shared/
   selector: 'app-conta-pagamento',
   imports: [FormsModule, MascaraDirective],
   templateUrl: './conta-pagamento.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './conta-pagamento.component.scss'
 })
 export class ContaPagamentoComponent implements OnInit {

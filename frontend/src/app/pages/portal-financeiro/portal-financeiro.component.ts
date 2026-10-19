@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -19,6 +19,7 @@ type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado';
   selector: 'app-portal-financeiro',
   imports: [DecimalPipe, FormsModule],
   templateUrl: './portal-financeiro.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './portal-financeiro.component.scss'
 })
 export class PortalFinanceiroComponent implements OnInit {

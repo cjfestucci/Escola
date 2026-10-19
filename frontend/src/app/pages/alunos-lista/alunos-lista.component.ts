@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -14,6 +14,7 @@ import { idadeFormatada } from '../../shared/data-utils';
   selector: 'app-alunos-lista',
   imports: [FormsModule],
   templateUrl: './alunos-lista.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './alunos-lista.component.scss'
 })
 export class AlunosListaComponent implements OnInit {
