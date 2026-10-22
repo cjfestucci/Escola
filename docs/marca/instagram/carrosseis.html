@@ -33,6 +33,9 @@ li::before{content:"";position:absolute;left:0;top:14px;width:30px;height:30px;b
 const LOGO='../simbolo-fundo-escuro.svg';
 const CTA={t:'verde',h:'Teste por <em>7 dias grátis</em>',p:'Gestor Tático: gestão para escolinhas e clubes de base.',b:'Link na bio'};
 const decks={
+apresentacao:[
+{t:'capa',tag:'Novo por aqui',h:'Gestão para escolinhas e <em>clubes de base</em>',p:'Atletas, chamada, jogos, mensalidades com Pix e Portal da Família. Tudo num sistema só.'}
+],
 mensalidade:[
 {t:'capa',tag:'Mensalidade',h:'Fechar a mensalidade da escolinha em <em>minutos</em>',p:'Sem planilha, sem conferir Pix um por um.'},
 {h:'O mês fecha e a <em>conta não bate</em>',p:'Conferir quem pagou. Lembrar quem não pagou. Calcular o atraso. Responder "qual é a chave Pix?" pela décima vez.'},
@@ -63,7 +66,7 @@ function slide(s,i,n){
  const cls=['slide']; if(s.t==='claro')cls.push('claro'); if(s.t==='verde')cls.push('verde');
  const list=s.list?`<ul class="${s.passo?'passo':''}">${s.list.map(x=>`<li>${x}</li>`).join('')}</ul>`:'';
  return `<section class="${cls.join(' ')}">
- <div class="topo"><span><img src="${LOGO}" alt="">Gestor Tático</span><span class="num">${i+1}/${n}</span></div>
+ <div class="topo"><span><img src="${LOGO}" alt="">Gestor Tático</span><span class="num">${n>1?`${i+1}/${n}`:''}</span></div>
  ${s.tag?`<span class="tag">${s.tag}</span>`:''}
  ${s.t==='capa'?`<h1>${s.h}</h1>`:`<h2>${s.h}</h2>`}
  ${s.p?`<p>${s.p}</p>`:''}${list}${s.n?`<p class="nota">${s.n}</p>`:''}
