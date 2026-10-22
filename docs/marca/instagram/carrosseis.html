@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><title>Carrosséis do Instagram</title>
+<style>
+:root{--marinho:#0E2A3A;--verde:#16A34A;--verde-claro:#4ADE80}
+*{box-sizing:border-box}
+html,body{margin:0;background:#222}
+body{font-family:Inter,"Segoe UI",Arial,sans-serif}
+.slide{width:1080px;height:1350px;position:relative;overflow:hidden;background:var(--marinho);color:#fff;padding:110px 100px;display:flex;flex-direction:column;justify-content:center;margin:0 auto 20px}
+.slide.claro{background:#F4F7F5;color:var(--marinho)}
+.slide.verde{background:var(--verde)}
+.topo{position:absolute;top:60px;left:100px;right:100px;display:flex;justify-content:space-between;align-items:center;font-size:30px;font-weight:600;opacity:.85}
+.topo img{height:56px;vertical-align:middle;margin-right:14px}
+.num{font-size:28px;letter-spacing:.08em}
+.rodape{position:absolute;bottom:60px;left:100px;right:100px;font-size:28px;opacity:.7;display:flex;justify-content:space-between}
+.tag{display:inline-block;align-self:flex-start;background:var(--verde);color:#fff;font-size:30px;font-weight:700;padding:10px 26px;border-radius:40px;margin-bottom:44px}
+h1{font-size:104px;line-height:1.05;margin:0 0 40px;letter-spacing:-.02em}
+h2{font-size:84px;line-height:1.08;margin:0 0 44px;letter-spacing:-.015em}
+h1 em,h2 em{font-style:normal;color:var(--verde-claro)}
+.claro h2 em{color:var(--verde)}
+.verde h2 em{color:#fff;text-decoration:underline}
+p{font-size:44px;line-height:1.35;margin:0 0 28px;opacity:.92}
+ul{list-style:none;padding:0;margin:0}
+li{font-size:46px;line-height:1.3;margin:0 0 30px;padding-left:72px;position:relative}
+li::before{content:"";position:absolute;left:0;top:14px;width:30px;height:30px;border-radius:50%;background:var(--verde)}
+.passo{counter-reset:p}
+.passo li{counter-increment:p}
+.passo li::before{content:counter(p);width:48px;height:48px;top:0;color:#fff;font-size:30px;font-weight:700;text-align:center;line-height:48px}
+.nota{font-size:34px;opacity:.7;margin-top:30px}
+.botao{align-self:flex-start;background:#fff;color:var(--verde);font-weight:800;font-size:46px;padding:28px 56px;border-radius:70px;margin-top:20px}
+</style>
+<body><div id="app"></div>
+<script>
+const LOGO='../simbolo-fundo-escuro.svg';
+const CTA={t:'verde',h:'Teste por <em>7 dias grátis</em>',p:'Gestor Tático: gestão para escolinhas e clubes de base.',b:'Link na bio'};
+const decks={
+mensalidade:[
+{t:'capa',tag:'Mensalidade',h:'Fechar a mensalidade da escolinha em <em>minutos</em>',p:'Sem planilha, sem conferir Pix um por um.'},
+{h:'O mês fecha e a <em>conta não bate</em>',p:'Conferir quem pagou. Lembrar quem não pagou. Calcular o atraso. Responder "qual é a chave Pix?" pela décima vez.'},
+{t:'claro',h:'Valor na <em>categoria</em>, desconto no <em>atleta</em>',p:'O valor fica na categoria (Sub-9, Sub-11…). Bolsa e desconto para irmãos ficam no atleta, em percentual e com o motivo anotado.',n:'Desconto de 100% = atleta isento, sem cobrança.'},
+{h:'Gere o mês <em>inteiro</em> de uma vez',p:'Antes de gravar, uma prévia mostra quem recebe cobrança, quem já tem e quem é isento.',n:'Gerar de novo não duplica: quem já tem a mensalidade não ganha outra.'},
+{t:'claro',h:'Pix com <em>QR Code</em> em cada cobrança',p:'O responsável vê no Portal da Família e recebe por e-mail. É só copiar e pagar no app do banco.'},
+{h:'Multa e juros? <em>O sistema calcula</em>',p:'O valor atualizado do dia já sai certo no código Pix e no e-mail da cobrança. Sem conta de cabeça.'},
+{t:'claro',h:'Recebeu? <em>Um clique.</em>',p:'Marcar paga. A lista separa o que está a vencer, atrasado e pago, e o painel mostra o recebido no mês e o total em aberto.'},
+CTA],
+chamada:[
+{t:'capa',tag:'Chamada',h:'Chamada em menos de <em>1 minuto</em>',p:'No celular, do campo. E a frequência sai pronta.'},
+{h:'Lista no papel <em>não vira informação</em>',p:'Quem está faltando? Quem sumiu há três treinos? Sem esse dado, a desistência só aparece quando já é tarde.'},
+{t:'claro',h:'Três toques e <em>pronto</em>',list:['Abra Chamada e escolha a turma','Toque em "Todos presentes"','Ajuste só as exceções e salve'],passo:true,n:'Treino que já passou? Escolha a data e lance.'},
+{h:'Falta justificada <em>não pesa</em> contra',p:'A frequência de cada atleta aparece ao lado do nome, por período, em verde, amarelo ou vermelho. A falta justificada fica fora da conta.'},
+{t:'claro',h:'3 faltas seguidas? <em>O sistema avisa</em>',p:'O atleta ganha um selo e aparece no painel da coordenação. É a hora de conversar com a família, antes da desistência.'},
+{h:'A família <em>acompanha</em> pelo portal',p:'No Portal da Família, o responsável vê a frequência do filho e as últimas chamadas. Sem surpresa de "ele disse que estava indo".'},
+CTA],
+convocacao:[
+{t:'capa',tag:'Convocação',h:'Quem está <em>suspenso</em> no próximo jogo?',p:'O sistema responde antes de você escalar.'},
+{h:'Súmula no papel, cartão <em>na memória</em>',p:'Em dia de jogo, alguém sempre escala um atleta suspenso. Com tudo registrado, o aviso aparece sozinho.'},
+{t:'claro',h:'As regras, <em>calculadas</em>',list:['Vermelho: suspenso do próximo jogo','Limite de amarelos: suspenso e a contagem recomeça','Pendurado: a um amarelo da suspensão'],n:'Você define o limite de amarelos de cada campeonato.'},
+{h:'Na convocação, tudo <em>ao lado do nome</em>',list:['Suspenso ou pendurado','Frequência nos treinos e faltas seguidas','Atestado médico vencido na data do jogo']},
+{t:'claro',h:'São <em>avisos</em>. A decisão é do treinador.',p:'O sistema informa, não impede. Pode haver um bom motivo para escalar, e quem decide é a comissão.'},
+{h:'Cada família vê só o <em>próprio filho</em>',p:'No portal, os pais veem se o filho foi convocado e se é titular. Nunca a escalação completa nem dados de outros atletas.'},
+CTA]};
+const [deck,idx]=(location.hash.slice(1)||'').split('-');
+function slide(s,i,n){
+ const cls=['slide']; if(s.t==='claro')cls.push('claro'); if(s.t==='verde')cls.push('verde');
+ const list=s.list?`<ul class="${s.passo?'passo':''}">${s.list.map(x=>`<li>${x}</li>`).join('')}</ul>`:'';
+ return `<section class="${cls.join(' ')}">
+ <div class="topo"><span><img src="${LOGO}" alt="">Gestor Tático</span><span class="num">${i+1}/${n}</span></div>
+ ${s.tag?`<span class="tag">${s.tag}</span>`:''}
+ ${s.t==='capa'?`<h1>${s.h}</h1>`:`<h2>${s.h}</h2>`}
+ ${s.p?`<p>${s.p}</p>`:''}${list}${s.n?`<p class="nota">${s.n}</p>`:''}
+ ${s.b?`<div class="botao">${s.b}</div>`:''}
+ <div class="rodape"><span>@gestortaticooficial</span>${i<n-1?'<span>Arraste →</span>':''}</div></section>`;}
+let html='';
+for(const [k,v] of Object.entries(decks)){ if(deck&&k!==deck)continue;
+ v.forEach((s,i)=>{ if(idx&&String(i+1)!==idx)return; html+=slide(s,i,v.length);});}
+document.getElementById('app').innerHTML=html;
+if(deck&&idx){document.body.style.background='#0E2A3A';document.querySelector('.slide').style.margin='0';}
+</script></body></html>
