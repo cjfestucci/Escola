@@ -1,4 +1,4 @@
-# Instagram @gestortaticooficial: calendário de 2 semanas (26/10 a 06/11/2026)
+# Instagram @gestortaticooficial: calendário (23/10 a 06/11/2026)
 
 Ritmo: **3 posts por semana (seg, qua, sex)** + stories quando der. Melhor horário para começar: 12h ou 19h (testar e ajustar pelas estatísticas da conta profissional).
 
@@ -8,14 +8,15 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 
 | Data | Formato | Tema |
 |---|---|---|
-| Seg 26/10 | Post único (imagem) | Apresentação do perfil |
-| Qua 28/10 | **Carrossel 1** | Mensalidade |
-| Sex 30/10 | Reel / vídeo de tela | Chamada em 1 minuto (gravar na Demonstração) |
+| ~~Sex 23/10~~ | Post único (imagem) | Apresentação do perfil: **publicado** |
+| ~~Seg 26/10~~ | **Carrossel** | Mensalidade: **publicado** |
+| Qua 28/10 | **Carrossel** | Chamada e frequência |
+| Sex 30/10 | Reel / vídeo de tela | Chamada em 1 minuto (gravar na Demonstração; se não der, post leve: dica ou enquete) |
 | Seg 02/11 | Post único ou enquete nos stories | Pergunta para o público |
-| Qua 04/11 | **Carrossel 2** | Chamada e frequência |
-| Sex 06/11 | **Carrossel 3** | Convocação, súmula e cartões |
+| Qua 04/11 | **Carrossel** | Convocação, súmula e cartões |
+| Sex 06/11 | Livre | Reel (se não saiu na sexta anterior), dica rápida ou novo tema |
 
-## Seg 26/10: apresentação
+## Sex 23/10: apresentação (publicado)
 
 **Arte:** o avatar em fundo azul-marinho com o texto "Gestão para escolinhas e clubes de base" (pode ser o slide de capa do carrossel 1 trocando o título).
 
@@ -28,7 +29,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 >
 > Siga para acompanhar. E se você cuida de uma escolinha, o teste é grátis por 7 dias (link na bio).
 
-## Qua 28/10: Carrossel 1, mensalidade (8 slides)
+## Seg 26/10: carrossel de mensalidade, 8 slides (publicado)
 
 **Legenda:**
 > Fechar a mensalidade da escolinha não precisa levar o fim de semana 💸
@@ -65,7 +66,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 **Legenda:**
 > Curiosidade de quem cuida de escolinha: como você controla a mensalidade hoje? Planilha, caderno ou sistema? Conta nos comentários 👇
 
-## Qua 04/11: Carrossel 2, chamada e frequência (7 slides)
+## Qua 28/10: carrossel de chamada e frequência (7 slides)
 
 **Legenda:**
 > "Ele disse que estava indo ao treino." Já ouviu isso? 😅
@@ -78,7 +79,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 
 **Hashtags:** #escolinhadefutebol #futebolbase #treinadordefutebol #gestaoesportiva #categoriasdebase
 
-## Sex 06/11: Carrossel 3, convocação, súmula e cartões (7 slides)
+## Qua 04/11: carrossel de convocação, súmula e cartões (7 slides)
 
 **Legenda:**
 > Dia de jogo e ninguém lembra quem está pendurado? 🟨🟥
