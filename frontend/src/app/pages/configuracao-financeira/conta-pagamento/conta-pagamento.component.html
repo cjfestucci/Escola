@@ -59,7 +59,7 @@
                     <div>
                       <strong>{{ d.titulo }}</strong>
                       <span class="selo" [class.selo--pendente]="d.situacao !== 'Recusado'" [class.selo--recusado]="d.situacao === 'Recusado'">{{ d.situacao }}</span>
-                      @if (d.descricao && (d.urlEnvio || d.envioPelaApi)) {
+                      @if (d.descricao && d.envioPelaApi) {
                         <span class="descricao-documento">{{ d.descricao }}</span>
                       }
                     </div>
