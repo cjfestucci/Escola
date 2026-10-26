@@ -53,9 +53,16 @@ public sealed class AsaasFalso
                     new { id = "doc_2", status = "PENDING", type = "SOCIAL_CONTRACT", title = "Contrato social", description = (string?)null,
                           onboardingUrl = (string?)null, onboardingUrlExpirationDate = (string?)null },
                     new { id = "doc_3", status = "APPROVED", type = "IDENTIFICATION_SELFIE", title = "Selfie", description = (string?)null,
+                          onboardingUrl = (string?)null, onboardingUrlExpirationDate = (string?)null },
+                    // Sem página de envio do Asaas: o arquivo vai pela API.
+                    new { id = "doc_4", status = "NOT_SENT", type = "MEI_CERTIFICATE", title = "Certificado MEI", description = "Certificado da condição de MEI",
                           onboardingUrl = (string?)null, onboardingUrlExpirationDate = (string?)null }
                 }
             },
+            ("POST", "/myAccount/documents/doc_4") => new { id = "arquivo_1", status = "PENDING" },
+            ("POST", var c) when c.StartsWith("/myAccount/documents/") =>
+                // Como o Asaas real: documento com onboardingUrl não aceita envio pela API.
+                (object?)null,
             ("POST", "/customers") => new { id = $"cus_{Interlocked.Increment(ref _sequencia)}" },
             ("POST", "/payments") => NovoPagamento(corpo!),
             ("POST", "/subscriptions") => NovaAssinatura(corpo!),
@@ -185,6 +192,9 @@ public sealed class AsaasFalso
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
             var texto = request.Content is null ? null : await request.Content.ReadAsStringAsync(ct);
+            // Envio de documento é multipart (não é JSON): guarda o texto bruto pra o teste conferir o tipo e o nome do arquivo.
+            if (request.Content?.Headers.ContentType?.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
+                return asaas.Responder(request, new JsonObject { ["multipart"] = texto });
             return asaas.Responder(request, string.IsNullOrWhiteSpace(texto) ? null : JsonNode.Parse(texto));
         }
     }

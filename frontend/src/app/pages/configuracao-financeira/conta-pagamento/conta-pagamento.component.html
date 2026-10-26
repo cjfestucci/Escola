@@ -40,12 +40,18 @@
           @if (c.motivoRecusa) {
             <p class="ajuda ajuda--aviso">Motivo informado pelo parceiro de pagamentos: {{ c.motivoRecusa }}</p>
           }
+          @if (c.documentosEmPreparo) {
+            <p class="ajuda ajuda--aviso">
+              Conta aberta. Estamos preparando a lista de documentos com o parceiro de pagamentos; ela aparece aqui em alguns segundos.
+            </p>
+          }
           @if (c.documentos?.length) {
             <div class="documentos">
               <h3>Documentos para aprovação da conta</h3>
               <p class="ajuda">
-                O parceiro de pagamentos precisa conferir os documentos da escola antes de liberar os recebimentos. O envio é feito na
-                página segura dele (abre em outra aba); a análise leva até 2 dias úteis.
+                O parceiro de pagamentos precisa conferir os documentos da escola antes de liberar os recebimentos. Alguns são enviados na
+                página segura dele (abre em outra aba, como a foto do rosto); outros você anexa aqui mesmo (PDF, JPEG ou PNG, até 10MB).
+                A análise leva até 2 dias úteis.
               </p>
               <ul class="lista-documentos">
                 @for (d of c.documentos; track $index) {
@@ -53,14 +59,21 @@
                     <div>
                       <strong>{{ d.titulo }}</strong>
                       <span class="selo" [class.selo--pendente]="d.situacao !== 'Recusado'" [class.selo--recusado]="d.situacao === 'Recusado'">{{ d.situacao }}</span>
-                      @if (d.descricao && d.urlEnvio) {
+                      @if (d.descricao && (d.urlEnvio || d.envioPelaApi)) {
                         <span class="descricao-documento">{{ d.descricao }}</span>
                       }
                     </div>
                     @if (d.urlEnvio) {
                       <a class="botao-envio" [href]="d.urlEnvio" target="_blank" rel="noopener">Enviar</a>
+                    } @else if (d.envioPelaApi) {
+                      <app-seletor-arquivo
+                        [rotulo]="enviandoDocumentoId() === d.id ? 'Enviando...' : (d.situacao === 'Recusado' ? 'Enviar de novo' : 'Enviar arquivo')"
+                        aceitar="application/pdf,image/jpeg,image/png"
+                        [desabilitado]="enviandoDocumentoId() !== null"
+                        (arquivoSelecionado)="enviarDocumento(d.id, $event)"
+                      />
                     } @else if (d.situacao !== 'Em análise') {
-                      <span class="descricao-documento">Fale com o suporte para enviar.</span>
+                      <span class="descricao-documento">Atualize a situação para gerar o link de envio.</span>
                     }
                   </li>
                 }

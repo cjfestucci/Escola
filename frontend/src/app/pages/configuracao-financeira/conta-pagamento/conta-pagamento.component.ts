@@ -1,6 +1,7 @@
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../../shared/mascara/mascara.directive';
+import { SeletorArquivoComponent } from '../../../shared/seletor-arquivo/seletor-arquivo.component';
 import { soDigitos, soDocumento } from '../../../shared/mascara/mascara';
 
 import { ContaPagamento, TIPOS_EMPRESA, TipoEmpresa, rotuloSituacaoGateway } from '../../../models/pagamento.model';
@@ -14,12 +15,12 @@ import { MESES_PT_BR, formatarDataHoraAbsoluta, hojeIso } from '../../../shared/
  * Some quando o gateway não está configurado no ambiente e a escola ainda não tem conta. */
 @Component({
   selector: 'app-conta-pagamento',
-  imports: [FormsModule, MascaraDirective],
+  imports: [FormsModule, MascaraDirective, SeletorArquivoComponent],
   templateUrl: './conta-pagamento.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './conta-pagamento.component.scss'
 })
-export class ContaPagamentoComponent implements OnInit {
+export class ContaPagamentoComponent implements OnInit, OnDestroy {
   private readonly pagamentoService = inject(PagamentoService);
   private readonly notificacao = inject(NotificacaoService);
   protected readonly auth = inject(AuthService);
@@ -28,6 +29,9 @@ export class ContaPagamentoComponent implements OnInit {
   readonly aberta = signal(false);
   readonly conectando = signal(false);
   readonly atualizando = signal(false);
+  /** Id do documento sendo enviado pelo sistema (um por vez). */
+  readonly enviandoDocumentoId = signal<string | null>(null);
+  private temporizadorPreparo: ReturnType<typeof setTimeout> | null = null;
   protected readonly tiposEmpresa = TIPOS_EMPRESA;
   protected readonly meses = MESES_PT_BR;
   protected readonly dias = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -65,7 +69,23 @@ export class ContaPagamentoComponent implements OnInit {
 
   ngOnInit(): void {
     // Complemento da tela: se falhar, o resto das configurações segue funcionando.
-    this.pagamentoService.obterConta().subscribe({ next: (c) => this.conta.set(c), error: () => undefined });
+    this.pagamentoService.obterConta().subscribe({ next: (c) => this.aplicar(c), error: () => undefined });
+  }
+
+  ngOnDestroy(): void {
+    if (this.temporizadorPreparo) clearTimeout(this.temporizadorPreparo);
+  }
+
+  /** Guarda a conta e, se o gateway ainda está preparando a lista de documentos (pede ~15 s), consulta de novo sozinho uma vez. */
+  private aplicar(c: ContaPagamento): void {
+    this.conta.set(c);
+    if (this.temporizadorPreparo) clearTimeout(this.temporizadorPreparo);
+    this.temporizadorPreparo = null;
+    if (c.documentosEmPreparo) {
+      this.temporizadorPreparo = setTimeout(() => {
+        this.pagamentoService.atualizarConta().subscribe({ next: (nova) => this.aplicar(nova), error: () => undefined });
+      }, 16000);
+    }
   }
 
   conectar(): void {
@@ -104,7 +124,7 @@ export class ContaPagamentoComponent implements OnInit {
       })
       .subscribe({
         next: (c) => {
-          this.conta.set(c);
+          this.aplicar(c);
           this.conectando.set(false);
           this.notificacao.sucesso('Conta de pagamento aberta.');
         },
@@ -119,13 +139,28 @@ export class ContaPagamentoComponent implements OnInit {
     this.atualizando.set(true);
     this.pagamentoService.atualizarConta().subscribe({
       next: (c) => {
-        this.conta.set(c);
+        this.aplicar(c);
         this.atualizando.set(false);
         this.notificacao.info('Situação da conta atualizada.');
       },
       error: (resposta) => {
         this.atualizando.set(false);
         this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível consultar a conta agora.');
+      }
+    });
+  }
+
+  enviarDocumento(id: string, arquivo: File): void {
+    this.enviandoDocumentoId.set(id);
+    this.pagamentoService.enviarDocumento(id, arquivo).subscribe({
+      next: (c) => {
+        this.aplicar(c);
+        this.enviandoDocumentoId.set(null);
+        this.notificacao.sucesso('Documento enviado. A análise leva até 2 dias úteis.');
+      },
+      error: (resposta) => {
+        this.enviandoDocumentoId.set(null);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível enviar o documento.');
       }
     });
   }

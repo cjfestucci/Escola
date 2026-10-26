@@ -89,6 +89,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             ["Asaas:ApiKey"] = "$aact_hmlg_conta_raiz_de_teste",
             ["Asaas:WebhookToken"] = AsaasWebhookToken,
             ["Asaas:WebhookUrlBase"] = "https://escola.teste",
+            ["Asaas:EsperaDocumentosSegundos"] = "0", // o teste não espera os 15 s do Asaas (há um teste próprio da espera)
             ["Assinatura:WebhookToken"] = AssinaturaWebhookToken,
             ["Assinatura:ExclusaoAutomatica"] = "true",
         };

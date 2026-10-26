@@ -34,6 +34,10 @@ public class OpcoesAsaas
     /// cada subconta custa R$ 12,90 do saldo da conta raiz na criação, então só se liga quando o onboarding das escolas estiver pronto.</summary>
     public bool SubcontasHabilitadas { get; set; } = true;
 
+    /// <summary>Segundos a esperar depois de criar a subconta antes de consultar os documentos pendentes (o Asaas pede no mínimo 15:
+    /// antes disso a lista pode vir incompleta e listar documentos que no fim não serão exigidos).</summary>
+    public int EsperaDocumentosSegundos { get; set; } = 15;
+
     public bool Configurado => !string.IsNullOrWhiteSpace(ApiKey);
 
     public bool Producao => string.Equals(Ambiente, "Producao", StringComparison.OrdinalIgnoreCase);
@@ -62,9 +66,10 @@ public sealed record DadosSubconta(
 
 public sealed record SubcontaCriada(string Id, string? WalletId, string ApiKey);
 
-/// <summary>Um grupo de documentos que a subconta precisa mandar pra aprovação. <c>UrlEnvio</c> (onboardingUrl do Asaas) = o envio é pela
-/// página do Asaas; sem ela, só pela API (o sistema não faz upload de documento de KYC).</summary>
-public sealed record DocumentoSubconta(string Titulo, string? Descricao, string Status, string? UrlEnvio, DateTime? UrlExpiraEm);
+/// <summary>Um grupo de documentos que a subconta precisa mandar pra aprovação. <c>UrlEnvio</c> (onboardingUrl do Asaas) = o envio é
+/// <b>só</b> pela página do Asaas (a selfie, por exemplo; mandar esse pela API é recusado, mesmo com o link vencido); sem ela, o envio
+/// é pela API (<see cref="AsaasApi.EnviarDocumentoAsync"/>), com o <c>Id</c> do grupo e o <c>Tipo</c>.</summary>
+public sealed record DocumentoSubconta(string Id, string Tipo, string Titulo, string? Descricao, string Status, string? UrlEnvio, DateTime? UrlExpiraEm);
 
 public sealed record PagamentoAsaas(string Id, string Status, decimal Valor, DateOnly? DataPagamento, string? ReferenciaExterna);
 
@@ -147,12 +152,29 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
         if (raiz.TryGetProperty("data", out var dados) && dados.ValueKind == JsonValueKind.Array)
             foreach (var d in dados.EnumerateArray())
                 documentos.Add(new DocumentoSubconta(
+                    Texto(d, "id") ?? string.Empty,
+                    Texto(d, "type") ?? string.Empty,
                     Texto(d, "title") ?? "Documento",
                     Texto(d, "description"),
                     (Texto(d, "status") ?? "NOT_SENT").ToUpperInvariant(),
                     Texto(d, "onboardingUrl"),
                     DateTime.TryParse(Texto(d, "onboardingUrlExpirationDate"), CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var expira) ? expira : null));
         return (documentos, Texto(raiz, "rejectReasons"));
+    }
+
+    /// <summary>Envia o arquivo de um grupo de documentos da subconta (<c>POST /myAccount/documents/{id}</c>, multipart). Só vale pra grupo
+    /// <b>sem</b> <c>onboardingUrl</c>; cada grupo guarda um arquivo e um novo envio substitui o anterior. Sucesso = o Asaas recebeu o
+    /// arquivo, não que foi aprovado.</summary>
+    public async Task EnviarDocumentoAsync(string apiKeySubconta, string grupoId, string tipo, byte[] conteudo, string nomeArquivo, string contentType, CancellationToken ct = default)
+    {
+        var arquivo = new ByteArrayContent(conteudo);
+        arquivo.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        var formulario = new MultipartFormDataContent
+        {
+            { new StringContent(tipo), "type" },
+            { arquivo, "documentFile", nomeArquivo }
+        };
+        using var _ = await EnviarAsync(apiKeySubconta, HttpMethod.Post, $"/myAccount/documents/{Uri.EscapeDataString(grupoId)}", null, ct, conteudo: formulario);
     }
 
     public async Task<string> CriarClienteAsync(string apiKeySubconta, string nome, string cpfCnpj, string? email, string referenciaExterna, CancellationToken ct = default)
@@ -303,7 +325,7 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
     private static string? Texto(JsonElement raiz, string campo) =>
         raiz.TryGetProperty(campo, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 
-    private async Task<JsonDocument?> EnviarAsync(string? apiKey, HttpMethod metodo, string caminho, JsonObject? corpo, CancellationToken ct, bool aceitar404 = false)
+    private async Task<JsonDocument?> EnviarAsync(string? apiKey, HttpMethod metodo, string caminho, JsonObject? corpo, CancellationToken ct, bool aceitar404 = false, HttpContent? conteudo = null)
     {
         if (string.IsNullOrWhiteSpace(apiKey))
             throw new PixProvedorException("A integração com o Asaas não está configurada neste ambiente.");
@@ -312,7 +334,9 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
         requisicao.Headers.TryAddWithoutValidation("access_token", apiKey);
         requisicao.Headers.UserAgent.Add(new ProductInfoHeaderValue("GestorTatico", "1.0"));
         requisicao.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        if (corpo is not null)
+        if (conteudo is not null)
+            requisicao.Content = conteudo;
+        else if (corpo is not null)
             requisicao.Content = new StringContent(corpo.ToJsonString(Json), Encoding.UTF8, "application/json");
 
         HttpResponseMessage resposta;

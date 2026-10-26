@@ -73,7 +73,7 @@ public class DocumentosSaudeController(EscolaDbContext db, IDocumentoStorage sto
 
         // O tipo vem do conteúdo real (assinatura do arquivo), não do Content-Type/extensão que o cliente declara.
         await using var entrada = arquivo.OpenReadStream();
-        var tipo = await DetectarTipoAsync(entrada, ct);
+        var tipo = await DetectorDocumento.DetectarAsync(entrada, ct);
         if (tipo is null) return BadRequest("Formato não suportado. Envie um PDF ou uma imagem (JPEG, PNG ou WEBP).");
 
         entrada.Position = 0;
@@ -134,24 +134,5 @@ public class DocumentosSaudeController(EscolaDbContext db, IDocumentoStorage sto
 
         var responsavelId = this.ResponsavelIdAtual();
         return await db.AlunoResponsaveis.AnyAsync(ar => ar.AlunoId == alunoId && ar.ResponsavelId == responsavelId);
-    }
-
-    private static async Task<(string ContentType, string Extensao)?> DetectarTipoAsync(Stream stream, CancellationToken ct)
-    {
-        var cabecalho = new byte[12];
-        var lidos = await stream.ReadAtLeastAsync(cabecalho, cabecalho.Length, throwOnEndOfStream: false, ct);
-        if (lidos < 4) return null;
-
-        if (cabecalho[0] == 0x25 && cabecalho[1] == 0x50 && cabecalho[2] == 0x44 && cabecalho[3] == 0x46)
-            return ("application/pdf", ".pdf");
-        if (cabecalho[0] == 0xFF && cabecalho[1] == 0xD8 && cabecalho[2] == 0xFF)
-            return ("image/jpeg", ".jpg");
-        if (cabecalho[0] == 0x89 && cabecalho[1] == 0x50 && cabecalho[2] == 0x4E && cabecalho[3] == 0x47)
-            return ("image/png", ".png");
-        if (lidos >= 12 && cabecalho[0] == 0x52 && cabecalho[1] == 0x49 && cabecalho[2] == 0x46 && cabecalho[3] == 0x46
-            && cabecalho[8] == 0x57 && cabecalho[9] == 0x45 && cabecalho[10] == 0x42 && cabecalho[11] == 0x50)
-            return ("image/webp", ".webp");
-
-        return null;
     }
 }

@@ -21,4 +21,11 @@ export class PagamentoService {
   atualizarConta(): Observable<ContaPagamento> {
     return this.http.post<ContaPagamento>(`${this.baseUrl}/conta/atualizar`, {});
   }
+
+  /** Envia o arquivo de um documento que não tem página de envio do gateway (PDF, JPEG ou PNG, até 10MB). */
+  enviarDocumento(id: string, arquivo: File): Observable<ContaPagamento> {
+    const formulario = new FormData();
+    formulario.append('arquivo', arquivo);
+    return this.http.post<ContaPagamento>(`${this.baseUrl}/conta/documentos/${encodeURIComponent(id)}`, formulario);
+  }
 }

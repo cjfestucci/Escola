@@ -18,15 +18,21 @@ export interface ContaPagamento {
   documentos?: DocumentoPendente[] | null;
   /** Motivo de recusa informado pelo gateway, se houver. */
   motivoRecusa?: string | null;
+  /** A conta acabou de ser aberta: o gateway pede uns segundos antes de listar os documentos. */
+  documentosEmPreparo?: boolean;
 }
 
 export interface DocumentoPendente {
+  /** Identificador do grupo de documentos no gateway (rota do envio pelo sistema). */
+  id: string;
   titulo: string;
   descricao: string | null;
   /** Não enviado, Em análise ou Recusado. */
   situacao: string;
-  /** Página do gateway pra enviar o documento; nula = não é pela página (fale com o suporte). */
+  /** Página do gateway pra enviar o documento (ex.: a selfie); com ela o envio é só por lá. */
   urlEnvio: string | null;
+  /** Sem página do gateway: o arquivo é enviado aqui mesmo, pelo sistema. */
+  envioPelaApi: boolean;
 }
 
 export type TipoEmpresa = 'MEI' | 'LIMITED' | 'INDIVIDUAL' | 'ASSOCIATION';

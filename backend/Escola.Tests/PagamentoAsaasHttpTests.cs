@@ -113,12 +113,18 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         {
             var conta = await (await admin.PostAsync("/api/pagamentos/conta/atualizar", null)).Content.ReadFromJsonAsync<JsonElement>(Json);
             var documentos = conta.GetProperty("documentos").EnumerateArray().ToList();
-            // O aprovado não aparece; o "não enviado" leva o link do Asaas; o "em análise" não tem o que enviar.
-            Assert.Equal(2, documentos.Count);
+            // O aprovado não aparece; o "não enviado" leva o link do Asaas (e não vai pela API); o "em análise" não tem o que enviar;
+            // o que não tem link do Asaas é enviado pelo sistema.
+            Assert.Equal(3, documentos.Count);
             Assert.Equal("Não enviado", documentos[0].GetProperty("situacao").GetString());
             Assert.Equal("https://asaas.teste/onboarding/doc_1", documentos[0].GetProperty("urlEnvio").GetString());
+            Assert.False(documentos[0].GetProperty("envioPelaApi").GetBoolean());
             Assert.Equal("Em análise", documentos[1].GetProperty("situacao").GetString());
             Assert.Equal(JsonValueKind.Null, documentos[1].GetProperty("urlEnvio").ValueKind);
+            Assert.False(documentos[1].GetProperty("envioPelaApi").GetBoolean());
+            Assert.Equal("Não enviado", documentos[2].GetProperty("situacao").GetString());
+            Assert.Equal("doc_4", documentos[2].GetProperty("id").GetString());
+            Assert.True(documentos[2].GetProperty("envioPelaApi").GetBoolean());
         }
         finally
         {
@@ -129,6 +135,88 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         // Aprovada: nada de documentos (nem consulta).
         var aprovada = await admin.GetFromJsonAsync<JsonElement>("/api/pagamentos/conta", Json);
         Assert.Equal(JsonValueKind.Null, aprovada.GetProperty("documentos").ValueKind);
+    }
+
+    private static MultipartFormDataContent Arquivo(byte[] conteudo, string nome)
+    {
+        var parte = new ByteArrayContent(conteudo);
+        parte.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        return new MultipartFormDataContent { { parte, "arquivo", nome } };
+    }
+
+    private static readonly byte[] Pdf = System.Text.Encoding.ASCII.GetBytes("%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF");
+
+    [Fact]
+    public async Task DocumentoSemLinkDoAsaasVaiPelaApiComOTipoDoProprioAsaasEFicaNoHistorico()
+    {
+        await GarantirContaAsync();
+        var admin = await api.ClienteLogadoAsync(PapelUsuario.Admin);
+        api.Asaas.SituacaoConta = "AWAITING_APPROVAL";
+        try
+        {
+            (await admin.PostAsync("/api/pagamentos/conta/atualizar", null)).EnsureSuccessStatusCode();
+
+            // Permissão: quem não é Admin/Suporte não envia documento da empresa.
+            var coordenador = await api.ClienteLogadoAsync(PapelUsuario.Coordenador);
+            Assert.Equal(HttpStatusCode.Forbidden, (await coordenador.PostAsync("/api/pagamentos/conta/documentos/doc_4", Arquivo(Pdf, "mei.pdf"))).StatusCode);
+
+            // Texto disfarçado de PDF (o nome diz .pdf, o conteúdo não) é recusado pelo conteúdo.
+            var falso = await admin.PostAsync("/api/pagamentos/conta/documentos/doc_4", Arquivo("<html>oi</html>"u8.ToArray(), "mei.pdf"));
+            Assert.Equal(HttpStatusCode.BadRequest, falso.StatusCode);
+
+            // Documento que tem a página do Asaas (doc_1) nunca vai pela API.
+            var comLink = await admin.PostAsync("/api/pagamentos/conta/documentos/doc_1", Arquivo(Pdf, "rg.pdf"));
+            Assert.Equal(HttpStatusCode.BadRequest, comLink.StatusCode);
+            var inexistente = await admin.PostAsync("/api/pagamentos/conta/documentos/doc_999", Arquivo(Pdf, "x.pdf"));
+            Assert.Equal(HttpStatusCode.NotFound, inexistente.StatusCode);
+            Assert.DoesNotContain(api.Asaas.Chamadas, c => c.Metodo == "POST" && c.Caminho is "/myAccount/documents/doc_1" or "/myAccount/documents/doc_999");
+
+            var ok = await admin.PostAsync("/api/pagamentos/conta/documentos/doc_4", Arquivo(Pdf, "mei.pdf"));
+            Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
+
+            // Foi à subconta (nunca à raiz), com o tipo que o Asaas informou e o arquivo.
+            var envio = api.Asaas.Chamadas.Last(c => c.Metodo == "POST" && c.Caminho == "/myAccount/documents/doc_4");
+            Assert.Equal(AsaasFalso.ApiKeySubconta, envio.ApiKey);
+            var multipart = envio.Corpo!["multipart"]!.GetValue<string>();
+            Assert.Contains("MEI_CERTIFICATE", multipart);
+            Assert.Contains("documentFile", multipart);
+            Assert.Contains("%PDF-1.4", multipart);
+
+            using var db = api.Contexto(ApiFactory.ClienteId);
+            Assert.Contains(await db.LogsAuditoria.Where(l => l.EntidadeTipo == nameof(ContaPagamento)).Select(l => l.Detalhe).ToListAsync(),
+                d => d != null && d.Contains("Documento enviado ao parceiro de pagamentos: Certificado MEI"));
+        }
+        finally
+        {
+            api.Asaas.SituacaoConta = "APPROVED";
+            (await admin.PostAsync("/api/pagamentos/conta/atualizar", null)).EnsureSuccessStatusCode();
+        }
+    }
+
+    [Fact]
+    public async Task DocumentosSoSaemDepoisDaEsperaDoAsaasAposCriarASubconta()
+    {
+        await GarantirContaAsync();
+        api.Asaas.SituacaoConta = "AWAITING_APPROVAL";
+        try
+        {
+            // Espera de uma hora: a conta (aberta há segundos) ainda está "em preparo" e o Asaas nem é consultado.
+            using var fabrica = api.WithWebHostBuilder(b => b.UseSetting("Asaas:EsperaDocumentosSegundos", "3600"));
+            var admin = fabrica.CreateClient();
+            admin.DefaultRequestHeaders.Authorization = (await api.ClienteLogadoAsync(PapelUsuario.Admin)).DefaultRequestHeaders.Authorization;
+            var consultasAntes = api.Asaas.Chamadas.Count(c => c.Metodo == "GET" && c.Caminho == "/myAccount/documents");
+
+            var conta = await (await admin.PostAsync("/api/pagamentos/conta/atualizar", null)).Content.ReadFromJsonAsync<JsonElement>(Json);
+            Assert.True(conta.GetProperty("documentosEmPreparo").GetBoolean());
+            Assert.Empty(conta.GetProperty("documentos").EnumerateArray());
+            Assert.Equal(consultasAntes, api.Asaas.Chamadas.Count(c => c.Metodo == "GET" && c.Caminho == "/myAccount/documents"));
+        }
+        finally
+        {
+            api.Asaas.SituacaoConta = "APPROVED";
+            var admin = await api.ClienteLogadoAsync(PapelUsuario.Admin);
+            (await admin.PostAsync("/api/pagamentos/conta/atualizar", null)).EnsureSuccessStatusCode();
+        }
     }
 
     [Fact]

@@ -11,6 +11,7 @@ using Escola.Infrastructure.Data;
 using Escola.Infrastructure.Pagamentos;
 using Escola.Infrastructure.Pagamentos.Asaas;
 using Escola.Infrastructure.Seguranca;
+using Escola.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,11 +33,14 @@ public record ContaPagamentoDto(
     DateTime? CriadaEm,
     bool PagamentoAutomaticoAtivo,
     IReadOnlyList<DocumentoPendenteDto>? Documentos = null,
-    string? MotivoRecusa = null);
+    string? MotivoRecusa = null,
+    bool DocumentosEmPreparo = false);
 
+/// <param name="Id">Identificador do grupo de documentos no Asaas (vai na rota do envio pela API).</param>
 /// <param name="Situacao">Não enviado, Em análise ou Recusado.</param>
-/// <param name="UrlEnvio">Página do Asaas pra enviar este documento. Nula = o envio não é pela página (o suporte ajuda).</param>
-public record DocumentoPendenteDto(string Titulo, string? Descricao, string Situacao, string? UrlEnvio);
+/// <param name="UrlEnvio">Página do Asaas pra enviar este documento (a selfie, por exemplo). Com ela o envio é só por lá.</param>
+/// <param name="EnvioPelaApi">Sem página do Asaas: o arquivo é enviado aqui mesmo, pelo sistema (<c>POST conta/documentos/{id}</c>).</param>
+public record DocumentoPendenteDto(string Id, string Titulo, string? Descricao, string Situacao, string? UrlEnvio, bool EnvioPelaApi);
 
 /// <param name="TipoEmpresa">Só pra CNPJ: MEI, LIMITED, INDIVIDUAL ou ASSOCIATION.</param>
 /// <param name="DataNascimento">Só pra CPF (titular pessoa física).</param>
@@ -121,7 +125,7 @@ public class PagamentosController(
 
         // A conta já existe no Asaas: daqui pra frente nada pode desfazer o registro acima. Chave Pix e situação são "melhor esforço".
         await ConcluirConfiguracaoAsync(conta, criada.ApiKey, ct);
-        return Ok(ParaDto(conta));
+        return Ok(ParaDto(conta) with { DocumentosEmPreparo = o.EsperaDocumentosSegundos > 0 && conta.SituacaoGateway != "APPROVED" });
     }
 
     /// <summary>Tenta de novo o que pode ter falhado depois da criação (chave Pix da subconta) e atualiza a situação da conta.</summary>
@@ -134,6 +138,69 @@ public class PagamentosController(
         if (!cofre.Disponivel) return BadRequest("O cofre de segredos não está configurado neste ambiente (Segredos:Chave).");
 
         await ConcluirConfiguracaoAsync(conta, cofre.Descriptografar(conta.ApiKeyCriptografada), ct);
+        return Ok(await ComDocumentosAsync(conta, ct));
+    }
+
+    private const long TamanhoMaximoDocumentoBytes = 10 * 1024 * 1024;
+
+    /// <summary>Envia ao Asaas o arquivo de um documento que o parceiro pediu pra aprovar a conta (KYC) e que <b>não</b> tem página de
+    /// envio do Asaas. O tipo do documento vem do próprio Asaas (nunca do cliente) e o formato do arquivo é conferido pelo conteúdo.</summary>
+    [HttpPost("conta/documentos/{id}")]
+    [Authorize(Roles = GruposDePapeis.AdminOuSuporte)]
+    [RequestSizeLimit(TamanhoMaximoDocumentoBytes + 1024 * 1024)]
+    public async Task<ActionResult<ContaPagamentoDto>> EnviarDocumento(string id, IFormFile arquivo, CancellationToken ct)
+    {
+        var conta = await db.ContasPagamento.FirstOrDefaultAsync(c => c.Ambiente == opcoes.Value.NomeAmbiente, ct);
+        if (conta is null) return NotFound("Esta escola ainda não tem conta de pagamento.");
+        if (!cofre.Disponivel) return BadRequest("O cofre de segredos não está configurado neste ambiente (Segredos:Chave).");
+
+        if (arquivo is null || arquivo.Length == 0) return BadRequest("Nenhum arquivo enviado.");
+        if (arquivo.Length > TamanhoMaximoDocumentoBytes) return BadRequest("Arquivo maior que o limite de 10MB.");
+
+        byte[] conteudo;
+        (string ContentType, string Extensao)? tipoArquivo;
+        await using (var entrada = arquivo.OpenReadStream())
+        {
+            tipoArquivo = await DetectorDocumento.DetectarAsync(entrada, ct);
+            entrada.Position = 0;
+            using var memoria = new MemoryStream();
+            await entrada.CopyToAsync(memoria, ct);
+            conteudo = memoria.ToArray();
+        }
+        if (tipoArquivo is null or { ContentType: "image/webp" })
+            return BadRequest("Formato não suportado. Envie um PDF ou uma imagem JPEG ou PNG.");
+
+        var apiKey = cofre.Descriptografar(conta.ApiKeyCriptografada);
+        DocumentoSubconta? documento;
+        try
+        {
+            var (documentos, _) = await asaas.DocumentosSubcontaAsync(apiKey, ct);
+            documento = documentos.FirstOrDefault(d => d.Id == id);
+        }
+        catch (PixProvedorException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        if (documento is null) return NotFound("Documento não encontrado. Use \"Atualizar situação\" e tente de novo.");
+        if (documento.UrlEnvio is not null)
+            return BadRequest("Este documento é enviado pela página segura do parceiro de pagamentos (botão \"Enviar\").");
+        if (documento.Status is not ("NOT_SENT" or "REJECTED"))
+            return BadRequest("Este documento não está aguardando envio.");
+
+        var nome = Path.GetFileName(arquivo.FileName);
+        if (string.IsNullOrWhiteSpace(nome)) nome = $"documento{tipoArquivo!.Value.Extensao}";
+        try
+        {
+            await asaas.EnviarDocumentoAsync(apiKey, documento.Id, documento.Tipo, conteudo, nome, tipoArquivo!.Value.ContentType, ct);
+        }
+        catch (PixProvedorException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        auditoria.Registrar(nameof(ContaPagamento), conta.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(),
+            $"Documento enviado ao parceiro de pagamentos: {documento.Titulo}");
+        await db.SaveChangesAsync(ct);
         return Ok(await ComDocumentosAsync(conta, ct));
     }
 
@@ -208,19 +275,26 @@ public class PagamentosController(
     {
         var dto = ParaDto(conta);
         if (conta is null || conta.SituacaoGateway == "APPROVED" || !cofre.Disponivel) return dto;
+
+        // O Asaas pede ao menos 15 s entre criar a subconta e consultar os documentos: antes disso a lista vem incompleta.
+        if (DateTime.UtcNow < conta.CriadaEm.AddSeconds(opcoes.Value.EsperaDocumentosSegundos))
+            return dto with { Documentos = [], DocumentosEmPreparo = true };
+
         try
         {
             var (documentos, motivo) = await asaas.DocumentosSubcontaAsync(cofre.Descriptografar(conta.ApiKeyCriptografada), ct);
             var agora = DateTime.UtcNow;
             var pendentes = documentos
                 .Where(d => d.Status is "NOT_SENT" or "PENDING" or "REJECTED")
-                .Select(d => new DocumentoPendenteDto(d.Titulo, d.Descricao, d.Status switch
+                .Select(d => new DocumentoPendenteDto(d.Id, d.Titulo, d.Descricao, d.Status switch
                 {
                     "PENDING" => "Em análise",
                     "REJECTED" => "Recusado",
                     _ => "Não enviado"
                     // Em análise não há o que enviar; link vencido só confundiria (o próximo "Atualizar" traz um novo).
-                }, d.Status != "PENDING" && (d.UrlExpiraEm is null || d.UrlExpiraEm > agora) ? d.UrlEnvio : null))
+                }, d.Status != "PENDING" && (d.UrlExpiraEm is null || d.UrlExpiraEm > agora) ? d.UrlEnvio : null,
+                    // Documento com link do Asaas (mesmo vencido) nunca vai pela API: o Asaas recusa.
+                    d.Status != "PENDING" && d.UrlEnvio is null && !string.IsNullOrWhiteSpace(d.Id)))
                 .ToList();
             return dto with { Documentos = pendentes, MotivoRecusa = string.IsNullOrWhiteSpace(motivo) ? null : motivo };
         }
