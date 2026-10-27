@@ -233,7 +233,13 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         Assert.Contains("0800 009 0037", enviado);
         Assert.Contains("contato@asaas.com.br", enviado);
 
-        // Sem CPF o Pix cai no estático (não passa pelo Asaas): nada de selo.
+        // Sem CPF o Pix cai no estático (não passa pelo Asaas): nada de selo. Precisa da chave Pix estática configurada.
+        var gestao = await api.ClienteLogadoAsync(PapelUsuario.Coordenador);
+        (await gestao.PutAsJsonAsync("/api/financeiro/configuracao", new
+        {
+            pixChave = "+5511999998888", pixTipoChave = "Telefone", pixNomeRecebedor = "Escola Teste", pixCidade = "Sao Paulo",
+            pagamentoPixAtivo = true, pagamentoBoletoAtivo = false, pagamentoPresencialAtivo = false
+        })).EnsureSuccessStatusCode();
         var (semCpf, _) = await CriarCobrancaAsync(cpfResponsavel: null);
         var pix = await financeiro.GetFromJsonAsync<JsonElement>($"/api/financeiro/cobrancas/{semCpf}/pix", Json);
         Assert.False(pix.GetProperty("processadoPeloAsaas").GetBoolean());
