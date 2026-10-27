@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetection
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../../shared/mascara/mascara.directive';
 import { SeletorArquivoComponent } from '../../../shared/seletor-arquivo/seletor-arquivo.component';
+import { AvisoAsaasComponent } from '../../../shared/aviso-asaas/aviso-asaas.component';
 import { soDigitos, soDocumento } from '../../../shared/mascara/mascara';
 
 import { ContaPagamento, TIPOS_EMPRESA, TipoEmpresa, rotuloSituacaoGateway } from '../../../models/pagamento.model';
@@ -15,7 +16,7 @@ import { MESES_PT_BR, formatarDataHoraAbsoluta, hojeIso } from '../../../shared/
  * Some quando o gateway não está configurado no ambiente e a escola ainda não tem conta. */
 @Component({
   selector: 'app-conta-pagamento',
-  imports: [FormsModule, MascaraDirective, SeletorArquivoComponent],
+  imports: [FormsModule, MascaraDirective, SeletorArquivoComponent, AvisoAsaasComponent],
   templateUrl: './conta-pagamento.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './conta-pagamento.component.scss'

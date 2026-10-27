@@ -1,0 +1,38 @@
+.aviso-asaas {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--cor-borda, #e5e7eb);
+  border-radius: 10px;
+  background: var(--cor-fundo-suave, #f9fafb);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--cor-texto-suave, #4b5563);
+
+  p {
+    margin: 8px 0 0;
+  }
+}
+
+.selo-asaas {
+  display: inline-block;
+
+  img {
+    display: block;
+    height: 48px;
+    width: auto;
+  }
+}
+
+.aviso-asaas--compacto {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+
+  .selo-asaas img {
+    height: 32px;
+  }
+
+  p {
+    margin: 6px 0 0;
+  }
+}

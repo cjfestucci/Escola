@@ -15,9 +15,11 @@ import { gerarQrCodePix } from '../../shared/pix-qrcode';
 
 type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado';
 
+import { AvisoAsaasComponent } from '../../shared/aviso-asaas/aviso-asaas.component';
+
 @Component({
   selector: 'app-portal-financeiro',
-  imports: [DecimalPipe, FormsModule],
+  imports: [DecimalPipe, FormsModule, AvisoAsaasComponent],
   templateUrl: './portal-financeiro.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './portal-financeiro.component.scss'
@@ -44,6 +46,7 @@ export class PortalFinanceiroComponent implements OnInit {
   readonly pixCarregando = signal(false);
   readonly pixCodigo = signal<string | null>(null);
   readonly pixAutomatico = signal(false);
+  readonly pixAsaas = signal(false);
   readonly pixQrCode = signal<string | null>(null);
   readonly pixCopiado = signal(false);
 
@@ -135,6 +138,7 @@ export class PortalFinanceiroComponent implements OnInit {
     this.pixAbertoId.set(cobranca.id);
     this.pixCodigo.set(null);
     this.pixAutomatico.set(false);
+    this.pixAsaas.set(false);
     this.pixQrCode.set(null);
     this.pixCopiado.set(false);
     this.pixCarregando.set(true);
@@ -142,6 +146,7 @@ export class PortalFinanceiroComponent implements OnInit {
       next: (resposta) => {
         this.pixCodigo.set(resposta.codigoCopiaECola);
         this.pixAutomatico.set(resposta.automatico);
+        this.pixAsaas.set(resposta.processadoPeloAsaas ?? false);
         this.pixCarregando.set(false);
         gerarQrCodePix(resposta.codigoCopiaECola).then((url) => this.pixQrCode.set(url));
       },

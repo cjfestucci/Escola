@@ -24,4 +24,5 @@ public record ConfiguracaoFinanceiraDto(
 public record FormasPagamentoDto(bool Pix, bool Boleto, bool Presencial, string? InstrucoesPresencial);
 
 /// <param name="Automatico">O código foi criado no banco: o pagamento é confirmado e baixado sozinho. Falso = Pix estático (baixa manual).</param>
-public record PixCobrancaDto(string CodigoCopiaECola, bool Automatico = false);
+/// <param name="ProcessadoPeloAsaas">O Pix sai da subconta do Asaas: a tela e o e-mail precisam identificar o Asaas como prestador (Playbook de BaaS).</param>
+public record PixCobrancaDto(string CodigoCopiaECola, bool Automatico = false, bool ProcessadoPeloAsaas = false);

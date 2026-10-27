@@ -16,9 +16,11 @@ import { SeletorAlunoComponent } from '../../shared/seletor-aluno/seletor-aluno.
 
 type StatusFiltro = 'todos' | 'pendente' | 'pago' | 'atrasado' | 'cancelada';
 
+import { AvisoAsaasComponent } from '../../shared/aviso-asaas/aviso-asaas.component';
+
 @Component({
   selector: 'app-financeiro-lista',
-  imports: [FormsModule, CalendarioComponent, DecimalPipe, SeletorAlunoComponent, LogsModalComponent],
+  imports: [FormsModule, CalendarioComponent, DecimalPipe, SeletorAlunoComponent, LogsModalComponent, AvisoAsaasComponent],
   templateUrl: './financeiro-lista.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './financeiro-lista.component.scss'
@@ -66,6 +68,7 @@ export class FinanceiroListaComponent implements OnInit {
   readonly pixCarregando = signal(false);
   readonly pixCodigo = signal<string | null>(null);
   readonly pixAutomatico = signal(false);
+  readonly pixAsaas = signal(false);
   readonly pixCopiado = signal(false);
 
   readonly enviandoEmailId = signal<string | null>(null);
@@ -385,12 +388,14 @@ export class FinanceiroListaComponent implements OnInit {
     this.pixAbertoId.set(cobranca.id);
     this.pixCodigo.set(null);
     this.pixAutomatico.set(false);
+    this.pixAsaas.set(false);
     this.pixCopiado.set(false);
     this.pixCarregando.set(true);
     this.financeiroService.obterPix(cobranca.id).subscribe({
       next: (resposta) => {
         this.pixCodigo.set(resposta.codigoCopiaECola);
         this.pixAutomatico.set(resposta.automatico);
+        this.pixAsaas.set(resposta.processadoPeloAsaas ?? false);
         this.pixCarregando.set(false);
       },
       error: (resposta) => {

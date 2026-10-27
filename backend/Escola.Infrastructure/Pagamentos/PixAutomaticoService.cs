@@ -18,6 +18,9 @@ public interface IPixAutomaticoService
     /// <summary>Há Pix automático nesta escola (não exige chave Pix estática quando é o Asaas)?</summary>
     Task<bool> DisponivelAsync(CancellationToken ct = default);
 
+    /// <summary>Provedor que geraria o Pix automático de uma cobrança nova (nulo = só Pix estático). O Asaas exige identificá-lo ao cliente final.</summary>
+    Task<ProvedorPagamento?> ProvedorAtivoAsync(CancellationToken ct = default);
+
     /// <summary>Confere no banco (nunca confia no aviso recebido) se a cobrança Pix de <paramref name="txid"/> foi paga e, se foi, dá baixa.</summary>
     Task<bool> ConfirmarAsync(string txid, CancellationToken ct = default);
 
@@ -42,6 +45,8 @@ public sealed class PixAutomaticoService(
     private static readonly TimeSpan ValidadeMinimaParaReuso = TimeSpan.FromHours(1);
 
     public async Task<bool> DisponivelAsync(CancellationToken ct = default) => await provedores.ParaNovaCobrancaAsync(ct) is not null;
+
+    public async Task<ProvedorPagamento?> ProvedorAtivoAsync(CancellationToken ct = default) => (await provedores.ParaNovaCobrancaAsync(ct))?.Tipo;
 
     public async Task<string?> ObterCopiaEColaAsync(Cobranca cobranca, decimal valor, string? chavePix, CancellationToken ct = default)
     {

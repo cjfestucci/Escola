@@ -10,6 +10,7 @@ using Escola.Infrastructure.Tempo;
 using Escola.Infrastructure.Email;
 using Escola.Infrastructure.Financeiro;
 using Escola.Infrastructure.Pagamentos;
+using Escola.Infrastructure.Pagamentos.Asaas;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -227,10 +228,10 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
             return BadRequest("O pagamento por Pix não está habilitado nesta escola.");
         // Cobra o valor atualizado (com multa/juros, se a escola configurou e a cobrança está atrasada).
         var valor = cobranca.Valor + EncargosCobranca.Calcular(cobranca.Valor, cobranca.Vencimento, await relogio.HojeAsync(), cobranca.Paga, cobranca.Cancelada, config.ToPolitica()).Total;
-        var (codigo, automatico) = await GerarCodigoPixAsync(cobranca, config, valor);
+        var (codigo, automatico, processadoPeloAsaas) = await GerarCodigoPixAsync(cobranca, config, valor);
         return codigo is null
             ? BadRequest("A chave Pix da escola ainda não foi configurada.")
-            : Ok(new PixCobrancaDto(codigo, automatico));
+            : Ok(new PixCobrancaDto(codigo, automatico, processadoPeloAsaas));
     }
 
     /// <summary>Envia por e-mail, ao(s) responsável(is) do aluno, os detalhes da cobrança e o código Pix pra pagamento.</summary>
@@ -257,14 +258,15 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
         var encargos = EncargosCobranca.Calcular(cobranca.Valor, cobranca.Vencimento, await relogio.HojeAsync(), cobranca.Paga, cobranca.Cancelada, config.ToPolitica());
         var valorAtualizado = cobranca.Valor + encargos.Total;
         string? codigoPix = null;
+        var processadoPeloAsaas = false;
         // Só oferece no e-mail as formas de pagamento ativas: sem Pix ativo, não vai código Pix.
         if (config is not { PagamentoPixAtivo: false })
-            codigoPix = (await GerarCodigoPixAsync(cobranca, config, valorAtualizado)).Codigo;
+            (codigoPix, _, processadoPeloAsaas) = await GerarCodigoPixAsync(cobranca, config, valorAtualizado);
         var instrucoesPresencial = config is { PagamentoPresencialAtivo: true }
             ? (string.IsNullOrWhiteSpace(config.InstrucoesPagamentoPresencial) ? "Pagamento também pode ser feito na escola." : config.InstrucoesPagamentoPresencial)
             : null;
 
-        var corpo = MontarCorpoEmail(cobranca, codigoPix, valorAtualizado, encargos.Total, instrucoesPresencial);
+        var corpo = MontarCorpoEmail(cobranca, codigoPix, valorAtualizado, encargos.Total, instrucoesPresencial, processadoPeloAsaas);
 
         foreach (var responsavel in destinatarios)
             await emailSender.EnviarAsync(responsavel.Email, responsavel.Nome, $"Cobrança — {cobranca.Descricao}", corpo);
@@ -516,18 +518,18 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     /// <summary>Pix dinâmico do banco (com baixa automática) quando a integração está ligada e a cobrança ainda está em aberto;
     /// caso contrário — integração desligada, cobrança já paga/cancelada ou banco fora do ar — o Pix estático de sempre.</summary>
     /// <returns>Nulo se não há como gerar Pix: sem automático disponível e sem chave Pix estática cadastrada.</returns>
-    private async Task<(string? Codigo, bool Automatico)> GerarCodigoPixAsync(Cobranca cobranca, ConfiguracaoFinanceira? config, decimal valor)
+    private async Task<(string? Codigo, bool Automatico, bool ProcessadoPeloAsaas)> GerarCodigoPixAsync(Cobranca cobranca, ConfiguracaoFinanceira? config, decimal valor)
     {
         if (!cobranca.Paga && !cobranca.Cancelada)
         {
             // Automático primeiro: subconta Asaas da escola (não precisa da chave estática) ou BB (cobra na chave cadastrada).
             var dinamico = await pixAutomatico.ObterCopiaEColaAsync(cobranca, valor, config?.PixChave);
-            if (dinamico is not null) return (dinamico, true);
+            if (dinamico is not null) return (dinamico, true, await pixAutomatico.ProvedorAtivoAsync() == ProvedorPagamento.Asaas);
         }
 
         if (config is null || string.IsNullOrWhiteSpace(config.PixChave) || string.IsNullOrWhiteSpace(config.PixNomeRecebedor) || string.IsNullOrWhiteSpace(config.PixCidade))
-            return (null, false);
-        return (PixBrCode.Gerar(config.PixChave, config.PixNomeRecebedor, config.PixCidade, valor, cobranca.Id.ToString("N")), false);
+            return (null, false, false);
+        return (PixBrCode.Gerar(config.PixChave, config.PixNomeRecebedor, config.PixCidade, valor, cobranca.Id.ToString("N")), false, false);
     }
 
     private async Task<(EncargosCobranca.Politica Politica, DateOnly Hoje)> ContextoEncargosAsync()
@@ -557,7 +559,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
     private IQueryable<Cobranca> ComIncludes() =>
         db.Cobrancas.Include(c => c.Aluno).ThenInclude(a => a.Turma);
 
-    private static string MontarCorpoEmail(Cobranca cobranca, string? codigoPix, decimal valorAtualizado, decimal encargos, string? instrucoesPresencial = null)
+    private static string MontarCorpoEmail(Cobranca cobranca, string? codigoPix, decimal valorAtualizado, decimal encargos, string? instrucoesPresencial = null, bool processadoPeloAsaas = false)
     {
         // Valores sempre em pt-BR: no servidor a cultura é a invariante ("250.00").
         var ptBr = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
@@ -583,6 +585,7 @@ public class FinanceiroController(EscolaDbContext db, IEmailSender emailSender, 
                 Vencimento: <strong>{cobranca.Vencimento:dd/MM/yyyy}</strong>{encargosHtml}</p>
                 {pixHtml}
                 {presencialHtml}
+                {(processadoPeloAsaas ? SeloAsaas.AvisoEmailHtml : string.Empty)}
                 """;
     }
 }

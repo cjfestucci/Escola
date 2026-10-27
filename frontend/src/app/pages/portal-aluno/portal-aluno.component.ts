@@ -33,9 +33,11 @@ import {
   rotuloCategoriaCurto
 } from '../../shared/registro-rotina-display';
 
+import { AvisoAsaasComponent } from '../../shared/aviso-asaas/aviso-asaas.component';
+
 @Component({
   selector: 'app-portal-aluno',
-  imports: [CalendarioComponent, DocumentosSaudeComponent, NgTemplateOutlet, FiltroPeriodoComponent],
+  imports: [CalendarioComponent, DocumentosSaudeComponent, NgTemplateOutlet, FiltroPeriodoComponent, AvisoAsaasComponent],
   templateUrl: './portal-aluno.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './portal-aluno.component.scss'
@@ -154,6 +156,7 @@ export class PortalAlunoComponent implements OnInit {
   readonly pixCarregando = signal(false);
   readonly pixCodigo = signal<string | null>(null);
   readonly pixAutomatico = signal(false);
+  readonly pixAsaas = signal(false);
   readonly pixQrCode = signal<string | null>(null);
   readonly pixCopiado = signal(false);
 
@@ -251,6 +254,7 @@ export class PortalAlunoComponent implements OnInit {
     this.pixAbertoId.set(cobranca.id);
     this.pixCodigo.set(null);
     this.pixAutomatico.set(false);
+    this.pixAsaas.set(false);
     this.pixQrCode.set(null);
     this.pixCopiado.set(false);
     this.pixCarregando.set(true);
@@ -258,6 +262,7 @@ export class PortalAlunoComponent implements OnInit {
       next: (resposta) => {
         this.pixCodigo.set(resposta.codigoCopiaECola);
         this.pixAutomatico.set(resposta.automatico);
+        this.pixAsaas.set(resposta.processadoPeloAsaas ?? false);
         this.pixCarregando.set(false);
         gerarQrCodePix(resposta.codigoCopiaECola).then((url) => this.pixQrCode.set(url));
       },

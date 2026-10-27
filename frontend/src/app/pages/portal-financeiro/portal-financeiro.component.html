@@ -114,6 +114,9 @@
                     @if (pixAutomatico()) {
                       <p class="detalhe">✅ Assim que o banco confirmar o pagamento, a mensalidade é baixada automaticamente.</p>
                     }
+                    @if (pixAsaas()) {
+                      <app-aviso-asaas [compacto]="true" />
+                    }
                     <button type="button" class="primario" (click)="copiarPix()">
                       {{ pixCopiado() ? 'Copiado!' : 'Copiar código' }}
                     </button>

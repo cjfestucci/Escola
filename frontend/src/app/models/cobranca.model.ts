@@ -73,6 +73,8 @@ export interface PixCobranca {
   codigoCopiaECola: string;
   /** O código foi criado no banco: o pagamento é confirmado e baixado sozinho. Falso = Pix estático (baixa manual). */
   automatico: boolean;
+  /** O Pix sai da subconta do Asaas: a tela precisa identificá-lo como prestador (selo + suporte). */
+  processadoPeloAsaas?: boolean;
 }
 
 export type SituacaoMensalidade = 'Gerar' | 'JaExiste' | 'SemValor' | 'Isento' | 'MatriculaPendente';

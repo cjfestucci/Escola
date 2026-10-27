@@ -23,6 +23,7 @@
 
     @if (aberta()) {
       <div class="conteudo-secao" id="secao-conta-pagamento">
+        <app-aviso-asaas />
         @if (c.conectada) {
           <ul class="lista-status">
             <li>Titular: <strong>{{ c.titularNome }}</strong> ({{ c.titularCpfCnpj }})</li>

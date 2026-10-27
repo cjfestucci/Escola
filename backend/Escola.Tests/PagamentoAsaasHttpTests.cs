@@ -220,6 +220,28 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task EmailDeCobrancaComPixDoAsaasLevaOSeloEOSuporteMasOPixEstaticoNao()
+    {
+        await GarantirContaAsync();
+        var financeiro = await api.ClienteLogadoAsync(PapelUsuario.Financeiro);
+
+        // Responsável com CPF: Pix da subconta → o e-mail identifica o Asaas.
+        var (comCpf, _) = await CriarCobrancaAsync(cpfResponsavel: "52998224725");
+        (await financeiro.PostAsync($"/api/financeiro/cobrancas/{comCpf}/enviar-email", null)).EnsureSuccessStatusCode();
+        var enviado = api.Email.Enviados.Last().Corpo;
+        Assert.Contains(Escola.Infrastructure.Pagamentos.Asaas.SeloAsaas.UrlPositivo, enviado);
+        Assert.Contains("0800 009 0037", enviado);
+        Assert.Contains("contato@asaas.com.br", enviado);
+
+        // Sem CPF o Pix cai no estático (não passa pelo Asaas): nada de selo.
+        var (semCpf, _) = await CriarCobrancaAsync(cpfResponsavel: null);
+        var pix = await financeiro.GetFromJsonAsync<JsonElement>($"/api/financeiro/cobrancas/{semCpf}/pix", Json);
+        Assert.False(pix.GetProperty("processadoPeloAsaas").GetBoolean());
+        (await financeiro.PostAsync($"/api/financeiro/cobrancas/{semCpf}/enviar-email", null)).EnsureSuccessStatusCode();
+        Assert.DoesNotContain("baas.asaas.com", api.Email.Enviados.Last().Corpo);
+    }
+
+    [Fact]
     public async Task PixDaMensalidadeSaiDaSubcontaEOWebhookDaABaixaPeloValorQueOAsaasConfirmar()
     {
         await GarantirContaAsync();
@@ -229,6 +251,8 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         var pix = await financeiro.GetFromJsonAsync<JsonElement>($"/api/financeiro/cobrancas/{cobrancaId}/pix", Json);
         Assert.True(pix.GetProperty("automatico").GetBoolean());
         Assert.Contains("ASAAS", pix.GetProperty("codigoCopiaECola").GetString());
+        // Pix da subconta: a tela precisa identificar o Asaas como prestador (Playbook de BaaS).
+        Assert.True(pix.GetProperty("processadoPeloAsaas").GetBoolean());
 
         string pagamentoId;
         using (var db = api.Contexto(ApiFactory.ClienteId))

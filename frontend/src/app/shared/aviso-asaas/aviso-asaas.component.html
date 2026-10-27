@@ -1,0 +1,28 @@
+@if (compacto()) {
+  <aside class="aviso-asaas aviso-asaas--compacto">
+    <a href="https://www.asaas.com" target="_blank" rel="noopener noreferrer" class="selo-asaas">
+      <img [src]="urlSelo()" alt="Serviços financeiros prestados pelo Asaas" width="160" height="48" />
+    </a>
+    <p>
+      Pagamento por Pix processado pelo <strong>Asaas Gestão Financeira Instituição de Pagamentos S.A.</strong>
+      Suporte do Asaas: 0800 009 0037 (somente pessoa jurídica e mensagens) ou
+      <a href="mailto:contato@asaas.com.br">contato@asaas.com.br</a>.
+    </p>
+  </aside>
+} @else {
+  <aside class="aviso-asaas">
+    <a href="https://www.asaas.com" target="_blank" rel="noopener noreferrer" class="selo-asaas">
+      <img [src]="urlSelo()" alt="Serviços financeiros prestados pelo Asaas" width="160" height="48" />
+    </a>
+    <p>
+      Os serviços financeiros e de pagamentos desta funcionalidade (abertura e manutenção da conta de pagamento, Pix, cobranças e
+      movimentações de valores) são prestados pelo <strong>Asaas Gestão Financeira Instituição de Pagamentos S.A.</strong>, instituição de
+      pagamento autorizada a funcionar pelo Banco Central do Brasil. O Gestor Tático é uma plataforma de software e não é instituição
+      financeira nem de pagamento.
+    </p>
+    <p>
+      Suporte do Asaas para operações financeiras: <strong>0800 009 0037</strong> (telefone somente para pessoa jurídica e
+      mensagens) ou <a href="mailto:contato@asaas.com.br">contato@asaas.com.br</a>.
+    </p>
+  </aside>
+}
