@@ -10,8 +10,8 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 |---|---|---|
 | ~~Sex 23/10~~ | Post único (imagem) | Apresentação do perfil: **publicado** |
 | ~~Seg 26/10~~ | **Carrossel** | Mensalidade: **publicado** |
-| Qua 28/10 | **Carrossel** | Chamada e frequência |
-| Sex 30/10 | Reel / vídeo de tela | Chamada em 1 minuto (gravar na Demonstração; se não der, post leve: dica ou enquete) |
+| ~~Qua 28/10~~ | **Carrossel** | Chamada e frequência: **publicado** |
+| Sex 30/10 | Reel / vídeo de tela | Chamada em 1 minuto: **vídeo pronto** em `reels/reel-chamada.mp4` (gravado pelo app, 22 s, 1080x1920); falta postar |
 | Seg 02/11 | Post único ou enquete nos stories | Pergunta para o público |
 | Qua 04/11 | **Carrossel** | Convocação, súmula e cartões |
 | Sex 06/11 | Livre | Reel (se não saiu na sexta anterior), dica rápida ou novo tema |
@@ -44,7 +44,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 
 ## Sex 30/10: Reel, "Chamada em menos de 1 minuto"
 
-**Roteiro (20 a 30 s, gravação de tela da Demonstração, sem som obrigatório):**
+**Roteiro (20 a 30 s). O vídeo já foi gerado em `reels/reel-chamada.mp4` (scripts em `gravacao/`); o roteiro abaixo é o que ele segue:**
 1. Texto na tela: "Chamada do treino em menos de 1 minuto".
 2. Abrir Chamada, escolher a turma.
 3. Tocar em "Todos presentes".
@@ -66,7 +66,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 **Legenda:**
 > Curiosidade de quem cuida de escolinha: como você controla a mensalidade hoje? Planilha, caderno ou sistema? Conta nos comentários 👇
 
-## Qua 28/10: carrossel de chamada e frequência (7 slides)
+## Qua 28/10: carrossel de chamada e frequência, 7 slides (publicado)
 
 **Legenda:**
 > "Ele disse que estava indo ao treino." Já ouviu isso? 😅
