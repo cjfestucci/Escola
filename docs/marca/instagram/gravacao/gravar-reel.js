@@ -47,7 +47,6 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
     cdp.send('Page.screencastFrameAck', { sessionId: f.sessionId }).catch(() => {});
   });
 
-  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: 1080, maxHeight: 1920, everyNthFrame: 1 });
   await page.goto(APP + '/chamada');
   await page.waitForSelector('text=Todos presentes');
 
@@ -78,6 +77,10 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
     const t = document.createElement('div'); t.id = 'rl-toque'; document.body.appendChild(t);
   });
 
+  const INTRO = '<div class="marca">⚽ GESTOR TÁTICO</div><h1>Chamada do treino em<br><em>menos de 1 minuto</em></h1><p>No celular, do campo.</p>';
+  await page.evaluate((h) => { const c = document.getElementById('rl-cartao'); c.style.transition = 'none'; c.innerHTML = h; c.classList.add('on'); void c.offsetWidth; c.style.transition = ''; }, INTRO);
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: 1080, maxHeight: 1920, everyNthFrame: 1 });
+  await espera(300);
   const cartao = (html) => page.evaluate((h) => { const c = document.getElementById('rl-cartao'); if (h) { c.innerHTML = h; c.classList.add('on'); } else c.classList.remove('on'); }, html);
   const legenda = (txt) => page.evaluate((s) => { const l = document.getElementById('rl-legenda'); if (s) { l.textContent = s; l.classList.add('on'); } else l.classList.remove('on'); }, txt);
   const rolarPara = async (loc) => { await loc.evaluate((el) => el.scrollIntoView({ behavior: 'smooth', block: 'center' })); await espera(900); };
@@ -92,8 +95,7 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
   const botaoDe = (nome, rotulo) => page.locator(`xpath=//*[normalize-space(text())="${nome}"]/ancestor::*[.//button[normalize-space()="${rotulo}"]][1]`).getByRole('button', { name: rotulo, exact: true });
 
   // --- Roteiro ---
-  await cartao('<div class="marca">⚽ GESTOR TÁTICO</div><h1>Chamada do treino em<br><em>menos de 1 minuto</em></h1><p>No celular, do campo.</p>');
-  await espera(2600);
+  await espera(2600); // o cartão de abertura já está na tela desde o primeiro quadro
   await cartao(null);
   await espera(900);
 
