@@ -29,4 +29,28 @@ convocacao:[
 {h:'Na convocação, tudo <em>ao lado do nome</em>',list:['Suspenso ou pendurado','Frequência nos treinos e faltas seguidas','Atestado médico vencido na data do jogo']},
 {t:'claro',h:'São <em>avisos</em>. A decisão é do treinador.',p:'O sistema informa, não impede. Pode haver um bom motivo para escalar, e quem decide é a comissão.'},
 {h:'Cada família vê só o <em>próprio filho</em>',p:'No portal, os pais veem se o filho foi convocado e se é titular. Nunca a escalação completa nem dados de outros atletas.'},
-CTA]};
+CTA],
+'20261109-portal':[
+{t:'capa',tag:'Portal da Família',h:'Os pais perguntam. O portal <em>responde antes</em>.',p:'Convocação, frequência e Pix do filho, sem depender do WhatsApp.'},
+{h:'"Ele foi <em>convocado</em>?"',p:'"Qual é o Pix?" "Foi ao treino ontem?" A coordenação responde isso o dia inteiro, uma mensagem por vez.'},
+{t:'claro',h:'Cada responsável tem o <em>próprio acesso</em>',p:'O clube cadastra o atleta com o e-mail do responsável. Ele recebe o convite, cria a senha e entra pelo celular, sem baixar aplicativo.',n:'Pai e mãe podem ter acesso ao mesmo atleta.'},
+{h:'Jogos e <em>convocação</em>',list:['Próximos jogos do time do filho','Se a convocação saiu e se ele foi chamado','Jogo cancelado aparece como cancelado']},
+{t:'claro',h:'Frequência e <em>mensalidade</em>',list:['Percentual de presença e últimas chamadas','Cobranças de todos os filhos numa lista','Pix com QR Code em cada mensalidade']},
+{h:'Cada família vê <em>só o próprio filho</em>',p:'Nada de lista de atletas, escalação completa ou dados de outras crianças. A privacidade vem desenhada no sistema.'},
+{t:'claro',h:'Para o clube: <em>menos mensagem repetida</em>',p:'A família encontra a resposta sozinha, e a coordenação ganha tempo para o que importa. O portal vale para todos os responsáveis do clube.'},
+CTA],
+'20261111-saude':[
+{t:'capa',tag:'Ficha de saúde',h:'Atestado <em>vencido</em> e ninguém percebeu?',p:'Ficha de saúde e atestado médico no mesmo lugar do atleta.'},
+{h:'Escolinha guarda <em>dado de criança</em>',p:'Alergias, medicamentos, laudos, atestados. Um papel perdido na mochila do treinador não é um bom arquivo.'},
+{t:'claro',h:'Uma ficha <em>por atleta</em>',list:['Alergias e restrições alimentares','Medicamentos e condições de saúde','Plano de saúde, pediatra e contato de emergência'],n:'O treinador vê o alerta antes de lançar a rotina do dia.'},
+{h:'Atestado com <em>data de validade</em>',p:'Registre até quando o atestado vale. O sistema mostra um selo na lista de atletas e um filtro de vencidos e de vencendo em 30 dias.'},
+{t:'claro',h:'O aviso aparece <em>onde você decide</em>',list:['No painel de atenção da coordenação','Na convocação, se não vale na data do jogo','No portal, para a família providenciar o novo']},
+{h:'Documentos <em>não ficam em link público</em>',p:'Exames e laudos anexados só abrem para a equipe do clube e para o responsável daquele atleta. Toda alteração fica no histórico.'},
+{t:'claro',h:'Consentimento <em>registrado</em>',p:'No primeiro acesso ao portal, o responsável lê e aceita o termo de matrícula. O sistema guarda o texto aceito, a data e o IP.',n:'Não é orientação jurídica: vale revisar o termo com o advogado do clube.'},
+CTA],
+'pergunta-mensalidade':[
+{t:'capa',tag:'Pergunta do dia',h:'Como você controla a <em>mensalidade</em> hoje?',p:'Planilha, caderno ou sistema? Conta nos comentários.'}
+],
+'20261113-pergunta':[
+{t:'capa',tag:'Pergunta do dia',h:'Como os pais ficam sabendo da <em>convocação</em>?',p:'Grupo de WhatsApp, recado no treino ou outro jeito? Conta nos comentários.'}
+]};

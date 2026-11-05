@@ -12,7 +12,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 | ~~Seg 26/10~~ | **Carrossel** | Mensalidade: **publicado** |
 | ~~Qua 28/10~~ | **Carrossel** | Chamada e frequência: **publicado** |
 | Sex 30/10 | Reel / vídeo de tela | Chamada em 1 minuto: **vídeo pronto** em `reels/reel-chamada.mp4` (gravado pelo app, 22 s, 1080x1920); falta postar |
-| Seg 02/11 | Post único ou enquete nos stories | Pergunta para o público |
+| ~~Seg 02/11~~ | Post único + enquete nos stories | Pergunta para o público: **publicado** (arte `png/pergunta-mensalidade-1.png`) |
 | Qua 04/11 | **Carrossel** | Convocação, súmula e cartões |
 | Sex 06/11 | Livre | Reel (se não saiu na sexta anterior), dica rápida ou novo tema |
 
@@ -57,7 +57,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 >
 > Quem acumula 3 faltas seguidas ganha um selo para a coordenação conversar com a família antes da desistência.
 
-## Seg 02/11: pergunta para o público
+## Seg 02/11: pergunta para o público (publicado)
 
 **Arte:** fundo azul-marinho, texto grande: "Como você controla as mensalidades hoje?" com 3 opções: planilha, caderno, sistema.
 
