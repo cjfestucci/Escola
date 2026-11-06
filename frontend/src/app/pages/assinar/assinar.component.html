@@ -16,6 +16,7 @@
         @if (r.linkPagamento) {
           <a class="botao botao--primario" [href]="r.linkPagamento" target="_blank" rel="noopener">Pagar agora</a>
           <p class="ajuda">Pix, boleto ou cartão de crédito, na página segura do nosso parceiro de pagamentos. Na fatura e no extrato, a cobrança aparece como <strong>{{ empresaCobranca }}</strong>.</p>
+          <app-aviso-asaas [compacto]="true" meio="por Pix, boleto ou cartão" />
         } @else {
           <p class="ajuda">O link de pagamento vai chegar no seu e-mail em instantes.</p>
         }

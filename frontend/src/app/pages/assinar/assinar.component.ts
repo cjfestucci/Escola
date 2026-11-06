@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CaptchaComponent } from '../../shared/captcha/captcha.component';
+import { AvisoAsaasComponent } from '../../shared/aviso-asaas/aviso-asaas.component';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../shared/mascara/mascara.directive';
 import { soDigitos, soDocumento } from '../../shared/mascara/mascara';
@@ -27,7 +28,7 @@ type Etapa = 'clube' | 'voce' | 'pronto';
 /** Cadastro pelo site: o clube vira cliente sozinho. Pública (sem login), como a tela de entrar. */
 @Component({
   selector: 'app-assinar',
-  imports: [FormsModule, MascaraDirective, CaptchaComponent],
+  imports: [FormsModule, MascaraDirective, CaptchaComponent, AvisoAsaasComponent],
   templateUrl: './assinar.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './assinar.component.scss'

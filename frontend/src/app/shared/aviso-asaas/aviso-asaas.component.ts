@@ -29,5 +29,8 @@ export class AvisoAsaasComponent {
   /** Versão curta, pra telas de pagamento (Pix): selo + uma linha. */
   readonly compacto = input(false);
 
+  /** Como o pagamento aparece na frase da versão curta ("Pagamento {{ meio }} processado…"). */
+  readonly meio = input('por Pix');
+
   protected readonly urlSelo = computed(() => `${BASE_SELOS}/${ARQUIVOS[this.variante()]}?id=${ID_SELO}`);
 }

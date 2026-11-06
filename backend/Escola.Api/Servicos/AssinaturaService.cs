@@ -484,6 +484,7 @@ public sealed class AssinaturaService(
                 <p>Para continuar usando sem interrupção, pague a 1ª mensalidade ({Html(Moeda(a.ValorMensal))}) com Pix, boleto ou cartão:</p>
                 <p><a href="{Html(linkPagar)}">Pagar agora</a></p>
                 <p>Se não quiser continuar, não precisa fazer nada.</p>
+                {SeloAsaas.AvisoAssinaturaEmailHtml}
                 """)
             : ($"Acesso suspenso — {nomeClube}",
                $"""
@@ -492,6 +493,7 @@ public sealed class AssinaturaService(
                 A equipe e as famílias não conseguem entrar até a mensalidade ser paga. Nenhum dado foi apagado.</p>
                 <p><a href="{Html(linkPagar)}">Pagar agora</a></p>
                 <p>Assim que o pagamento for confirmado, tudo volta ao normal.</p>
+                {SeloAsaas.AvisoAssinaturaEmailHtml}
                 """);
 
         try
@@ -522,7 +524,7 @@ public sealed class AssinaturaService(
         var f = aviso.Fatura;
         var link = f.LinkPagamento ?? $"{config["App:UrlBase"]?.TrimEnd('/')}/configuracoes/assinatura";
         var valor = Html(Moeda(f.Valor));
-        const string comoAparece = $"<p style=\"color:#666\">Na fatura e no extrato, a cobrança aparece como {MarcaProduto.EmpresaCobranca}.</p>";
+        const string comoAparece = $"<p style=\"color:#666\">Na fatura e no extrato, a cobrança aparece como {MarcaProduto.EmpresaCobranca}.</p>{SeloAsaas.AvisoAssinaturaEmailHtml}";
 
         var (assunto, corpo) = aviso.Tipo switch
         {

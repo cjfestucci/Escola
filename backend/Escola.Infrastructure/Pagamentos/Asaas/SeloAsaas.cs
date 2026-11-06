@@ -14,4 +14,11 @@ public static class SeloAsaas
         <p style="margin:0 0 8px;"><a href="https://www.asaas.com"><img src="{UrlPositivo}" alt="Serviços financeiros prestados pelo Asaas" width="160" height="48" style="display:inline-block;"/></a></p>
         <p style="margin:0;font-size:12px;color:#6B7280;">O pagamento por Pix é processado pelo Asaas Gestão Financeira Instituição de Pagamentos S.A., instituição de pagamento autorizada a funcionar pelo Banco Central do Brasil. Suporte do Asaas para operações financeiras: 0800 009 0037 (somente pessoa jurídica e mensagens) ou contato@asaas.com.br.</p>
         """;
+
+    /// <summary>Rodapé dos e-mails da assinatura da plataforma (cobrança pela conta raiz: Pix, boleto ou cartão).</summary>
+    public const string AvisoAssinaturaEmailHtml = $"""
+        <hr style="border:0;border-top:1px solid #E5E7EB;margin:20px 0 12px;"/>
+        <p style="margin:0 0 8px;"><a href="https://www.asaas.com"><img src="{UrlPositivo}" alt="Serviços financeiros prestados pelo Asaas" width="160" height="48" style="display:inline-block;"/></a></p>
+        <p style="margin:0;font-size:12px;color:#6B7280;">O pagamento por Pix, boleto ou cartão é processado pelo Asaas Gestão Financeira Instituição de Pagamentos S.A., instituição de pagamento autorizada a funcionar pelo Banco Central do Brasil. Suporte do Asaas para operações financeiras: 0800 009 0037 (somente pessoa jurídica e mensagens) ou contato@asaas.com.br.</p>
+        """;
 }

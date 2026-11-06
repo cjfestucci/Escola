@@ -75,6 +75,7 @@
       @if (a.linkPagamento) {
         <a class="pagar" [href]="a.linkPagamento" target="_blank" rel="noopener">Pagar agora</a>
         <p class="ajuda">Pix, boleto ou cartão de crédito, na página segura do nosso parceiro de pagamentos.</p>
+        <app-aviso-asaas [compacto]="true" meio="por Pix, boleto ou cartão" />
       }
     </div>
 

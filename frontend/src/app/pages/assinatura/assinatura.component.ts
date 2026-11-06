@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@ang
 
 import { formatarReais } from '../../models/assinatura.model';
 import { AssinaturaService } from '../../services/assinatura.service';
+import { AvisoAsaasComponent } from '../../shared/aviso-asaas/aviso-asaas.component';
 import { NotificacaoService } from '../../services/notificacao.service';
 import { formatarDataAbsoluta } from '../../shared/data-utils';
 
@@ -9,6 +10,7 @@ import { formatarDataAbsoluta } from '../../shared/data-utils';
  * suspensa (a API responde 402 no resto e o app traz ele pra cá). */
 @Component({
   selector: 'app-assinatura',
+  imports: [AvisoAsaasComponent],
   templateUrl: './assinatura.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './assinatura.component.scss'
