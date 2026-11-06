@@ -11,10 +11,11 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 | ~~Sex 23/10~~ | Post único (imagem) | Apresentação do perfil: **publicado** |
 | ~~Seg 26/10~~ | **Carrossel** | Mensalidade: **publicado** |
 | ~~Qua 28/10~~ | **Carrossel** | Chamada e frequência: **publicado** |
-| Sex 30/10 | Reel / vídeo de tela | Chamada em 1 minuto: **vídeo pronto** em `reels/reel-chamada.mp4` (gravado pelo app, 22 s, 1080x1920); falta postar |
+| Sex 30/10 | Reel / vídeo de tela | Chamada em 1 minuto: **vídeo pronto** em `reels/reel-chamada.mp4` (gravado pelo app, 22 s, 1080x1920); **adiado para seg 09/11** (usar `reels/reel-chamada-com-musica.mp4`) |
 | ~~Seg 02/11~~ | Post único + enquete nos stories | Pergunta para o público: **publicado só na qui 05/11** (atrasou da segunda; arte `png/pergunta-mensalidade-1.png`) |
-| Qua 04/11 | **Carrossel** | Convocação, súmula e cartões |
-| Sex 06/11 | Livre | Reel (se não saiu na sexta anterior), dica rápida ou novo tema |
+| ~~Qua 04/11~~ | **Carrossel** | Convocação, súmula e cartões: **publicado na sex 06/11** |
+| ~~Sex 06/11~~ | Livre | Usado pelo carrossel de convocação |
+| Seg 09/11 | Reel | Chamada em menos de 1 minuto |
 
 ## Sex 23/10: apresentação (publicado)
 
@@ -79,7 +80,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 
 **Hashtags:** #escolinhadefutebol #futebolbase #treinadordefutebol #gestaoesportiva #categoriasdebase
 
-## Qua 04/11: carrossel de convocação, súmula e cartões (7 slides)
+## Qua 04/11: carrossel de convocação, súmula e cartões, 7 slides (publicado na sex 06/11)
 
 **Legenda:**
 > Dia de jogo e ninguém lembra quem está pendurado? 🟨🟥
