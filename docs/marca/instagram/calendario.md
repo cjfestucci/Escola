@@ -15,7 +15,10 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 | ~~Seg 02/11~~ | Post único + enquete nos stories | Pergunta para o público: **publicado só na qui 05/11** (atrasou da segunda; arte `png/pergunta-mensalidade-1.png`) |
 | ~~Qua 04/11~~ | **Carrossel** | Convocação, súmula e cartões: **publicado na sex 06/11** |
 | ~~Sex 06/11~~ | Livre | Usado pelo carrossel de convocação |
-| Seg 09/11 | Reel | Chamada em menos de 1 minuto |
+| Seg 09/11 | Reel | Chamada em menos de 1 minuto (`reels/reel-chamada-com-musica.mp4`) |
+| Ter 10/11 | **Carrossel** | Portal da Família (rascunho em `semanas/2026-11-09/rascunhos.md`, arte `png/20261109-portal-*.png`) |
+| Qua 11/11 | **Carrossel** | Ficha de saúde e atestado (arte `png/20261111-saude-*.png`) |
+| Sex 13/11 | Post único | Pergunta ao público: como os pais ficam sabendo da convocação (arte `png/20261113-pergunta-1.png`) |
 
 ## Sex 23/10: apresentação (publicado)
 

@@ -32,7 +32,7 @@ li::before{content:"";position:absolute;left:0;top:14px;width:30px;height:30px;b
 <script src="decks.js"></script>
 <script>
 const LOGO='../simbolo-fundo-escuro.svg';
-const [deck,idx]=(location.hash.slice(1)||'').split('-');
+const [,deck,idx]=((location.hash.slice(1)||'').match(/^(.*?)(?:-(\d+))?$/));
 function slide(s,i,n){
  const cls=['slide']; if(s.t==='claro')cls.push('claro'); if(s.t==='verde')cls.push('verde');
  const list=s.list?`<ul class="${s.passo?'passo':''}">${s.list.map(x=>`<li>${x}</li>`).join('')}</ul>`:'';
