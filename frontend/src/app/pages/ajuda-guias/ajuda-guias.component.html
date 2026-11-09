@@ -24,7 +24,7 @@
           <li><a href="#equipe">Convidar treinadores e a equipe</a></li>
           <li><a href="#turmas">Criar as categorias (turmas)</a></li>
           <li><a href="#atletas">Cadastrar atletas e convidar os pais</a></li>
-          <li><a href="#recebimento">Configurar o recebimento por Pix</a></li>
+          <li><a href="#recebimento">Configurar o recebimento por Pix (e a baixa automática)</a></li>
         </ol>
       </div>
       <div>
@@ -109,7 +109,7 @@
       <ol class="passo-a-passo">
         <li>Abra <strong>Atletas</strong> e clique em <strong>+ Novo(a) Atleta</strong>.</li>
         <li>Na aba <strong>Dados</strong>, preencha nome, data de nascimento e turma. Posição e foto são opcionais.</li>
-        <li>Na aba <strong>Contatos</strong>, cadastre ao menos um responsável com <strong>nome e e-mail</strong>. Marque como <strong>Financeiro</strong> quem paga a mensalidade. O CPF é opcional, mas é necessário para o Pix com baixa automática.</li>
+        <li>Na aba <strong>Contatos</strong>, cadastre ao menos um responsável com <strong>nome e e-mail</strong>. Marque como <strong>Financeiro</strong> quem paga a mensalidade. O CPF é opcional, mas é necessário no responsável Financeiro para o Pix com baixa automática (veja o guia 5).</li>
         <li>Salve. O responsável recebe o e-mail <strong>“Confirme a matrícula”</strong>, cria a senha e aceita o termo de matrícula e de uso de dados (LGPD) no Portal da Família.</li>
       </ol>
       <h3>Matrícula “Aguardando aceite”</h3>
@@ -137,6 +137,18 @@
       </ol>
       <p>Com a chave cadastrada, cada mensalidade ganha um código <strong>Pix copia e cola</strong> e um QR Code, que os pais veem no portal e recebem por e-mail. O valor já inclui multa e juros do dia, se houver.</p>
       <p class="dica"><strong>Atenção:</strong> confira a chave com cuidado. Uma chave errada gera um código que o banco do pai recusa.</p>
+
+      <h3>Receber com baixa automática (conta do Asaas)</h3>
+      <p>Com a chave manual, você precisa marcar cada mensalidade como paga. Se o clube tiver uma conta no <strong>Asaas</strong>, o sistema gera o Pix na conta dele e <strong>dá a baixa sozinho</strong> assim que o pai paga, em cerca de meio minuto.</p>
+      <ol class="passo-a-passo">
+        <li>Crie ou acesse a conta do clube em <strong>asaas.com</strong> (a conta é do clube; o Gestor Tático não tem acesso ao dinheiro).</li>
+        <li>No Asaas, abra <strong>Menu do usuário → Integrações</strong> e gere uma <strong>chave de API</strong>. Copie na hora: o Asaas só mostra a chave uma vez.</li>
+        <li>No Gestor Tático, abra <strong>Configurações → Financeiro → Pagamento automático</strong>.</li>
+        <li>Cole a chave, marque o aceite dos <strong>Termos de Uso do Asaas</strong> e a autorização para criar a chave Pix e o aviso automático de pagamentos, e clique em <strong>Conectar minha conta do Asaas</strong>.</li>
+        <li>Pronto: a seção passa a mostrar “Ativo”, com o titular e a situação da conta.</li>
+      </ol>
+      <p>Depois de conectar, a seção <strong>Recebimento por Pix (chave manual)</strong> fica inativa, porque o código passa a sair da conta do Asaas. Os dados da chave manual ficam guardados e voltam a valer se você clicar em <strong>Desconectar</strong>.</p>
+      <p class="dica"><strong>Atenção:</strong> para gerar o Pix automático, o responsável marcado como <strong>Financeiro</strong> precisa ter o <strong>CPF</strong> preenchido na matrícula. Sem o CPF, a família recebe o Pix comum e a baixa é manual. A baixa automática aparece no histórico da mensalidade como feita pelo “Sistema”.</p>
     </section>
 
     <!-- 6 -->
