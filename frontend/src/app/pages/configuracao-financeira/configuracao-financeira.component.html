@@ -18,15 +18,24 @@
         aria-controls="secao-pix"
         (click)="pixAberto.set(!pixAberto())"
       >
-        <span>Recebimento por Pix</span>
+        <span>Recebimento por Pix (chave manual)
+          @if (automaticoAtivo()) { <span class="selo selo--reserva">Inativo: usando o pagamento automático</span> }
+        </span>
         <svg class="seta-secao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
 
       @if (pixAberto()) {
-        <div class="conteudo-secao" id="secao-pix">
-          <p class="ajuda ajuda--secao">A chave Pix é usada para gerar o código de pagamento de cada mensalidade.</p>
+        <fieldset class="conteudo-secao conteudo-secao--campos" id="secao-pix" [disabled]="automaticoAtivo()" [class.em-reserva]="automaticoAtivo()">
+          @if (automaticoAtivo()) {
+            <p class="ajuda ajuda--secao">
+              O pagamento automático está ativo: o código Pix de cada mensalidade sai da sua conta do Asaas e a baixa é feita sozinha.
+              Esta chave manual fica guardada e só volta a ser usada se você desconectar a conta.
+            </p>
+          } @else {
+            <p class="ajuda ajuda--secao">A chave Pix é usada para gerar o código de pagamento de cada mensalidade.</p>
+          }
 
           <fieldset class="grupo-tipo">
             <legend>Tipo da chave Pix</legend>
@@ -58,7 +67,7 @@
           <label>Cidade
             <input type="text" [(ngModel)]="pixCidade" placeholder="Cidade da escola" maxlength="15" />
           </label>
-        </div>
+        </fieldset>
       }
     </section>
 
@@ -87,7 +96,7 @@
             <input type="checkbox" [(ngModel)]="pagamentoPixAtivo" />
             Pix (código copia e cola e QR Code)
           </label>
-          @if (pagamentoPixAtivo && !configuracaoPixCompleta) {
+          @if (pagamentoPixAtivo && !configuracaoPixCompleta && !automaticoAtivo()) {
             <p class="ajuda ajuda--aviso">Preencha a chave, o nome e a cidade em "Recebimento por Pix" para o código ser gerado.</p>
           }
           <label class="linha-checkbox">
@@ -179,7 +188,7 @@
       }
     </section>
 
-    <app-conta-pagamento />
+    <app-conta-pagamento (automaticoAtivo)="automaticoAtivo.set($event)" />
 
     <!-- Legado: Pix automático do BB, só pra escola dona das credenciais configuradas no ambiente. -->
     @if (statusPixAutomatico(); as pa) {

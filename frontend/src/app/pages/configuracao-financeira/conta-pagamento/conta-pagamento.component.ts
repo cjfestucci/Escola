@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MascaraDirective } from '../../../shared/mascara/mascara.directive';
 import { SeletorArquivoComponent } from '../../../shared/seletor-arquivo/seletor-arquivo.component';
@@ -27,6 +27,8 @@ export class ContaPagamentoComponent implements OnInit, OnDestroy {
   protected readonly auth = inject(AuthService);
 
   readonly conta = signal<ContaPagamento | null>(null);
+  /** Avisa a tela quando o pagamento automático liga/desliga (com ele ligado, a chave Pix manual fica em reserva). */
+  readonly automaticoAtivo = output<boolean>();
   readonly aberta = signal(false);
   readonly conectando = signal(false);
   readonly atualizando = signal(false);
@@ -88,6 +90,7 @@ export class ContaPagamentoComponent implements OnInit, OnDestroy {
   /** Guarda a conta e, se o gateway ainda está preparando a lista de documentos (pede ~15 s), consulta de novo sozinho uma vez. */
   private aplicar(c: ContaPagamento): void {
     this.conta.set(c);
+    this.automaticoAtivo.emit(!!c.conectada && !!c.pagamentoAutomaticoAtivo);
     if (this.temporizadorPreparo) clearTimeout(this.temporizadorPreparo);
     this.temporizadorPreparo = null;
     if (c.documentosEmPreparo) {

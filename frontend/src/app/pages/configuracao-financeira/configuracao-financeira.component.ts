@@ -76,6 +76,8 @@ export class ConfiguracaoFinanceiraComponent implements OnInit {
   readonly historicoAberto = signal(false);
   // Seções recolhíveis: a primeira abre expandida, as demais minimizadas.
   readonly pixAberto = signal(true);
+  /** Conta Asaas conectada e ativa: a chave Pix manual fica em reserva (só volta a valer se desconectar). */
+  readonly automaticoAtivo = signal(false);
   readonly formasAberto = signal(false);
   readonly bloqueioAberto = signal(false);
   readonly mensalidadesAberto = signal(false);
