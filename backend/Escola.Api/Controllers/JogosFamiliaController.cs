@@ -146,5 +146,5 @@ public class JogosFamiliaController(EscolaDbContext db, IRelogioEscola relogio) 
         x.Jogo.Id, x.Jogo.Data, x.Jogo.Hora, x.Jogo.Local, x.Jogo.Mando, x.Jogo.Adversario,
         x.Jogo.Campeonato?.Nome, x.Jogo.Turma.Nome, x.Jogo.Status, x.Jogo.GolsPro, x.Jogo.GolsContra,
         x.TemConvocacao, x.Participacao is not null,
-        x.Participacao?.Titular ?? false, x.Participacao?.Gols ?? 0, x.Participacao?.CartoesAmarelos ?? 0, x.Participacao?.CartaoVermelho ?? false);
+        x.Participacao?.Gols ?? 0, x.Participacao?.CartoesAmarelos ?? 0, x.Participacao?.CartaoVermelho ?? false);
 }

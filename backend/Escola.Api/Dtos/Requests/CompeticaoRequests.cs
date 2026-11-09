@@ -17,6 +17,6 @@ public record CriarOuEditarJogoRequest(
     int? GolsContra,
     string? Observacao);
 
-public record ConvocadoInput(Guid AlunoId, bool Titular, int Gols, int CartoesAmarelos, bool CartaoVermelho);
+public record ConvocadoInput(Guid AlunoId, int Gols, int CartoesAmarelos, bool CartaoVermelho);
 
 public record SalvarConvocacaoRequest(List<ConvocadoInput> Convocados);

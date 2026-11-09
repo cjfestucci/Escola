@@ -1,11 +1,14 @@
 using Escola.Api.Auth;
 using Escola.Api.Dtos;
 using Escola.Api.Dtos.Requests;
+using Escola.Api.Servicos;
 using Escola.Domain.Entities;
 using Escola.Domain.Enums;
 using Escola.Infrastructure.Auditoria;
+using Escola.Infrastructure.Clientes;
 using Escola.Infrastructure.Competicoes;
 using Escola.Infrastructure.Data;
+using Escola.Infrastructure.Email;
 using Escola.Infrastructure.Tempo;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +16,28 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Escola.Api.Controllers;
 
+/// <param name="Responsaveis">Quantos responsáveis receberam o e-mail.</param>
+/// <param name="Falhas">Quantos e-mails não puderam ser enviados.</param>
+public record DivulgacaoConvocacaoDto(JogoDto Jogo, int Responsaveis, int Falhas);
+
 /// <summary>Toda a Equipe agenda, lança resultado e monta a convocação (o técnico precisa fazer isso no dia a dia);
 /// só o cadastro de Campeonato é restrito à Gestão. Como no Diário de Classe, não se checa se o Educador é da turma.</summary>
 [ApiController]
 [Route("api/jogos")]
 [Authorize(Roles = GruposDePapeis.Equipe)]
-public class JogosController(EscolaDbContext db, IAuditoriaService auditoria, IRelogioEscola relogio, IDisciplinaService disciplina) : ControllerBase
+public class JogosController(
+    EscolaDbContext db,
+    IAuditoriaService auditoria,
+    IRelogioEscola relogio,
+    IDisciplinaService disciplina,
+    IEmailSender email,
+    IClienteAtual clienteAtual,
+    IConfiguration config,
+    ILogger<JogosController> logger) : ControllerBase
 {
+    /// <summary>Tempo mínimo entre duas divulgações do mesmo jogo (evita e-mail em dobro por duplo clique).</summary>
+    private static readonly TimeSpan IntervaloEntreDivulgacoes = TimeSpan.FromMinutes(2);
+
     [HttpGet]
     public async Task<ActionResult<List<JogoDto>>> Listar([FromQuery] Guid? campeonatoId, [FromQuery] Guid? turmaId)
     {
@@ -199,26 +217,23 @@ public class JogosController(EscolaDbContext db, IAuditoriaService auditoria, IR
             if (existentes.TryGetValue(item.AlunoId, out var atual))
             {
                 var mudancas = AuditoriaDetalhe.MontarAlteracoes(
-                    ("Titular", atual.Titular, item.Titular),
                     ("Gols", atual.Gols, item.Gols),
                     ("Cartões amarelos", atual.CartoesAmarelos, item.CartoesAmarelos),
                     ("Cartão vermelho", atual.CartaoVermelho, item.CartaoVermelho));
                 if (mudancas is not null) linhas.AddRange(mudancas.Split('\n').Select(l => $"{nome}: {l}"));
 
-                atual.Titular = item.Titular;
                 atual.Gols = item.Gols;
                 atual.CartoesAmarelos = item.CartoesAmarelos;
                 atual.CartaoVermelho = item.CartaoVermelho;
             }
             else
             {
-                linhas.Add($"Convocado: {nome}{(item.Titular ? " (titular)" : "")}");
+                linhas.Add($"Convocado: {nome}");
                 db.JogoAtletas.Add(new JogoAtleta
                 {
                     Id = Guid.NewGuid(),
                     JogoId = jogo.Id,
                     AlunoId = item.AlunoId,
-                    Titular = item.Titular,
                     Gols = item.Gols,
                     CartoesAmarelos = item.CartoesAmarelos,
                     CartaoVermelho = item.CartaoVermelho
@@ -227,11 +242,84 @@ public class JogosController(EscolaDbContext db, IAuditoriaService auditoria, IR
         }
 
         if (linhas.Count > 0)
+        {
+            jogo.ConvocacaoAlteradaEm = DateTime.UtcNow;
             auditoria.Registrar(nameof(Jogo), jogo.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(), string.Join("\n", linhas));
+        }
         await db.SaveChangesAsync();
 
         var atualizado = await ComIncludes(comAlunos: true).FirstAsync(j => j.Id == id);
         return Ok(await DetalheAsync(atualizado));
+    }
+
+    /// <summary>Avisa por e-mail os responsáveis dos atletas da turma (convocados e não convocados) da convocação deste jogo. Cada
+    /// responsável recebe só a situação dos próprios filhos. O técnico decide o momento (não é automático a cada edição) e pode repetir
+    /// se a lista mudar depois. O Portal da Família já mostra a convocação desde que ela é salva.</summary>
+    [HttpPost("{id:guid}/convocacao/divulgar")]
+    public async Task<ActionResult<DivulgacaoConvocacaoDto>> DivulgarConvocacao(Guid id, CancellationToken ct)
+    {
+        var jogo = await ComIncludes(comAlunos: true).FirstOrDefaultAsync(j => j.Id == id, ct);
+        if (jogo is null) return NotFound("Jogo não encontrado.");
+        if (!await this.PodeLancarNaTurmaAsync(db, jogo.TurmaId)) return this.ForaDasSuasTurmas();
+        if (jogo.Status != StatusJogo.Agendado) return BadRequest("Só dá para divulgar a convocação de um jogo agendado.");
+        if (jogo.Convocados.Count == 0) return BadRequest("Convoque ao menos um atleta e salve a convocação antes de divulgar.");
+        if (!email.Configurado)
+            return BadRequest("O envio de e-mail não está configurado neste ambiente. Os responsáveis continuam vendo a convocação no Portal da Família.");
+
+        var agora = DateTime.UtcNow;
+        if (jogo.ConvocacaoDivulgadaEm is { } ultima && agora - ultima < IntervaloEntreDivulgacoes)
+            return BadRequest("A convocação acabou de ser divulgada. Aguarde um pouco antes de divulgar de novo.");
+
+        // Atletas considerados: os ativos da turma do jogo + os convocados (mesmo de outra turma, jogando "por cima").
+        var atletas = (await db.Alunos.Where(a => a.Ativo && a.TurmaId == jogo.TurmaId).Select(a => new { a.Id, a.Nome }).ToListAsync(ct))
+            .ToDictionary(a => a.Id, a => a.Nome);
+        foreach (var c in jogo.Convocados) atletas[c.AlunoId] = c.Aluno.Nome;
+        var convocados = jogo.Convocados.ToDictionary(c => c.AlunoId);
+        var ids = atletas.Keys.ToList();
+
+        var vinculos = await db.AlunoResponsaveis
+            .Where(ar => ids.Contains(ar.AlunoId) && ar.Responsavel.Email != "")
+            .Select(ar => new { ar.AlunoId, ar.Responsavel.Nome, ar.Responsavel.Email })
+            .ToListAsync(ct);
+        if (vinculos.Count == 0) return BadRequest("Nenhum responsável com e-mail cadastrado para esses atletas.");
+
+        var clube = await db.Clientes.AsNoTracking().Where(c => c.Id == clienteAtual.Id).Select(c => c.Nome).FirstAsync(ct);
+        var urlBase = config["App:UrlBase"]?.TrimEnd('/');
+        var urlPortal = string.IsNullOrWhiteSpace(urlBase) ? null : $"{urlBase}/portal";
+
+        var enviados = 0;
+        var falhas = 0;
+        // Um e-mail por endereço: um responsável com dois filhos recebe uma mensagem só, com os dois.
+        foreach (var grupo in vinculos.GroupBy(v => v.Email.Trim().ToLowerInvariant()))
+        {
+            var responsavel = grupo.First();
+            var situacoes = grupo.Select(v => v.AlunoId).Distinct()
+                .Select(alunoId => convocados.TryGetValue(alunoId, out var c)
+                    ? new SituacaoNoJogo(atletas[alunoId], "convocado", true)
+                    : new SituacaoNoJogo(atletas[alunoId], "não convocado para este jogo", false))
+                .OrderBy(s => s.Atleta)
+                .ToList();
+            var (assunto, corpo) = EmailConvocacao.Montar(clube, responsavel.Nome, jogo, situacoes, urlPortal);
+            try
+            {
+                await email.EnviarAsync(responsavel.Email, responsavel.Nome, assunto, corpo, ct);
+                enviados++;
+            }
+            catch (Exception ex)
+            {
+                falhas++;
+                logger.LogWarning(ex, "Não foi possível enviar a convocação do jogo {Jogo} para um responsável.", jogo.Id);
+            }
+        }
+
+        if (enviados == 0) return BadRequest("Não foi possível enviar os e-mails agora. Tente de novo em alguns instantes.");
+
+        jogo.ConvocacaoDivulgadaEm = agora;
+        auditoria.Registrar(nameof(Jogo), jogo.Id, AcaoAuditoria.Editado, this.UsuarioIdAtual(),
+            $"Convocação divulgada por e-mail: {enviados} {(enviados == 1 ? "responsável avisado" : "responsáveis avisados")}{(falhas > 0 ? $", {falhas} com falha" : string.Empty)}");
+        await db.SaveChangesAsync(ct);
+
+        return Ok(new DivulgacaoConvocacaoDto(await DetalheAsync(jogo), enviados, falhas));
     }
 
     private async Task<(string? Erro, Turma? Turma, Campeonato? Campeonato)> ValidarAsync(CriarOuEditarJogoRequest request, Jogo? existente)

@@ -25,7 +25,7 @@ public record CampeonatoDto(
     IReadOnlyList<ArtilheiroDto>? Artilheiros = null,
     IReadOnlyList<AlertaDisciplinarDto>? Disciplina = null);
 
-public record JogoAtletaDto(Guid AlunoId, string AlunoNome, bool Titular, int Gols, int CartoesAmarelos, bool CartaoVermelho);
+public record JogoAtletaDto(Guid AlunoId, string AlunoNome, int Gols, int CartoesAmarelos, bool CartaoVermelho);
 
 /// <summary>Convocados e Alertas só vêm preenchidos no detalhe de um jogo (na listagem vão só as quantidades).
 /// Suspensos/Pendurados/Alertas só existem em jogo Agendado de um campeonato com controle disciplinar.</summary>
@@ -48,7 +48,9 @@ public record JogoDto(
     IReadOnlyList<JogoAtletaDto>? Convocados = null,
     int Suspensos = 0,
     int Pendurados = 0,
-    IReadOnlyList<AlertaDisciplinarDto>? Alertas = null);
+    IReadOnlyList<AlertaDisciplinarDto>? Alertas = null,
+    DateTime? ConvocacaoDivulgadaEm = null,
+    bool ConvocacaoAlteradaDepoisDaDivulgacao = false);
 
 public static class CompeticaoMapper
 {
@@ -78,8 +80,10 @@ public static class CompeticaoMapper
         j.Convocados.Count,
         comConvocados
             ? j.Convocados
-                .OrderByDescending(c => c.Titular).ThenBy(c => c.Aluno.Nome)
-                .Select(c => new JogoAtletaDto(c.AlunoId, c.Aluno.Nome, c.Titular, c.Gols, c.CartoesAmarelos, c.CartaoVermelho))
+                .OrderBy(c => c.Aluno.Nome)
+                .Select(c => new JogoAtletaDto(c.AlunoId, c.Aluno.Nome, c.Gols, c.CartoesAmarelos, c.CartaoVermelho))
                 .ToList()
-            : null);
+            : null,
+        ConvocacaoDivulgadaEm: j.ConvocacaoDivulgadaEm,
+        ConvocacaoAlteradaDepoisDaDivulgacao: j.ConvocacaoDivulgadaEm is { } divulgada && j.ConvocacaoAlteradaEm is { } alterada && alterada > divulgada);
 }

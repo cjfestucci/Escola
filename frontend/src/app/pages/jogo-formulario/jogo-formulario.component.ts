@@ -15,7 +15,7 @@ import { NotificacaoService } from '../../services/notificacao.service';
 import { SessaoService } from '../../services/sessao.service';
 import { TurmaService } from '../../services/turma.service';
 import { CalendarioComponent } from '../../shared/calendario/calendario.component';
-import { formatarDataAbsoluta, hojeIso } from '../../shared/data-utils';
+import { formatarDataAbsoluta, formatarDataHoraAbsoluta, hojeIso } from '../../shared/data-utils';
 import { SeletorHorarioComponent } from '../../shared/seletor-horario/seletor-horario.component';
 
 type Aba = 'dados' | 'convocacao';
@@ -24,7 +24,6 @@ interface LinhaConvocacao {
   alunoId: string;
   nome: string;
   convocado: boolean;
-  titular: boolean;
   gols: number;
   amarelos: number;
   vermelho: boolean;
@@ -55,6 +54,9 @@ export class JogoFormularioComponent implements OnInit {
   readonly carregando = signal(true);
   readonly salvando = signal(false);
   readonly salvandoConvocacao = signal(false);
+  readonly divulgando = signal(false);
+  readonly confirmandoDivulgacao = signal(false);
+  protected readonly formatarDataHora = formatarDataHoraAbsoluta;
   readonly abaAtiva = signal<Aba>('dados');
   readonly calendarioAberto = signal(false);
 
@@ -132,12 +134,13 @@ export class JogoFormularioComponent implements OnInit {
     return this.jogo()?.alertas?.find((a) => a.alunoId === alunoId);
   }
 
-  get totalConvocados(): number {
-    return this.linhas.filter((l) => l.convocado).length;
+  /** A lista na tela é a que está gravada (só compara a quantidade: serve pra lembrar de salvar antes de divulgar). */
+  get convocacaoSalva(): boolean {
+    return this.totalConvocados === (this.jogo()?.quantidadeConvocados ?? 0);
   }
 
-  get totalTitulares(): number {
-    return this.linhas.filter((l) => l.convocado && l.titular).length;
+  get totalConvocados(): number {
+    return this.linhas.filter((l) => l.convocado).length;
   }
 
   get totalGolsAtletas(): number {
@@ -226,7 +229,6 @@ export class JogoFormularioComponent implements OnInit {
       alunoId,
       nome,
       convocado: !!convocado,
-      titular: convocado?.titular ?? false,
       gols: convocado?.gols ?? 0,
       amarelos: convocado?.cartoesAmarelos ?? 0,
       vermelho: convocado?.cartaoVermelho ?? false
@@ -302,7 +304,6 @@ export class JogoFormularioComponent implements OnInit {
   limparConvocacao(): void {
     this.linhas.forEach((l) => {
       l.convocado = false;
-      l.titular = false;
       l.gols = 0;
       l.amarelos = 0;
       l.vermelho = false;
@@ -317,7 +318,6 @@ export class JogoFormularioComponent implements OnInit {
       .filter((l) => l.convocado)
       .map((l) => ({
         alunoId: l.alunoId,
-        titular: l.titular,
         gols: sumula ? Number(l.gols) || 0 : 0,
         cartoesAmarelos: sumula ? Number(l.amarelos) || 0 : 0,
         cartaoVermelho: sumula ? l.vermelho : false
@@ -334,6 +334,27 @@ export class JogoFormularioComponent implements OnInit {
       error: (resposta) => {
         this.salvandoConvocacao.set(false);
         this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível salvar a convocação.');
+      }
+    });
+  }
+
+  divulgarConvocacao(): void {
+    if (!this.jogoId) return;
+
+    this.divulgando.set(true);
+    this.jogoService.divulgarConvocacao(this.jogoId).subscribe({
+      next: (resultado) => {
+        this.divulgando.set(false);
+        this.confirmandoDivulgacao.set(false);
+        this.jogo.set(resultado.jogo);
+        const n = resultado.responsaveis;
+        const falhas = resultado.falhas ? ' ' + resultado.falhas + ' e-mail(s) não puderam ser enviados.' : '';
+        this.notificacao.sucesso('Convocação divulgada: ' + n + (n === 1 ? ' responsável avisado' : ' responsáveis avisados') + ' por e-mail.' + falhas);
+      },
+      error: (resposta) => {
+        this.divulgando.set(false);
+        this.confirmandoDivulgacao.set(false);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível divulgar a convocação.');
       }
     });
   }

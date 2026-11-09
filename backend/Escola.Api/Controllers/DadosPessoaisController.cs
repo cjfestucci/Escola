@@ -66,7 +66,7 @@ public class DadosPessoaisController(
             .Select(j => new
             {
                 j.Jogo.Data, j.Jogo.Adversario, Campeonato = j.Jogo.Campeonato != null ? j.Jogo.Campeonato.Nome : null,
-                j.Titular, j.Gols, j.CartoesAmarelos, j.CartaoVermelho
+                j.Gols, j.CartoesAmarelos, j.CartaoVermelho
             })
             .ToListAsync();
         var termos = await db.TermosAceite.AsNoTracking().Where(t => t.AlunoId == alunoId).OrderBy(t => t.AceitoEm)

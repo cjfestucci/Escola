@@ -28,5 +28,13 @@ public class Jogo
     public string? Observacao { get; set; }
     public DateTime RegistradoEm { get; set; }
 
+    /// <summary>Quando a comissão avisou os responsáveis, por e-mail, da convocação (botão "Divulgar convocação"). Nulo = ainda não avisou;
+    /// o Portal da Família mostra a convocação assim que ela é salva, com ou sem este aviso.</summary>
+    public DateTime? ConvocacaoDivulgadaEm { get; set; }
+
+    /// <summary>Última vez em que a convocação foi alterada (entrou ou saiu alguém). Se for depois de
+    /// <see cref="ConvocacaoDivulgadaEm"/>, a tela sugere divulgar de novo.</summary>
+    public DateTime? ConvocacaoAlteradaEm { get; set; }
+
     public ICollection<JogoAtleta> Convocados { get; set; } = new List<JogoAtleta>();
 }

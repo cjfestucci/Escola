@@ -36,7 +36,7 @@
         </strong>
         @if (jogo.convocado) {
           <span class="jogo-detalhe-familia">
-            {{ jogo.titular ? 'Titular' : 'Reserva' }}
+            Convocado
             @if (jogo.gols > 0) {
               · ⚽ {{ jogo.gols }} {{ jogo.gols === 1 ? 'gol' : 'gols' }}
             }
@@ -59,7 +59,7 @@
         @if (jogo.status === 'Cancelado') {
           <span class="chip-jogo chip-jogo--cancelado">Jogo cancelado</span>
         } @else if (jogo.convocado) {
-          <span class="chip-jogo chip-jogo--convocado">✅ Convocado{{ jogo.titular ? ' (titular)' : '' }}</span>
+          <span class="chip-jogo chip-jogo--convocado">✅ Convocado</span>
         } @else if (jogo.convocacaoDivulgada) {
           <span class="chip-jogo">Não convocado para este jogo</span>
         } @else {

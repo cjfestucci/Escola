@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { CampeonatoFamilia, CriarOuEditarJogo, Jogo, JogoAtleta, JogosCampeonatoDoAluno, JogosDoAluno } from '../models/competicao.model';
+import { CampeonatoFamilia, CriarOuEditarJogo, Jogo, JogoAtleta, JogosCampeonatoDoAluno, JogosDoAluno, ResultadoDivulgacaoConvocacao } from '../models/competicao.model';
 
 @Injectable({ providedIn: 'root' })
 export class JogoService {
@@ -50,6 +50,11 @@ export class JogoService {
 
   reabrir(id: string): Observable<Jogo> {
     return this.http.post<Jogo>(`${this.baseUrl}/${id}/reabrir`, {});
+  }
+
+  /** Avisa por e-mail os responsáveis dos atletas da turma (cada um recebe só a situação dos próprios filhos). */
+  divulgarConvocacao(id: string): Observable<ResultadoDivulgacaoConvocacao> {
+    return this.http.post<ResultadoDivulgacaoConvocacao>(this.baseUrl + '/' + id + '/convocacao/divulgar', {});
   }
 
   salvarConvocacao(id: string, convocados: Omit<JogoAtleta, 'alunoNome'>[]): Observable<Jogo> {

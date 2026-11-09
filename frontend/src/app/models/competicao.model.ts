@@ -60,7 +60,6 @@ export interface CriarOuEditarCampeonato {
 export interface JogoAtleta {
   alunoId: string;
   alunoNome: string;
-  titular: boolean;
   gols: number;
   cartoesAmarelos: number;
   cartaoVermelho: boolean;
@@ -88,6 +87,18 @@ export interface Jogo {
   suspensos?: number;
   pendurados?: number;
   alertas?: AlertaDisciplinar[] | null;
+  /** Quando os responsáveis foram avisados por e-mail da convocação (botão "Divulgar convocação"). */
+  convocacaoDivulgadaEm?: string | null;
+  /** A lista mudou depois do aviso: vale divulgar de novo. */
+  convocacaoAlteradaDepoisDaDivulgacao?: boolean;
+}
+
+export interface ResultadoDivulgacaoConvocacao {
+  jogo: Jogo;
+  /** Quantos responsáveis receberam o e-mail. */
+  responsaveis: number;
+  /** Quantos e-mails não puderam ser enviados. */
+  falhas: number;
 }
 
 export interface CriarOuEditarJogo {
@@ -131,7 +142,6 @@ export interface JogoFamilia {
   /** A comissão já montou a convocação. Antes disso, "não convocado" seria enganoso. */
   convocacaoDivulgada: boolean;
   convocado: boolean;
-  titular: boolean;
   gols: number;
   cartoesAmarelos: number;
   cartaoVermelho: boolean;

@@ -1012,6 +1012,12 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ConvocacaoAlteradaEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ConvocacaoDivulgadaEm")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateOnly>("Data")
                         .HasColumnType("date");
 
@@ -1080,9 +1086,6 @@ namespace Escola.Infrastructure.Data.Migrations
 
                     b.Property<Guid>("JogoId")
                         .HasColumnType("uuid");
-
-                    b.Property<bool>("Titular")
-                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 

@@ -19,7 +19,6 @@ public record JogoFamiliaDto(
     int? GolsContra,
     bool ConvocacaoDivulgada,
     bool Convocado,
-    bool Titular,
     int Gols,
     int CartoesAmarelos,
     bool CartaoVermelho);

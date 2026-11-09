@@ -11,7 +11,6 @@ public class JogoAtleta
     public Guid AlunoId { get; set; }
     public Aluno Aluno { get; set; } = null!;
 
-    public bool Titular { get; set; }
     public int Gols { get; set; }
     public int CartoesAmarelos { get; set; }
     public bool CartaoVermelho { get; set; }

@@ -137,7 +137,6 @@
       <div class="painel-formulario">
         <div class="resumo-convocacao">
           <strong>{{ totalConvocados }} {{ totalConvocados === 1 ? 'convocado' : 'convocados' }}</strong>
-          <span>{{ totalTitulares }} {{ totalTitulares === 1 ? 'titular' : 'titulares' }}</span>
           @if (sumulaLiberada) {
             <span>Gols dos atletas: {{ totalGolsAtletas }} de {{ jogo()?.golsPro }}</span>
           }
@@ -196,13 +195,8 @@
                   <p class="aviso-suspenso">Atleta suspenso para este jogo — confirme se ele deve mesmo ser convocado.</p>
                 }
 
-                @if (linha.convocado) {
+                @if (linha.convocado && sumulaLiberada) {
                   <div class="detalhes-atleta">
-                    <label class="linha-checkbox">
-                      <input type="checkbox" [(ngModel)]="linha.titular" [disabled]="cancelado || somenteLeitura" />
-                      Titular
-                    </label>
-
                     @if (sumulaLiberada) {
                       <label class="campo-pequeno">Gols
                         <input type="number" [(ngModel)]="linha.gols" min="0" max="99" step="1" [disabled]="cancelado || somenteLeitura" />
@@ -230,6 +224,40 @@
               <button type="button" class="primario" [disabled]="salvandoConvocacao()" (click)="salvarConvocacao()">
                 {{ salvandoConvocacao() ? 'Salvando...' : 'Salvar convocação' }}
               </button>
+            </div>
+          }
+
+          @if (!cancelado && !somenteLeitura && jogo()?.status === 'Agendado') {
+            <div class="divulgacao">
+              <p class="titulo-divulgacao">📣 Avisar os responsáveis</p>
+              @if (jogo()?.convocacaoDivulgadaEm; as divulgadaEm) {
+                <p class="ajuda-divulgacao">
+                  Divulgada por e-mail em {{ formatarDataHora(divulgadaEm) }}.
+                  @if (jogo()?.convocacaoAlteradaDepoisDaDivulgacao) {
+                    <strong>A convocação mudou depois do aviso: divulgue de novo para atualizar os responsáveis.</strong>
+                  }
+                </p>
+              } @else {
+                <p class="ajuda-divulgacao">Os responsáveis ainda não receberam e-mail. O Portal da Família já mostra a convocação assim que ela é salva.</p>
+              }
+              @if (!convocacaoSalva) {
+                <p class="ajuda-divulgacao">Salve a convocação antes de divulgar.</p>
+              }
+              @if (!confirmandoDivulgacao()) {
+                <button type="button" class="botao-divulgar" [disabled]="!convocacaoSalva || totalConvocados === 0" (click)="confirmandoDivulgacao.set(true)">
+                  {{ jogo()?.convocacaoDivulgadaEm ? 'Divulgar novamente' : 'Divulgar convocação' }}
+                </button>
+              } @else {
+                <div class="confirmar-divulgacao">
+                  <span>Enviar e-mail aos responsáveis dos atletas da turma? Cada um recebe só a situação do próprio filho (convocado ou não).</span>
+                  <div class="botoes">
+                    <button type="button" class="secundario" (click)="confirmandoDivulgacao.set(false)">Voltar</button>
+                    <button type="button" class="primario" [disabled]="divulgando()" (click)="divulgarConvocacao()">
+                      {{ divulgando() ? 'Enviando...' : 'Enviar e-mails' }}
+                    </button>
+                  </div>
+                </div>
+              }
             </div>
           }
         }
