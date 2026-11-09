@@ -27,7 +27,7 @@ Obs.: a semana de 09/11 já estava coberta (Reel, Portal, Saúde, pergunta); est
 - 3+ faltas seguidas, atestado vencido/vencendo em 30 dias, matrículas aguardando aceite, contas a pagar atrasadas, estoque baixo/zerado → `CLAUDE.md` (Chamada e frequência; Validade do atestado; LGPD termo de matrícula; Dashboard; Estoque).
 - Cada item é link para a tela já filtrada → `CLAUDE.md` ("Filtros por query string").
 - Visão geral × por unidade; estoque e contas seguem consolidados → `CLAUDE.md` (Filtro por Unidade). Dito no slide 7.
-- "Recebido no mês e a vencer" (slide 5) vem dos cartões financeiros do painel; aparecem só para perfis do financeiro. Não é número, é recurso.
+- "Atletas bloqueados por atraso" (slide 5, no lugar de "Recebido no mês e a vencer", trocado em 09/11/2026 porque aquele item só aparece para o financeiro) → `CLAUDE.md` (Bloqueio por atraso; Dashboard → Atenção). **O bloqueio só aparece se o clube configurou os dias de atraso** em Configurações → Financeiro.
 
 ---
 
@@ -83,7 +83,7 @@ Obs.: a semana de 09/11 já estava coberta (Reel, Portal, Saúde, pergunta); est
 
 ## Pendências para o Cleber confirmar
 1. **Estoque é restrito** a Admin, Coordenador e Financeiro (professor/secretaria-treinador não lança). Se a legenda sugerir que o treinador lança saída de bola, não vale. O texto atual não diz isso.
-2. **Slide 5 do painel** ("Recebido no mês e a vencer"): só aparece para quem é do financeiro, não para o professor. Se preferir, troco por outro item.
+2. ~~**Slide 5 do painel**~~ Resolvido em 09/11/2026: o item "Recebido no mês e a vencer" foi trocado por "Atletas bloqueados por atraso" e os PNGs foram reexportados.
 3. **Slide 4 do painel**: "Matrículas aguardando o aceite da família" vale para quem já usa o termo de matrícula no portal.
 4. Os três temas são do segmento clube (campeonato, súmula). Coerente com o público do perfil.
 5. Nenhum post fala de Pix automático, boleto, cartão, WhatsApp, preço ou cupom.
