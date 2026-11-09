@@ -234,3 +234,52 @@
     background: var(--cor-primaria-escura);
   }
 }
+
+.passos-asaas {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #475569;
+
+  li + li {
+    margin-top: 4px;
+  }
+}
+
+.painel-formulario label.checagem {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 400;
+
+  input {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    padding: 0;
+    margin: 2px 0 0;
+  }
+}
+
+.confirmacao-desconexao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  font-size: 0.9rem;
+
+  span {
+    flex: 1 1 260px;
+  }
+}

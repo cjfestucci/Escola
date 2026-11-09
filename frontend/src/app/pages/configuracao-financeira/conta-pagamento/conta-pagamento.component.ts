@@ -45,8 +45,16 @@ export class ContaPagamentoComponent implements OnInit, OnDestroy {
 
   readonly visivel = computed(() => {
     const c = this.conta();
-    return !!c && (c.disponivel || c.conectada);
+    return !!c && (c.disponivel || c.conectada || !!c.podeConectarPropria);
   });
+
+  /** Conta Asaas do próprio clube. */
+  chaveApi = '';
+  aceitouTermosAsaas = false;
+  autorizouChavePix = false;
+  readonly conectandoPropria = signal(false);
+  readonly confirmandoDesconexao = signal(false);
+  readonly desconectando = signal(false);
 
   nome = '';
   email = '';
@@ -134,6 +142,43 @@ export class ContaPagamentoComponent implements OnInit, OnDestroy {
           this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível abrir a conta de pagamento.');
         }
       });
+  }
+
+  conectarPropria(): void {
+    const chave = this.chaveApi.trim();
+    if (!chave) return this.notificacao.erro('Cole a chave de API gerada no Asaas.');
+    if (!this.aceitouTermosAsaas) return this.notificacao.erro('Aceite os Termos de Uso do Asaas para continuar.');
+    if (!this.autorizouChavePix) return this.notificacao.erro('Autorize a criação da chave Pix na sua conta do Asaas para continuar.');
+
+    this.conectandoPropria.set(true);
+    this.pagamentoService.conectarContaPropria({ apiKey: chave, aceitouTermosAsaas: true, autorizouChavePix: true }).subscribe({
+      next: (c) => {
+        this.chaveApi = '';
+        this.aplicar(c);
+        this.conectandoPropria.set(false);
+        this.notificacao.sucesso('Conta do Asaas conectada.');
+      },
+      error: (resposta) => {
+        this.conectandoPropria.set(false);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível conectar a conta do Asaas.');
+      }
+    });
+  }
+
+  desconectar(): void {
+    this.desconectando.set(true);
+    this.pagamentoService.desconectarConta().subscribe({
+      next: () => {
+        this.desconectando.set(false);
+        this.confirmandoDesconexao.set(false);
+        this.pagamentoService.obterConta().subscribe({ next: (c) => this.aplicar(c), error: () => undefined });
+        this.notificacao.info('Conta desconectada. As mensalidades voltam ao Pix comum.');
+      },
+      error: (resposta) => {
+        this.desconectando.set(false);
+        this.notificacao.erro(typeof resposta.error === 'string' ? resposta.error : 'Não foi possível desconectar a conta.');
+      }
+    });
   }
 
   atualizar(): void {

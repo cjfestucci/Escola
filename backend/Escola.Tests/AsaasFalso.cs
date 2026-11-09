@@ -10,6 +10,11 @@ namespace Escola.Tests;
 public sealed class AsaasFalso
 {
     public const string ApiKeySubconta = "$aact_hmlg_subconta_de_teste";
+    /// <summary>Chave de uma conta própria de clube (a única que o /myAccount/commercialInfo aceita; qualquer outra dá 401).</summary>
+    public const string ApiKeyClube = "$aact_hmlg_chave_do_clube";
+
+    /// <summary>Endereços de webhook cadastrados pela API (conta própria).</summary>
+    public List<string> Webhooks { get; } = [];
 
     private int _sequencia;
     public List<(string Metodo, string Caminho, string? ApiKey, JsonNode? Corpo)> Chamadas { get; } = [];
@@ -37,11 +42,17 @@ public sealed class AsaasFalso
                 Content = new StringContent("{\"errors\":[{\"description\":\"Você não possui uma chave Pix cadastrada para recebimentos de cobranças via Pix.\"}]}", Encoding.UTF8, "application/json")
             };
 
+        if (caminho == "/myAccount/commercialInfo" && apiKey != ApiKeyClube)
+            return new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = new StringContent("{\"errors\":[{\"description\":\"A chave de API fornecida é inválida\"}]}", Encoding.UTF8, "application/json") };
+
         object? resposta = (req.Method.Method, caminho) switch
         {
             ("POST", "/accounts") => new { id = "acc_teste", walletId = "wallet_teste", apiKey = ApiKeySubconta },
             ("GET", "/pix/addressKeys") => new { data = Array.Empty<object>() },
             ("POST", "/pix/addressKeys") => new { id = "chave_teste", status = "ACTIVE" },
+            ("GET", "/myAccount/commercialInfo") when apiKey == ApiKeyClube => new { name = "Clube Próprio FC", email = "financeiro@clube-proprio.test", cpfCnpj = "12345678000195" },
+            ("GET", "/webhooks") => new { data = Webhooks.Select(u => new { url = u }).ToArray() },
+            ("POST", "/webhooks") => NovoWebhook(corpo!),
             ("GET", "/myAccount/status") => new { general = SituacaoConta },
             ("GET", "/myAccount/documents") => new
             {
@@ -79,6 +90,12 @@ public sealed class AsaasFalso
         {
             Content = new StringContent(JsonSerializer.Serialize(resposta), Encoding.UTF8, "application/json")
         };
+    }
+
+    private object NovoWebhook(JsonNode corpo)
+    {
+        lock (Webhooks) Webhooks.Add(corpo["url"]!.GetValue<string>());
+        return new { id = "wh_teste" };
     }
 
     private object NovoPagamento(JsonNode corpo)

@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { ConectarContaPagamento, ContaPagamento } from '../models/pagamento.model';
+import { ConectarContaPagamento, ConectarContaPropria, ContaPagamento } from '../models/pagamento.model';
 
 @Injectable({ providedIn: 'root' })
 export class PagamentoService {
@@ -16,6 +16,15 @@ export class PagamentoService {
 
   conectarConta(dados: ConectarContaPagamento): Observable<ContaPagamento> {
     return this.http.post<ContaPagamento>(`${this.baseUrl}/conta`, dados);
+  }
+
+  /** Conecta a conta Asaas do próprio clube pela chave de API que ele gerou no Asaas. */
+  conectarContaPropria(dados: ConectarContaPropria): Observable<ContaPagamento> {
+    return this.http.post<ContaPagamento>(`${this.baseUrl}/conta/propria`, dados);
+  }
+
+  desconectarConta(): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/conta/desconectar`, {});
   }
 
   atualizarConta(): Observable<ContaPagamento> {

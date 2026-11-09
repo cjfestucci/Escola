@@ -66,6 +66,10 @@ public sealed record DadosSubconta(
 
 public sealed record SubcontaCriada(string Id, string? WalletId, string ApiKey);
 
+/// <summary>Dados comerciais da conta dona de uma chave de API (<c>GET /myAccount/commercialInfo</c>): serve pra validar a chave do clube
+/// e preencher o titular na tela.</summary>
+public sealed record ContaPropriaAsaas(string? Nome, string? Email, string? CpfCnpj);
+
 /// <summary>Um grupo de documentos que a subconta precisa mandar pra aprovação. <c>UrlEnvio</c> (onboardingUrl do Asaas) = o envio é
 /// <b>só</b> pela página do Asaas (a selfie, por exemplo; mandar esse pela API é recusado, mesmo com o link vencido); sem ela, o envio
 /// é pela API (<see cref="AsaasApi.EnviarDocumentoAsync"/>), com o <c>Id</c> do grupo e o <c>Tipo</c>.</summary>
@@ -133,6 +137,39 @@ public sealed class AsaasApi(HttpClient http, IOptions<OpcoesAsaas> opcoes, ILog
                 return;
         }
         using var _ = await EnviarAsync(apiKeySubconta, HttpMethod.Post, "/pix/addressKeys", new JsonObject { ["type"] = "EVP" }, ct);
+    }
+
+    /// <summary>Valida a chave de API de uma <b>conta própria do clube</b> e devolve o titular. Chave inválida/sem permissão vira
+    /// <see cref="PixProvedorException"/> (mensagem em português, sem a chave).</summary>
+    public async Task<ContaPropriaAsaas> DadosContaPropriaAsync(string apiKey, CancellationToken ct = default)
+    {
+        using var json = await EnviarAsync(apiKey, HttpMethod.Get, "/myAccount/commercialInfo", null, ct);
+        var r = json!.RootElement;
+        return new ContaPropriaAsaas(Texto(r, "name") ?? Texto(r, "companyName"), Texto(r, "email"), Texto(r, "cpfCnpj"));
+    }
+
+    /// <summary>Cadastra na conta do clube o aviso (webhook) de pagamento que aponta pra plataforma, com o token que ela confere. Se já
+    /// existir um webhook nosso (mesmo endereço), não cria outro.</summary>
+    public async Task CadastrarWebhookPagamentosAsync(string apiKey, string email, CancellationToken ct = default)
+    {
+        var url = $"{_o.WebhookUrlBase!.TrimEnd('/')}/api/pagamentos/asaas/webhook";
+        using (var lista = await EnviarAsync(apiKey, HttpMethod.Get, "/webhooks", null, ct))
+        {
+            if (lista!.RootElement.TryGetProperty("data", out var dados) && dados.ValueKind == JsonValueKind.Array
+                && dados.EnumerateArray().Any(w => string.Equals(Texto(w, "url"), url, StringComparison.OrdinalIgnoreCase)))
+                return;
+        }
+        using var _ = await EnviarAsync(apiKey, HttpMethod.Post, "/webhooks", new JsonObject
+        {
+            ["name"] = $"{MarcaProduto.Nome} — pagamentos",
+            ["url"] = url,
+            ["email"] = email,
+            ["enabled"] = true,
+            ["interrupted"] = false,
+            ["authToken"] = _o.WebhookToken,
+            ["sendType"] = "SEQUENTIALLY",
+            ["events"] = new JsonArray("PAYMENT_RECEIVED", "PAYMENT_CONFIRMED", "PAYMENT_UPDATED", "PAYMENT_DELETED", "PAYMENT_REFUNDED")
+        }, ct);
     }
 
     /// <summary>Situação geral da conta (ex.: APPROVED, PENDING, AWAITING_APPROVAL, REJECTED).</summary>

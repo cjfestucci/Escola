@@ -38,4 +38,14 @@ public class ContaPagamento
 
     public DateTime CriadaEm { get; set; }
     public DateTime? SituacaoConsultadaEm { get; set; }
+
+    /// <summary><b>Conta do próprio clube</b> no Asaas (o clube contratou o Asaas direto e informou a chave de API dele), em vez de uma
+    /// subconta aberta pela plataforma. Nesse modelo o dinheiro cai direto na conta do clube e a plataforma só cria as cobranças.</summary>
+    public bool Propria { get; set; }
+
+    /// <summary>Quando (UTC) o clube aceitou os Termos do Asaas e autorizou a criação da chave Pix. Só nas contas próprias.</summary>
+    public DateTime? ConsentimentoEm { get; set; }
+
+    /// <summary>IP de quem deu o consentimento (prova do aceite).</summary>
+    public string? ConsentimentoIp { get; set; }
 }

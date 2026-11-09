@@ -37,7 +37,7 @@ public class OpcoesPixBb
     public string? WebhookSegredo { get; set; }
 
     /// <summary>De quanto em quanto tempo o app pergunta ao banco se as cobranças pendentes foram pagas.</summary>
-    public int IntervaloConciliacaoSegundos { get; set; } = 120;
+    public int IntervaloConciliacaoSegundos { get; set; } = 30;
 
     /// <summary>Cliente (escola) dono destas credenciais. Desde que todos os clientes compartilham o mesmo deploy (2026-10-07), as
     /// credenciais do BB ainda vêm da configuração do deploy — então a integração só vale pra UM cliente. Sem valor, é o cliente

@@ -16,6 +16,7 @@ public class ContaPagamentoConfiguration : IEntityTypeConfiguration<ContaPagamen
         builder.Property(c => c.TitularCpfCnpj).IsRequired().HasMaxLength(14);
         builder.Property(c => c.TitularEmail).IsRequired().HasMaxLength(256);
         builder.Property(c => c.SituacaoGateway).HasMaxLength(50);
+        builder.Property(c => c.ConsentimentoIp).HasMaxLength(64);
         // Uma conta de pagamento por escola.
         builder.HasIndex("ClienteId").IsUnique();
     }

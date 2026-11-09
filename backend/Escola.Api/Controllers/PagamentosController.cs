@@ -34,7 +34,15 @@ public record ContaPagamentoDto(
     bool PagamentoAutomaticoAtivo,
     IReadOnlyList<DocumentoPendenteDto>? Documentos = null,
     string? MotivoRecusa = null,
-    bool DocumentosEmPreparo = false);
+    bool DocumentosEmPreparo = false,
+    bool Propria = false,
+    bool PodeConectarPropria = false,
+    DateTime? ConsentimentoEm = null);
+
+/// <param name="ApiKey">Chave de API gerada pelo clube no painel do Asaas dele (Minha conta &gt; Integrações). Nunca é devolvida nem logada.</param>
+/// <param name="AceitouTermosAsaas">O clube declara ter lido e aceito os Termos de Uso do Asaas.</param>
+/// <param name="AutorizouChavePix">O clube autoriza a criação de uma chave Pix aleatória na conta dele e do aviso de pagamento.</param>
+public record ConectarContaPropriaRequest(string ApiKey, bool AceitouTermosAsaas, bool AutorizouChavePix);
 
 /// <param name="Id">Identificador do grupo de documentos no Asaas (vai na rota do envio pela API).</param>
 /// <param name="Situacao">Não enviado, Em análise ou Recusado.</param>
@@ -126,6 +134,87 @@ public class PagamentosController(
         // A conta já existe no Asaas: daqui pra frente nada pode desfazer o registro acima. Chave Pix e situação são "melhor esforço".
         await ConcluirConfiguracaoAsync(conta, criada.ApiKey, ct);
         return Ok(ParaDto(conta) with { DocumentosEmPreparo = o.EsperaDocumentosSegundos > 0 && conta.SituacaoGateway != "APPROVED" });
+    }
+
+    /// <summary>Conecta a <b>conta Asaas do próprio clube</b> (ele contratou o Asaas direto e gerou uma chave de API). A chave é validada no
+    /// Asaas, guardada criptografada e usada só pra criar as cobranças Pix e conferir os pagamentos: o dinheiro cai direto na conta do
+    /// clube, sem passar pela plataforma. Exige o aceite dos Termos do Asaas e a autorização pra criar a chave Pix (guardados com data e IP).</summary>
+    [HttpPost("conta/propria")]
+    [Authorize(Roles = GruposDePapeis.AdminOuSuporte)]
+    public async Task<ActionResult<ContaPagamentoDto>> ConectarPropria(ConectarContaPropriaRequest request, CancellationToken ct)
+    {
+        var o = opcoes.Value;
+        if (!cofre.Disponivel)
+            return BadRequest("O pagamento automático ainda não está disponível neste ambiente. Fale com o suporte.");
+        if (await ContaAtualAsync() is not null)
+            return BadRequest("Esta escola já tem uma conta de pagamento conectada.");
+        if (!request.AceitouTermosAsaas || !request.AutorizouChavePix)
+            return BadRequest("Para conectar, aceite os Termos de Uso do Asaas e autorize a criação da chave Pix.");
+
+        var apiKey = (request.ApiKey ?? string.Empty).Trim();
+        if (apiKey.Length < 20 || apiKey.Length > 300 || apiKey.Any(char.IsWhiteSpace))
+            return BadRequest("Cole a chave de API completa, exatamente como o Asaas mostrou.");
+        // A chave de teste só funciona no ambiente de teste e vice-versa: avisa antes de bater no Asaas.
+        var chaveDeProducao = apiKey.StartsWith("$aact_prod_", StringComparison.Ordinal);
+        var chaveDeTeste = apiKey.StartsWith("$aact_hmlg_", StringComparison.Ordinal);
+        if (!chaveDeProducao && !chaveDeTeste)
+            return BadRequest("Essa não parece uma chave de API do Asaas (ela começa com $aact_).");
+        if (chaveDeProducao != (o.NomeAmbiente == "Producao"))
+            return BadRequest(chaveDeProducao
+                ? "Esta é uma chave de produção, mas este ambiente é de teste."
+                : "Esta é uma chave de teste (sandbox). Gere a chave na conta real do Asaas.");
+
+        ContaPropriaAsaas titular;
+        try
+        {
+            titular = await asaas.DadosContaPropriaAsync(apiKey, ct);
+        }
+        catch (PixProvedorException ex)
+        {
+            return BadRequest(ex.StatusHttp == 401
+                ? "O Asaas recusou a chave de API. Confira se você copiou a chave inteira, se ela está ativa e se é do ambiente certo."
+                : ex.Message);
+        }
+
+        var conta = new ContaPagamento
+        {
+            Id = Guid.NewGuid(),
+            Provedor = ProvedorPagamento.Asaas,
+            Ambiente = o.NomeAmbiente,
+            IdExterno = "conta-propria",
+            ApiKeyCriptografada = cofre.Criptografar(apiKey),
+            TitularNome = string.IsNullOrWhiteSpace(titular.Nome) ? "Conta Asaas do clube" : titular.Nome.Trim(),
+            TitularCpfCnpj = DocumentoBr.Normalizar(titular.CpfCnpj ?? string.Empty),
+            TitularEmail = titular.Email?.Trim().ToLowerInvariant() ?? string.Empty,
+            Propria = true,
+            ConsentimentoEm = DateTime.UtcNow,
+            ConsentimentoIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            CriadaEm = DateTime.UtcNow
+        };
+        db.ContasPagamento.Add(conta);
+        auditoria.Registrar(nameof(ContaPagamento), conta.Id, AcaoAuditoria.Criado, this.UsuarioIdAtual(),
+            $"Conta Asaas própria conectada ({conta.Ambiente}): {conta.TitularNome}. Termos do Asaas aceitos e criação da chave Pix autorizada.");
+        await db.SaveChangesAsync(ct);
+
+        await ConcluirConfiguracaoAsync(conta, apiKey, ct);
+        return Ok(ParaDto(conta));
+    }
+
+    /// <summary>Desfaz a conexão de uma conta própria (chave trocada, conta encerrada…). As mensalidades voltam ao Pix comum até conectar de
+    /// novo. A chave guardada é apagada; a conta no Asaas não é tocada (o clube gerencia o webhook e a chave de API por lá).</summary>
+    [HttpPost("conta/desconectar")]
+    [Authorize(Roles = GruposDePapeis.AdminOuSuporte)]
+    public async Task<IActionResult> Desconectar(CancellationToken ct)
+    {
+        var conta = await db.ContasPagamento.FirstOrDefaultAsync(c => c.Ambiente == opcoes.Value.NomeAmbiente, ct);
+        if (conta is null) return NotFound("Esta escola ainda não tem conta de pagamento.");
+        if (!conta.Propria) return BadRequest("Só é possível desconectar uma conta Asaas própria.");
+
+        db.ContasPagamento.Remove(conta);
+        auditoria.Registrar(nameof(ContaPagamento), conta.Id, AcaoAuditoria.Excluido, this.UsuarioIdAtual(),
+            $"Conta Asaas própria desconectada: {conta.TitularNome}");
+        await db.SaveChangesAsync(ct);
+        return NoContent();
     }
 
     /// <summary>Tenta de novo o que pode ter falhado depois da criação (chave Pix da subconta) e atualiza a situação da conta.</summary>
@@ -258,6 +347,20 @@ public class PagamentosController(
 
         try
         {
+            // Conta própria: o aviso de pagamento é cadastrado na conta do clube (na subconta ele já vai junto da criação).
+            if (conta.Propria && !conta.WebhookConfigurado && opcoes.Value.WebhookHabilitado)
+            {
+                await asaas.CadastrarWebhookPagamentosAsync(apiKey, string.IsNullOrWhiteSpace(conta.TitularEmail) ? "suporte@gestortatico.com.br" : conta.TitularEmail, ct);
+                conta.WebhookConfigurado = true;
+            }
+        }
+        catch (PixProvedorException ex)
+        {
+            logger.LogWarning(ex, "Não foi possível cadastrar o webhook de pagamentos na conta própria.");
+        }
+
+        try
+        {
             conta.SituacaoGateway = await asaas.SituacaoContaAsync(apiKey, ct);
             conta.SituacaoConsultadaEm = DateTime.UtcNow;
         }
@@ -274,7 +377,7 @@ public class PagamentosController(
     private async Task<ContaPagamentoDto> ComDocumentosAsync(ContaPagamento? conta, CancellationToken ct)
     {
         var dto = ParaDto(conta);
-        if (conta is null || conta.SituacaoGateway == "APPROVED" || !cofre.Disponivel) return dto;
+        if (conta is null || conta.Propria || conta.SituacaoGateway == "APPROVED" || !cofre.Disponivel) return dto;
 
         // O Asaas pede ao menos 15 s entre criar a subconta e consultar os documentos: antes disso a lista vem incompleta.
         if (DateTime.UtcNow < conta.CriadaEm.AddSeconds(opcoes.Value.EsperaDocumentosSegundos))
@@ -319,7 +422,10 @@ public class PagamentosController(
         conta?.WebhookConfigurado ?? false,
         conta?.SituacaoGateway,
         conta?.CriadaEm,
-        conta is { ChavePixCriada: true });
+        conta is { ChavePixCriada: true },
+        Propria: conta?.Propria ?? false,
+        PodeConectarPropria: cofre.Disponivel,
+        ConsentimentoEm: conta?.ConsentimentoEm);
 
     private static (DadosSubconta? Dados, string? Erro) Validar(ConectarContaPagamentoRequest r)
     {

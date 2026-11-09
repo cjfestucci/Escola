@@ -20,6 +20,12 @@ export interface ContaPagamento {
   motivoRecusa?: string | null;
   /** A conta acabou de ser aberta: o gateway pede uns segundos antes de listar os documentos. */
   documentosEmPreparo?: boolean;
+  /** Conta Asaas do próprio clube (chave de API informada por ele), e não uma subconta aberta pela plataforma. */
+  propria?: boolean;
+  /** O ambiente aceita conectar a conta Asaas do clube (o cofre de segredos está configurado). */
+  podeConectarPropria?: boolean;
+  /** Quando o clube aceitou os Termos do Asaas e autorizou a chave Pix (contas próprias). */
+  consentimentoEm?: string | null;
 }
 
 export interface DocumentoPendente {
@@ -43,6 +49,12 @@ export const TIPOS_EMPRESA: { valor: TipoEmpresa; rotulo: string }[] = [
   { valor: 'INDIVIDUAL', rotulo: 'Empresário individual / EIRELI / SLU' },
   { valor: 'ASSOCIATION', rotulo: 'Associação / entidade sem fins lucrativos' }
 ];
+
+export interface ConectarContaPropria {
+  apiKey: string;
+  aceitouTermosAsaas: boolean;
+  autorizouChavePix: boolean;
+}
 
 export interface ConectarContaPagamento {
   nome: string;

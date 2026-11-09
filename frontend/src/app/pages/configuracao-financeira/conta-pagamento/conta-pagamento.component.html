@@ -32,7 +32,7 @@
             <li>Chave Pix da conta: <strong>{{ c.chavePixCriada ? 'criada' : 'pendente' }}</strong></li>
             <li>Aviso instantâneo de pagamento: <strong>{{ c.webhookConfigurado ? 'ligado' : 'desligado (a consulta periódica dá a baixa)' }}</strong></li>
             @if (c.criadaEm) {
-              <li>Aberta em: <strong>{{ formatarDataHora(c.criadaEm) }}</strong></li>
+              <li>{{ c.propria ? 'Conectada em' : 'Aberta em' }}: <strong>{{ formatarDataHora(c.criadaEm) }}</strong></li>
             }
             @if (c.ambiente !== 'Producao') {
               <li>Ambiente: <strong>teste (sandbox)</strong>: nenhum dinheiro de verdade circula</li>
@@ -91,7 +91,19 @@
             <button type="button" class="secundario" [disabled]="atualizando()" (click)="atualizar()">
               {{ atualizando() ? 'Consultando...' : 'Atualizar situação' }}
             </button>
+            @if (c.propria && auth.podeEditarIdentidade()) {
+              <button type="button" class="secundario" (click)="confirmandoDesconexao.set(true)">Desconectar</button>
+            }
           </div>
+          @if (confirmandoDesconexao()) {
+            <div class="confirmacao-desconexao">
+              <span>Desconectar a conta do Asaas? As mensalidades voltam ao Pix comum, com baixa manual, até conectar de novo.</span>
+              <button type="button" class="secundario" (click)="confirmandoDesconexao.set(false)">Voltar</button>
+              <button type="button" class="primario" [disabled]="desconectando()" (click)="desconectar()">
+                {{ desconectando() ? 'Desconectando...' : 'Desconectar' }}
+              </button>
+            </div>
+          }
           <p class="ajuda">
             O código Pix de cada mensalidade é gerado nesta conta com o valor do dia. Quando a família paga, a mensalidade é baixada
             sozinha (aparece no histórico como feita pelo "Sistema"). Para isso, o responsável financeiro precisa ter o
@@ -101,6 +113,40 @@
           <p class="ajuda">
             Com o pagamento automático, as mensalidades pagas por Pix são baixadas sozinhas. Quem abre a conta de pagamento da escola
             é o <strong>administrador</strong> da escola.
+          </p>
+        } @else if (c.podeConectarPropria) {
+          <p class="ajuda ajuda--secao">
+            Conecte a <strong>sua conta do Asaas</strong> para as mensalidades pagas por Pix serem baixadas sozinhas. O dinheiro cai
+            direto na sua conta, sem passar por nós. Você contrata o Asaas diretamente, e o Asaas é quem processa os pagamentos.
+          </p>
+          @if (c.ambiente !== 'Producao') {
+            <p class="ajuda ajuda--aviso">Ambiente de teste (sandbox): use a chave de API gerada no sandbox do Asaas. Nenhum dinheiro de verdade circula.</p>
+          }
+          <ol class="passos-asaas">
+            <li>Crie ou acesse a sua conta em <a href="https://www.asaas.com" target="_blank" rel="noopener">asaas.com</a>.</li>
+            <li>No Asaas, abra <strong>Menu do usuário &gt; Integrações</strong> e gere uma <strong>chave de API</strong>.</li>
+            <li>Cole a chave abaixo. Ela fica guardada de forma criptografada e é usada só para criar as cobranças Pix e conferir os pagamentos.</li>
+          </ol>
+          <p class="legenda-obrigatorio">Campo obrigatório</p>
+          <label><span class="obrigatorio">Chave de API do Asaas</span>
+            <input type="password" [(ngModel)]="chaveApi" autocomplete="off" spellcheck="false" maxlength="300" placeholder="$aact_..." />
+          </label>
+          <label class="checagem">
+            <input type="checkbox" [(ngModel)]="aceitouTermosAsaas" />
+            <span>Li e aceito os <a href="https://www.asaas.com/termos-de-uso" target="_blank" rel="noopener">Termos de Uso do Asaas</a>.</span>
+          </label>
+          <label class="checagem">
+            <input type="checkbox" [(ngModel)]="autorizouChavePix" />
+            <span>Autorizo o Gestor Tático a criar, na minha conta do Asaas, uma chave Pix aleatória e o aviso automático de pagamentos.</span>
+          </label>
+          <div class="botoes-linha">
+            <button type="button" class="primario" [disabled]="conectandoPropria()" (click)="conectarPropria()">
+              {{ conectandoPropria() ? 'Conectando...' : 'Conectar minha conta do Asaas' }}
+            </button>
+          </div>
+          <p class="ajuda">
+            Sem conta no Asaas ou sem querer conectar agora? Tudo continua funcionando com o Pix comum (copia e cola), e você dá a
+            baixa das mensalidades manualmente.
           </p>
         } @else {
           <p class="ajuda ajuda--secao">

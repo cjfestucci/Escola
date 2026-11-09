@@ -599,6 +599,13 @@ namespace Escola.Infrastructure.Data.Migrations
                     b.Property<Guid>("ClienteId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ConsentimentoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ConsentimentoIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTime>("CriadaEm")
                         .HasColumnType("timestamp with time zone");
 
@@ -606,6 +613,9 @@ namespace Escola.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("Propria")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Provedor")
                         .HasColumnType("integer");
