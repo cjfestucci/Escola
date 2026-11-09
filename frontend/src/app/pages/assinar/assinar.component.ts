@@ -13,7 +13,8 @@ import {
   cnpjValido,
   cpfValido,
   formatarReais,
-  atletasExcedentes,
+  atletasAcimaDaUltimaFaixa,
+  faixaDoPlano,
   valorDoPlano
 } from '../../models/assinatura.model';
 import { AssinaturaService } from '../../services/assinatura.service';
@@ -41,7 +42,8 @@ export class AssinarComponent implements OnInit {
   protected readonly segmentoService = inject(SegmentoService);
 
   protected readonly formatarReais = formatarReais;
-  protected readonly atletasExcedentes = atletasExcedentes;
+  protected readonly atletasAcimaDaUltimaFaixa = atletasAcimaDaUltimaFaixa;
+  protected readonly faixaDoPlano = faixaDoPlano;
   protected readonly formatarData = formatarDataAbsoluta;
   protected readonly urlSite = environment.urlSite;
   protected readonly empresaCobranca = EMPRESA_COBRANCA;

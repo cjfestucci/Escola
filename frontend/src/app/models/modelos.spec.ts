@@ -82,12 +82,22 @@ describe('assinatura', () => {
         expect(cnpjValido('00000000000000')).toBe(false);
     });
 
-    it('calcula a mensalidade: mínimo até 20 atletas + valor por atleta acima', () => {
-        const plano = { precoFixo: 60, precoPorAtleta: 4, atletasIncluidos: 20, diasTeste: 7, versaoTermos: 'v' };
-        expect(valorDoPlano(plano, 0)).toBe(60);
-        expect(valorDoPlano(plano, 20)).toBe(60);
-        expect(valorDoPlano(plano, 21)).toBe(64);
-        expect(valorDoPlano(plano, 40)).toBe(140);
+    it('calcula a mensalidade pela faixa e, acima da última, por atleta', () => {
+        const plano = {
+            faixas: [{ atletasAte: 20, preco: 59 }, { atletasAte: 30, preco: 69 }, { atletasAte: 100, preco: 129 }, { atletasAte: 200, preco: 189 }, { atletasAte: 300, preco: 249 }],
+            precoPorAtletaAcima: 0.6, diasTeste: 7, versaoTermos: 'v'
+        };
+        expect(valorDoPlano(plano, 0)).toBe(59);
+        expect(valorDoPlano(plano, 20)).toBe(59);
+        expect(valorDoPlano(plano, 21)).toBe(69);
+        expect(valorDoPlano(plano, 40)).toBe(129);
+        expect(valorDoPlano(plano, 100)).toBe(129);
+        expect(valorDoPlano(plano, 101)).toBe(189);
+        expect(valorDoPlano(plano, 200)).toBe(189);
+        expect(valorDoPlano(plano, 201)).toBe(249);
+        expect(valorDoPlano(plano, 300)).toBe(249);
+        expect(valorDoPlano(plano, 301)).toBe(249.6);
+        expect(valorDoPlano(plano, 500)).toBe(369);
     });
 });
 

@@ -90,7 +90,7 @@ flowchart LR
 
 ## Fase 3 — Asaas (recebimentos)
 
-O Asaas tem dois papéis: (a) **conta raiz da plataforma**, que cobra a assinatura dos clubes (R$ 60 até 20 atletas + R$ 4 por atleta acima); (b) **subcontas**,
+O Asaas tem dois papéis: (a) **conta raiz da plataforma**, que cobra a assinatura dos clubes (preço por faixa de atletas: R$ 59 até 20, R$ 69 até 30, R$ 129 até 100, R$ 189 até 200, R$ 249 até 300 e + R$ 0,60 por atleta acima); (b) **subcontas**,
 uma por escola, pra escola cobrar a mensalidade dos atletas por Pix com baixa automática.
 
 ### 3.1 👤 Conta sandbox (testes) ⏱️ 1 hora — **pode fazer hoje, sem CNPJ**
@@ -192,7 +192,7 @@ uma por escola, pra escola cobrar a mensalidade dos atletas por Pix com baixa au
 
 - **Atualizações**: `git pull && docker compose up -d --build` — sempre com **backup antes** (as migrations não têm "desfazer").
 - **Backups**: conferir que estão chegando; restaurar um por trimestre.
-- **Mudou preço?** `site/precos.js` **e** `ASSINATURA_PRECO_*`, e avisar os clientes com 30 dias (Termos).
+- **Mudou preço?** `site/precos.js` **e** `ASSINATURA_FAIXAS`/`ASSINATURA_PRECO_POR_ATLETA_ACIMA`, e avisar os clientes com 30 dias (Termos).
 - **Mudou um texto jurídico?** trocar a versão (`site/paginas.js` + `AssinaturaService.VersaoTermosUso`; no termo de matrícula, `TermoMatricula.Versao`).
 - **Contador**: NFS-e, impostos do Simples, pró-labore.
 

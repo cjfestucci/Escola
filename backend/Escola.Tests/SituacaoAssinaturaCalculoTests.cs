@@ -129,14 +129,30 @@ public class SituacaoAssinaturaCalculoTests
     public void SoBloqueiaQuemNaoPagou(SituacaoAssinatura situacao, bool bloqueia) =>
         Assert.Equal(bloqueia, SituacaoAssinaturaCalculo.Bloqueia(situacao));
 
-    /// <summary>R$ 60 cobre até 20 atletas; cada atleta acima custa R$ 4 (decisão de 2026-10-14).</summary>
+    /// <summary>Faixas padrão (decisão de 2026-11-09): R$ 59 até 20, R$ 69 até 30, R$ 129 até 100, R$ 189 até 200, R$ 249 até 300 e + R$ 0,60 por atleta acima.</summary>
     [Theory]
-    [InlineData(0, 60)]
-    [InlineData(10, 60)]
-    [InlineData(20, 60)]
-    [InlineData(21, 64)]
-    [InlineData(40, 140)]
-    [InlineData(150, 580)]
-    public void ValorEhOMinimoAte20AtletasMaisPorAtletaAcima(int atletas, decimal esperado) =>
-        Assert.Equal(esperado, new OpcoesAssinatura().CalcularValor(atletas));
+    [InlineData(0, 59)]
+    [InlineData(20, 59)]
+    [InlineData(21, 69)]
+    [InlineData(30, 69)]
+    [InlineData(31, 129)]
+    [InlineData(100, 129)]
+    [InlineData(101, 189)]
+    [InlineData(200, 189)]
+    [InlineData(201, 249)]
+    [InlineData(300, 249)]
+    [InlineData(301, 249.60)]
+    [InlineData(500, 369)]
+    public void ValorSegueAsFaixasEDepoisUmValorPorAtleta(int atletas, double esperado) =>
+        Assert.Equal((decimal)esperado, new OpcoesAssinatura().CalcularValor(atletas));
+
+    [Theory]
+    [InlineData("50=100;100=200", 50, 100)]
+    [InlineData("100=200;50=100", 51, 200)]
+    [InlineData("abc", 40, 129)]
+    [InlineData("20=0;30=69", 40, 129)]
+    [InlineData("20=59;20=69", 40, 129)]
+    [InlineData("", 40, 129)]
+    public void FaixasConfiguradasSaoLidasEInvalidasCaemNoPadrao(string faixas, int atletas, double esperado) =>
+        Assert.Equal((decimal)esperado, new OpcoesAssinatura { Faixas = faixas }.CalcularValor(atletas));
 }

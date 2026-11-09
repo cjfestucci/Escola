@@ -52,9 +52,9 @@ public partial class AssinaturaHttpTests(ApiFactory api) : IClassFixture<ApiFact
     public async Task OPlanoEhPublico()
     {
         var plano = await api.CreateClient().GetFromJsonAsync<JsonElement>("/api/assinaturas/plano", Json);
-        Assert.Equal(60m, plano.GetProperty("precoFixo").GetDecimal());
-        Assert.Equal(20, plano.GetProperty("atletasIncluidos").GetInt32());
-        Assert.Equal(4m, plano.GetProperty("precoPorAtleta").GetDecimal());
+        var faixas = plano.GetProperty("faixas").EnumerateArray().Select(f => (f.GetProperty("atletasAte").GetInt32(), f.GetProperty("preco").GetDecimal())).ToArray();
+        Assert.Equal(new[] { (20, 59m), (30, 69m), (100, 129m), (200, 189m), (300, 249m) }, faixas);
+        Assert.Equal(0.60m, plano.GetProperty("precoPorAtletaAcima").GetDecimal());
         Assert.Equal(7, plano.GetProperty("diasTeste").GetInt32());
     }
 
@@ -75,7 +75,7 @@ public partial class AssinaturaHttpTests(ApiFactory api) : IClassFixture<ApiFact
         resposta.EnsureSuccessStatusCode();
         var cadastro = await resposta.Content.ReadFromJsonAsync<JsonElement>(Json);
         Assert.Equal("EmTeste", cadastro.GetProperty("situacao").GetString());
-        Assert.Equal(140m, cadastro.GetProperty("valorMensal").GetDecimal()); // 60 + 4 × (40 − 20)
+        Assert.Equal(129m, cadastro.GetProperty("valorMensal").GetDecimal()); // 40 atletas: faixa de até 100
         Assert.Equal(JsonValueKind.Null, cadastro.GetProperty("linkPagamento").ValueKind); // com teste, nada a pagar agora
         var testeAte = DateOnly.Parse(cadastro.GetProperty("testeAte").GetString()!);
 
@@ -203,18 +203,18 @@ public partial class AssinaturaHttpTests(ApiFactory api) : IClassFixture<ApiFact
             await db.SaveChangesAsync();
         }
 
-        // Ainda no teste: vale o número informado no cadastro (40 → R$ 140), mesmo com 5 atletas cadastrados.
+        // Ainda no teste: vale o número informado no cadastro (40 → R$ 129), mesmo com 5 atletas cadastrados.
         var minha = await AtualizarAsync(admin);
-        Assert.Equal(140m, minha.GetProperty("valorMensal").GetDecimal());
+        Assert.Equal(129m, minha.GetProperty("valorMensal").GetDecimal());
 
-        // Pagou a 1ª; a próxima fatura vence em 20 dias: o valor passa a seguir os 5 atletas ATIVOS (dentro dos 20 incluídos → R$ 60), também na fatura em aberto.
+        // Pagou a 1ª; a próxima fatura vence em 20 dias: o valor passa a seguir os 5 atletas ATIVOS (faixa de até 20 → R$ 59), também na fatura em aberto.
         api.Asaas.Pagar(api.Asaas.Assinaturas[idAssinatura][0].PagamentoId);
-        var proxima = api.Asaas.GerarFatura(idAssinatura, Hoje.AddDays(20), 140m);
+        var proxima = api.Asaas.GerarFatura(idAssinatura, Hoje.AddDays(20), 129m);
         minha = await AtualizarAsync(admin);
         Assert.Equal("Ativa", minha.GetProperty("situacao").GetString());
-        Assert.Equal(60m, minha.GetProperty("valorMensal").GetDecimal());
+        Assert.Equal(59m, minha.GetProperty("valorMensal").GetDecimal());
         Assert.Equal(5, minha.GetProperty("atletasCobrados").GetInt32());
-        Assert.Equal(60m, api.Asaas.Pagamentos[proxima].Valor);
+        Assert.Equal(59m, api.Asaas.Pagamentos[proxima].Valor);
 
         // Coordenador não cancela; o Admin cancela, e o acesso segue até o vencimento da fatura em aberto.
         var coordenadorEmail = $"coord.{Guid.NewGuid():N}@clube.test";
@@ -313,7 +313,7 @@ public partial class AssinaturaHttpTests(ApiFactory api) : IClassFixture<ApiFact
 
         // Pagou a 1ª e a próxima já vence em 2 dias: recibo numa rodada, lembrete na seguinte, e nada se repete.
         api.Asaas.Pagar(api.Asaas.Assinaturas[idAssinatura][0].PagamentoId);
-        var proxima = api.Asaas.GerarFatura(idAssinatura, Hoje.AddDays(2), 140m);
+        var proxima = api.Asaas.GerarFatura(idAssinatura, Hoje.AddDays(2), 129m);
         for (var i = 0; i < 3; i++) await AtualizarAsync(admin);
         Assert.Equal(1, Avisos("Pagamento confirmado"));
         Assert.Equal(1, Avisos("Sua mensalidade vence em"));

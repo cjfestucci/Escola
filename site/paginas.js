@@ -2,8 +2,8 @@
 
 // Versão dos Termos de Uso e da Política de Privacidade. Mudou o texto → troque aqui E em
 // AssinaturaService.VersaoTermosUso (backend), que grava qual versão cada clube aceitou no cadastro.
-const VERSAO_DOCUMENTOS = '2026-10-27.1';
-const VIGENCIA_DOCUMENTOS = '14/10/2026';
+const VERSAO_DOCUMENTOS = '2026-11-09.1';
+const VIGENCIA_DOCUMENTOS = '09/11/2026';
 
 function preencher(seletor, texto) {
   document.querySelectorAll(seletor).forEach((el) => (el.textContent = texto));
@@ -12,9 +12,24 @@ function preencher(seletor, texto) {
 preencher('.ano', new Date().getFullYear());
 preencher('.dias-teste', DIAS_TESTE);
 preencher('.dias-tolerancia', DIAS_TOLERANCIA);
-preencher('.preco-fixo', formatarReais(PRECO_FIXO));
-preencher('.preco-atleta', formatarReais(PRECO_POR_ATLETA));
-preencher('.atletas-incluidos', ATLETAS_INCLUIDOS);
+preencher('.preco-fixo', formatarReaisCurto(PRECO_MINIMO));
+preencher('.preco-atleta', formatarReais(PRECO_POR_ATLETA_ACIMA));
+// "R$ 59 até 20 atletas, R$ 69 até 30, R$ 129 até 100 e R$ 249 até 300; acima disso, mais R$ 0,60 por atleta"
+const itensFaixas = FAIXAS.map((f, i) => formatarReaisCurto(f.preco) + (i === 0 || i === FAIXAS.length - 1 ? ' até ' + f.ate + ' atletas' : ' até ' + f.ate));
+preencher('.faixas-texto', itensFaixas.slice(0, -1).join(', ') + ' e ' + itensFaixas[itensFaixas.length - 1] + '; acima disso, mais ' + formatarReais(PRECO_POR_ATLETA_ACIMA) + ' por atleta');
+document.querySelectorAll('.tabela-faixas').forEach((tabela) => {
+  FAIXAS.forEach((f, i) => {
+    const de = i === 0 ? 1 : FAIXAS[i - 1].ate + 1;
+    const linha = document.createElement('div');
+    linha.className = 'linha';
+    linha.innerHTML = '<span>' + (i === 0 ? 'Até ' + f.ate + ' atletas' : de + ' a ' + f.ate + ' atletas') + '</span><strong>' + formatarReaisCurto(f.preco) + '</strong>';
+    tabela.appendChild(linha);
+  });
+  const mais = document.createElement('div');
+  mais.className = 'linha';
+  mais.innerHTML = '<span>Acima de ' + FAIXAS[FAIXAS.length - 1].ate + ' atletas</span><strong>+ ' + formatarReais(PRECO_POR_ATLETA_ACIMA) + ' por atleta</strong>';
+  tabela.appendChild(mais);
+});
 preencher('.versao-termos', VERSAO_DOCUMENTOS);
 preencher('.vigencia-termos', VIGENCIA_DOCUMENTOS);
 function apontarBotoes() {

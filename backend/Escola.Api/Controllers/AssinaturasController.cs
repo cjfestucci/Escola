@@ -23,10 +23,12 @@ namespace Escola.Api.Controllers;
 /// <param name="Restantes">Quantos cadastros ainda podem usar o cupom (nulo = sem limite) — o site mostra "próximos N assinantes".</param>
 public record CupomPublicoDto(string Codigo, int PercentualDesconto, int? Meses, string Descricao, int? MesesGratis = null, int? Restantes = null);
 
-/// <param name="PrecoFixo">Valor mínimo, que já cobre <c>AtletasIncluidos</c> atletas.</param>
-/// <param name="PrecoPorAtleta">Valor de cada atleta acima dos incluídos.</param>
+/// <param name="Faixas">Faixas de preço, em ordem crescente: cada uma vale até <c>AtletasAte</c> atletas.</param>
+/// <param name="PrecoPorAtletaAcima">Valor de cada atleta acima da última faixa (soma-se ao preço dela).</param>
 /// <param name="ChaveCaptcha">Chave pública do Turnstile pra tela mostrar o captcha; nula = cadastro sem captcha.</param>
-public record PlanoAssinaturaDto(decimal PrecoFixo, decimal PrecoPorAtleta, int DiasTeste, string VersaoTermos, int AtletasIncluidos, string? ChaveCaptcha = null);
+public record FaixaPlanoDto(int AtletasAte, decimal Preco);
+
+public record PlanoAssinaturaDto(IReadOnlyList<FaixaPlanoDto> Faixas, decimal PrecoPorAtletaAcima, int DiasTeste, string VersaoTermos, string? ChaveCaptcha = null);
 
 public record CadastroAssinaturaRequest(
     string? NomeClube, string? CpfCnpj, string? Cidade, int Atletas,
@@ -67,7 +69,8 @@ public class AssinaturasController(
     public ActionResult<PlanoAssinaturaDto> Plano()
     {
         var o = opcoes.Value;
-        return Ok(new PlanoAssinaturaDto(o.PrecoFixo, o.PrecoPorAtleta, Math.Max(0, o.DiasTeste), AssinaturaService.VersaoTermosUso, Math.Max(0, o.AtletasIncluidos), captcha.ChavePublica));
+        return Ok(new PlanoAssinaturaDto(o.ListarFaixas().Select(f => new FaixaPlanoDto(f.AtletasAte, f.Preco)).ToList(), Math.Max(0m, o.PrecoPorAtletaAcima),
+            Math.Max(0, o.DiasTeste), AssinaturaService.VersaoTermosUso, captcha.ChavePublica));
     }
 
     /// <summary>Confere um cupom na tela de cadastro (antes de assinar) e diz o desconto. Com freio por IP: não serve pra adivinhar cupons.</summary>

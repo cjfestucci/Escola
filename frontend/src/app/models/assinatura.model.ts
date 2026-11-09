@@ -1,11 +1,15 @@
 export type SituacaoAssinatura = 'AguardandoPagamento' | 'EmTeste' | 'Ativa' | 'EmAtraso' | 'Suspensa' | 'Cancelada';
 
+export interface FaixaPlano {
+  atletasAte: number;
+  preco: number;
+}
+
 export interface PlanoAssinatura {
-  /** Valor mínimo, que já cobre `atletasIncluidos` atletas. */
-  precoFixo: number;
-  /** Valor de cada atleta acima dos incluídos. */
-  precoPorAtleta: number;
-  atletasIncluidos: number;
+  /** Faixas de preço em ordem crescente: cada uma vale até `atletasAte` atletas. */
+  faixas: FaixaPlano[];
+  /** Valor de cada atleta acima da última faixa (soma-se ao preço dela). */
+  precoPorAtletaAcima: number;
   diasTeste: number;
   versaoTermos: string;
   /** Chave pública do captcha (Cloudflare Turnstile) do cadastro; nula = cadastro sem captcha. */
@@ -76,14 +80,24 @@ export interface MinhaAssinatura {
   cupomDescricao: string | null;
 }
 
-/** Atletas cobrados à parte (acima dos incluídos no valor mínimo). */
-export function atletasExcedentes(plano: PlanoAssinatura, atletas: number): number {
-  return Math.max(0, atletas - Math.max(0, plano.atletasIncluidos));
+/** A primeira faixa que comporta os atletas; nula quando passam da última (aí vale o preço dela + um valor por atleta). */
+export function faixaDoPlano(plano: PlanoAssinatura, atletas: number): FaixaPlano | null {
+  return plano.faixas.find((f) => atletas <= f.atletasAte) ?? null;
 }
 
-/** Mesma conta da API (`OpcoesAssinatura.CalcularValor`): mínimo até N atletas + valor por atleta acima. */
+/** Atletas acima da última faixa, cobrados à parte. */
+export function atletasAcimaDaUltimaFaixa(plano: PlanoAssinatura, atletas: number): number {
+  const ultima = plano.faixas[plano.faixas.length - 1];
+  return ultima ? Math.max(0, atletas - ultima.atletasAte) : 0;
+}
+
+/** Mesma conta da API (`OpcoesAssinatura.CalcularValor`): valor da primeira faixa que comporta os atletas; acima da última, o preço dela
+ * + um valor por atleta extra. */
 export function valorDoPlano(plano: PlanoAssinatura, atletas: number): number {
-  return Math.round((plano.precoFixo + plano.precoPorAtleta * atletasExcedentes(plano, atletas)) * 100) / 100;
+  const faixa = faixaDoPlano(plano, atletas);
+  if (faixa) return Math.round(faixa.preco * 100) / 100;
+  const ultima = plano.faixas[plano.faixas.length - 1];
+  return Math.round((ultima.preco + plano.precoPorAtletaAcima * atletasAcimaDaUltimaFaixa(plano, atletas)) * 100) / 100;
 }
 
 export function formatarReais(valor: number): string {

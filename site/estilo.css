@@ -193,6 +193,9 @@ p { margin: 0 0 1em; }
 .preco-plano .valor { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.03em; }
 .preco-plano .valor small { font-size: 1rem; font-weight: 600; color: var(--texto-suave); }
 .preco-plano .mais { font-weight: 700; color: var(--verde); margin-bottom: 18px; }
+.tabela-faixas { display: grid; gap: 6px; margin: 0 0 18px; }
+.tabela-faixas .linha { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-radius: 8px; background: var(--fundo-alt); font-size: .95rem; }
+.tabela-faixas .linha strong { color: var(--verde); }
 .preco-plano ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; color: var(--texto-suave); }
 .preco-plano li::before { content: "✓ "; color: var(--verde); font-weight: 800; }
 .simulador { background: var(--marinho); color: #fff; padding: 36px; display: flex; flex-direction: column; gap: 16px; }

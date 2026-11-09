@@ -26,6 +26,6 @@ public class AvisoNovoCadastroHttpTests(ApiFactory api) : IClassFixture<ApiFacto
         Assert.Equal("Novo clube cadastrado: Clube <Aviso>", aviso.Assunto);
         Assert.Contains("Clube &lt;Aviso&gt;", aviso.Corpo); // texto do clube sempre escapado no HTML
         Assert.Contains(email, aviso.Corpo);
-        Assert.Contains("R$ 100,00", aviso.Corpo); // 60 + 4 × (30 − 20)
+        Assert.Contains("R$ 69,00", aviso.Corpo); // 30 atletas: faixa de até 30
     }
 }
