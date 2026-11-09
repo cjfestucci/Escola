@@ -19,6 +19,11 @@ export class PlataformaService {
     return this.http.post<Cupom>(`${this.baseUrl}/cupons`, dados);
   }
 
+  /** O código não muda; o resto vale pros próximos cadastros (quem já assinou mantém as condições de quando assinou). */
+  editarCupom(id: string, dados: SalvarCupom): Observable<Cupom> {
+    return this.http.put<Cupom>(`${this.baseUrl}/cupons/${id}`, dados);
+  }
+
   definirCupomAtivo(id: string, ativo: boolean): Observable<Cupom> {
     return this.http.post<Cupom>(`${this.baseUrl}/cupons/${id}/${ativo ? 'ativar' : 'desativar'}`, null);
   }

@@ -7,7 +7,7 @@ import { PlataformaService } from '../../../services/plataforma.service';
 import { CalendarioComponent } from '../../../shared/calendario/calendario.component';
 import { formatarDataAbsoluta, hojeIso } from '../../../shared/data-utils';
 
-/** Cupons de desconto da assinatura (Suporte): criar, ativar e desativar. Mudar um cupom não afeta quem já assinou com ele. */
+/** Cupons de desconto da assinatura (Suporte): criar, editar, ativar e desativar. Mudar um cupom não afeta quem já assinou com ele. */
 @Component({
   selector: 'app-cupons',
   imports: [FormsModule, CalendarioComponent],
@@ -26,6 +26,8 @@ export class CuponsComponent implements OnInit {
   readonly salvando = signal(false);
   readonly processandoId = signal<string | null>(null);
   readonly calendarioAberto = signal(false);
+  /** Cupom em edição (o código não muda); nulo = criando um novo. */
+  readonly editandoId = signal<string | null>(null);
 
   codigo = '';
   percentual: number | null = 20;
@@ -43,6 +45,7 @@ export class CuponsComponent implements OnInit {
   }
 
   abrir(): void {
+    this.editandoId.set(null);
     this.codigo = '';
     this.percentual = 20;
     this.meses = 3;
@@ -50,6 +53,18 @@ export class CuponsComponent implements OnInit {
     this.validoAte = null;
     this.usosMaximos = null;
     this.observacao = '';
+    this.formularioAberto.set(true);
+  }
+
+  editar(cupom: Cupom): void {
+    this.editandoId.set(cupom.id);
+    this.codigo = cupom.codigo;
+    this.percentual = cupom.percentualDesconto || null;
+    this.meses = cupom.meses;
+    this.mesesGratis = cupom.mesesGratis;
+    this.validoAte = cupom.validoAte;
+    this.usosMaximos = cupom.usosMaximos;
+    this.observacao = cupom.observacao ?? '';
     this.formularioAberto.set(true);
   }
 
@@ -67,8 +82,8 @@ export class CuponsComponent implements OnInit {
     if (mesesGratis !== null && (mesesGratis < 1 || mesesGratis > 12)) return this.notificacao.erro('Os meses grátis precisam ser de 1 a 12.');
     if (percentual === 0 && mesesGratis === null) return this.notificacao.erro('Informe meses grátis ou um desconto.');
     this.salvando.set(true);
-    this.plataforma
-      .criarCupom({
+    const id = this.editandoId();
+    const dados = {
         codigo: this.codigo,
         percentualDesconto: percentual,
         meses: percentual > 0 ? this.meses || null : null,
@@ -76,19 +91,20 @@ export class CuponsComponent implements OnInit {
         validoAte: this.validoAte,
         usosMaximos: this.usosMaximos || null,
         observacao: this.observacao.trim() || null
-      })
-      .subscribe({
-        next: (cupom) => {
-          this.salvando.set(false);
-          this.formularioAberto.set(false);
-          this.cupons.update((lista) => [cupom, ...lista]);
-          this.notificacao.sucesso(`Cupom ${cupom.codigo} criado.`);
-        },
-        error: (erro) => {
-          this.salvando.set(false);
-          this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível criar o cupom.');
-        }
-      });
+    };
+    (id ? this.plataforma.editarCupom(id, dados) : this.plataforma.criarCupom(dados)).subscribe({
+      next: (cupom) => {
+        this.salvando.set(false);
+        this.formularioAberto.set(false);
+        this.editandoId.set(null);
+        this.cupons.update((lista) => (id ? lista.map((c) => (c.id === cupom.id ? cupom : c)) : [cupom, ...lista]));
+        this.notificacao.sucesso(id ? `Cupom ${cupom.codigo} atualizado.` : `Cupom ${cupom.codigo} criado.`);
+      },
+      error: (erro) => {
+        this.salvando.set(false);
+        this.notificacao.erro(typeof erro.error === 'string' ? erro.error : 'Não foi possível salvar o cupom.');
+      }
+    });
   }
 
   alternar(cupom: Cupom): void {

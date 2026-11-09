@@ -108,6 +108,12 @@
   }
 }
 
+.acoes-cupom {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .lista {
   list-style: none;
   margin: 0;

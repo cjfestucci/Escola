@@ -2,7 +2,7 @@
   <div class="cabecalho">
     <div>
       <p class="titulo">Cupons de desconto</p>
-      <p class="ajuda">O clube digita o cupom no cadastro pelo site. Mudar ou desativar um cupom não afeta quem já assinou com ele.</p>
+      <p class="ajuda">O clube digita o cupom no cadastro pelo site. Editar ou desativar um cupom não afeta quem já assinou com ele.</p>
     </div>
     @if (!formularioAberto()) {
       <button type="button" class="botao-novo" (click)="abrir()">+ Novo cupom</button>
@@ -13,7 +13,7 @@
     <div class="formulario">
       <p class="legenda-obrigatorio">Campo obrigatório</p>
       <label><span class="obrigatorio">Código</span>
-        <input type="text" maxlength="30" placeholder="Ex.: LANCAMENTO20" [(ngModel)]="codigo" class="maiusculas" />
+        <input type="text" maxlength="30" placeholder="Ex.: LANCAMENTO20" [(ngModel)]="codigo" class="maiusculas" [disabled]="!!editandoId()" name="codigo" />
       </label>
       <label>Meses grátis (opcional)
         <input type="number" min="1" max="12" placeholder="Ex.: 3 para o clube piloto" [(ngModel)]="mesesGratis" />
@@ -57,7 +57,7 @@
       </label>
       <div class="botoes inteiro">
         <button type="button" class="botao-texto" (click)="formularioAberto.set(false)">Cancelar</button>
-        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">{{ salvando() ? 'Salvando...' : 'Criar cupom' }}</button>
+        <button type="button" class="primario" [disabled]="salvando()" (click)="salvar()">{{ salvando() ? 'Salvando...' : (editandoId() ? 'Salvar cupom' : 'Criar cupom') }}</button>
       </div>
     </div>
   }
@@ -82,9 +82,12 @@
             @if (c.observacao) { · {{ c.observacao }} }
           </span>
         </div>
+        <div class="acoes-cupom">
+          <button type="button" class="botao-texto" (click)="editar(c)">Editar</button>
         <button type="button" class="botao-texto" [class.botao-texto--perigo]="c.ativo" [disabled]="processandoId() === c.id" (click)="alternar(c)">
           {{ c.ativo ? 'Desativar' : 'Ativar' }}
         </button>
+        </div>
       </li>
     }
   </ul>

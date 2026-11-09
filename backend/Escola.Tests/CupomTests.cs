@@ -163,3 +163,27 @@ public class CupomHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         Assert.Equal(59m, api.Asaas.Pagamentos[proxima].Valor);
     }
 }
+
+/// <summary>O Suporte edita um cupom sem trocar o código (a tela de cupons ganhou o botão Editar).</summary>
+public class CupomEdicaoHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
+{
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
+    [Fact]
+    public async Task SuporteEditaOCupomSemTrocarOCodigo()
+    {
+        var suporte = await api.SuporteLogadoAsync();
+        var criacao = await suporte.PostAsJsonAsync("/api/plataforma/cupons", new { codigo = "campanha25", percentualDesconto = 25, meses = 12, usosMaximos = 10 });
+        criacao.EnsureSuccessStatusCode();
+        var id = (await criacao.Content.ReadFromJsonAsync<JsonElement>(Json)).GetProperty("id").GetGuid();
+
+        var edicao = await suporte.PutAsJsonAsync($"/api/plataforma/cupons/{id}", new { codigo = "outro", percentualDesconto = 25, meses = 3, usosMaximos = 10 });
+        edicao.EnsureSuccessStatusCode();
+        var editado = await edicao.Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.Equal("CAMPANHA25", editado.GetProperty("codigo").GetString()); // o código não muda
+        Assert.Equal(3, editado.GetProperty("meses").GetInt32());
+
+        var publico = await api.CreateClient().GetFromJsonAsync<JsonElement>("/api/assinaturas/cupom/campanha25", Json);
+        Assert.Equal(3, publico.GetProperty("meses").GetInt32());
+    }
+}
