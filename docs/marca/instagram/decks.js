@@ -42,7 +42,7 @@ CTA],
 '20261111-saude':[
 {t:'capa',tag:'Ficha de saúde',h:'Atestado <em>vencido</em> e ninguém percebeu?',p:'Ficha de saúde e atestado médico no mesmo lugar do atleta.'},
 {h:'Escolinha guarda <em>dado de criança</em>',p:'Alergias, medicamentos, laudos, atestados. Um papel perdido na mochila do treinador não é um bom arquivo.'},
-{t:'claro',h:'Uma ficha <em>por atleta</em>',list:['Alergias e restrições alimentares','Medicamentos e condições de saúde','Plano de saúde, pediatra e contato de emergência'],n:'O treinador vê o alerta antes de lançar a rotina do dia.'},
+{t:'claro',h:'Uma ficha <em>por atleta</em>',list:['Alergias e restrições alimentares','Medicamentos e condições de saúde','Plano de saúde, pediatra e contato de emergência']},
 {h:'Atestado com <em>data de validade</em>',p:'Registre até quando o atestado vale. O sistema mostra um selo na lista de atletas e um filtro de vencidos e de vencendo em 30 dias.'},
 {t:'claro',h:'O aviso aparece <em>onde você decide</em>',list:['No painel de atenção da coordenação','Na convocação, se não vale na data do jogo','No portal, para a família providenciar o novo']},
 {h:'Documentos <em>não ficam em link público</em>',p:'Exames e laudos anexados só abrem para a equipe do clube e para o responsável daquele atleta. Toda alteração fica no histórico.'},
@@ -53,4 +53,25 @@ CTA],
 ],
 '20261113-pergunta':[
 {t:'capa',tag:'Pergunta do dia',h:'Como os pais ficam sabendo da <em>convocação</em>?',p:'Grupo de WhatsApp, recado no treino ou outro jeito? Conta nos comentários.'}
+],
+'20261116-atencao':[
+{t:'capa',tag:'Painel da coordenação',h:'O que pede <em>atenção</em> hoje, numa tela só',p:'Faltas, atestados, estoque e contas: o painel junta o que a coordenação não pode esquecer.'},
+{h:'Problema não avisa <em>quando chega</em>',p:'O atleta some, o atestado vence, a bola acaba, a conta atrasa. Cada coisa mora num caderno, e você descobre tarde.'},
+{t:'claro',h:'Só aparece o que <em>tem ocorrência</em>',p:'O painel lista os alertas do dia. Sem nenhum, mostra que está tudo em dia. Nada de tela cheia de zero.'},
+{h:'No <em>cuidado com os atletas</em>',list:['Atletas com 3 ou mais faltas seguidas','Atestado médico vencido ou perto de vencer','Matrículas aguardando o aceite da família']},
+{t:'claro',h:'No <em>dinheiro e no material</em>',list:['Contas a pagar atrasadas','Produtos com estoque baixo ou zerado','Recebido no mês e a vencer']},
+{h:'Cada alerta é um <em>atalho</em>',p:'Tocou no aviso, abre a lista já filtrada: os atletas faltosos, os atestados vencidos, os produtos sem estoque.'},
+{t:'claro',h:'Mais de uma <em>unidade</em>?',p:'Veja a visão geral ou escolha uma unidade para recortar o painel.',n:'O estoque e as contas a pagar seguem consolidados, não por unidade.'},
+CTA],
+'20261118-campeonato':[
+{t:'capa',tag:'Campeonatos',h:'Como foi a <em>campanha</em> da categoria?',p:'Vitórias, gols e artilheiros do campeonato, a partir das súmulas.'},
+{h:'Resultado perdido em <em>grupo de WhatsApp</em>',p:'No fim do campeonato ninguém lembra o placar da terceira rodada nem quem foi o artilheiro.'},
+{t:'claro',h:'Placar e súmula, <em>jogo a jogo</em>',p:'Depois da partida, lance o placar e, na convocação, os gols e os cartões de cada atleta.',n:'A soma dos gols dos atletas não pode passar do placar.'},
+{h:'A campanha de cada <em>categoria</em>',list:['Jogos, vitórias, empates e derrotas','Gols pró, gols contra e saldo','Pontos: vitória vale 3, empate vale 1']},
+{t:'claro',h:'Artilharia <em>sem planilha</em>',p:'Os gols lançados nas súmulas somam sozinhos numa lista de artilheiros do campeonato.'},
+{h:'Disciplina <em>à vista</em>',p:'A página do campeonato mostra quem está suspenso e quem está pendurado, pelo limite de amarelos que você definiu.'},
+{t:'claro',h:'O que ele <em>ainda não faz</em>',p:'O sistema registra o lado do seu clube. Não monta a tabela de classificação com os outros times.'},
+CTA],
+'20261120-estoque':[
+{t:'capa',tag:'Estoque',h:'Quantas bolas <em>sobraram</em> no armário?',p:'Entradas, saídas e saldo sempre certo, com aviso quando o estoque baixa.'}
 ]};
