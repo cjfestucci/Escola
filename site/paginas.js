@@ -2,7 +2,7 @@
 
 // Versão dos Termos de Uso e da Política de Privacidade. Mudou o texto → troque aqui E em
 // AssinaturaService.VersaoTermosUso (backend), que grava qual versão cada clube aceitou no cadastro.
-const VERSAO_DOCUMENTOS = '2026-11-09.1';
+const VERSAO_DOCUMENTOS = '2026-11-09.2';
 const VIGENCIA_DOCUMENTOS = '09/11/2026';
 
 function preencher(seletor, texto) {

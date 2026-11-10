@@ -179,22 +179,21 @@
 
     <h2 id="pagamentos-familias">10. Cobrança das famílias pelo sistema</h2>
     <p>O Clube pode cobrar as mensalidades dos atletas pelo Sistema, com Pix gerado na hora e baixa automática. Para isso, o
-    Clube abre, pelo próprio Sistema, uma conta de pagamento em nome dele no nosso parceiro de pagamentos. O dinheiro das
-    famílias vai para essa conta do Clube, e não para a nossa; a relação de conta de pagamento é entre o Clube e o parceiro, nos
-    termos do parceiro.</p>
-    <p><strong>Prestação de serviços financeiros.</strong> Os serviços financeiros e de pagamentos disponibilizados por meio da presente
-    plataforma, incluindo abertura e manutenção de conta de pagamento, processamento de transações, emissão de boletos,
-    transferências, pagamentos e demais movimentações de valores, são prestados pelo ASAAS GESTÃO FINANCEIRA INSTITUIÇÃO DE
-    PAGAMENTOS S.A., instituição de pagamento autorizada a funcionar pelo Banco Central do Brasil. A CJF Technology atua
-    exclusivamente como integradora tecnológica e distribuidora da experiência do produto, não sendo instituição financeira ou de
-    pagamento, nem realizando intermediação financeira em nome próprio. O Clube declara ciência de que o relacionamento financeiro
-    e de pagamentos e a responsabilidade regulatória pelos serviços acima descritos são do ASAAS GESTÃO FINANCEIRA S.A., nos termos
-    da regulamentação vigente.</p>
+    Clube usa a <strong>conta que ele mesmo mantém no Asaas</strong>, contratada diretamente com o ASAAS GESTÃO FINANCEIRA
+    INSTITUIÇÃO DE PAGAMENTOS S.A., nos termos do Asaas, e informa ao Sistema uma chave de API dessa conta. O dinheiro das famílias
+    cai na conta do Clube no Asaas, e não em conta nossa; a relação de conta de pagamento é entre o Clube e o Asaas.</p>
+    <p><strong>A chave de API.</strong> Guardamos a chave de forma criptografada e a usamos apenas para criar as cobranças Pix das
+    mensalidades e conferir os pagamentos. Ao conectar a conta, o Clube aceita os Termos de Uso do Asaas e autoriza o Sistema a
+    criar, nessa conta, uma chave Pix aleatória e o aviso automático de pagamentos; registramos esse aceite com a data e o endereço
+    de IP. O Clube pode desconectar a conta a qualquer momento pelo Sistema e revogar a chave no próprio Asaas. Se a chave for
+    revogada ou deixar de valer, as mensalidades voltam ao Pix comum, com baixa manual.</p>
+    <p><strong>Quem presta o serviço financeiro.</strong> Os serviços financeiros e de pagamentos (conta de pagamento, Pix,
+    cobranças e movimentações de valores) são prestados pelo Asaas, instituição de pagamento autorizada a funcionar pelo Banco
+    Central do Brasil. A CJF Technology fornece o software e não é instituição financeira nem de pagamento, nem realiza
+    intermediação financeira em nome próprio. A responsabilidade regulatória pelos serviços financeiros é do Asaas; a de manter a
+    conta e a chave em ordem é do Clube.</p>
     <p>Para dúvidas sobre as operações financeiras e de pagamentos, o Clube pode falar diretamente com o Asaas: 0800 009 0037
     (telefone somente para pessoa jurídica e mensagens) ou <a href="mailto:contato@asaas.com.br">contato@asaas.com.br</a>.</p>
-    <p><a href="https://www.asaas.com" target="_blank" rel="noopener noreferrer"><img
-      src="https://baas.asaas.com/selos/Servicos_financeiros_Asaas-Reduzida-Positivo.svg?id=99abe421-e0b4-4a10-a6cb-5254a527daba"
-      alt="Serviços financeiros prestados pelo Asaas" width="160" height="48" style="display: inline-block;" /></a></p>
 
     <h2 id="propriedade">11. Propriedade intelectual</h2>
     <p>O Sistema, a marca Gestor Tático, o símbolo e os textos do site são nossos. A assinatura dá ao Clube o direito de usar o

@@ -29,6 +29,12 @@ export class AvisoAsaasComponent {
   /** Versão curta, pra telas de pagamento (Pix): selo + uma linha. */
   readonly compacto = input(false);
 
+  /** Mostra a imagem do selo (o endereço é do BaaS do Asaas). Telas da conta própria do clube não usam: só o texto. */
+  readonly selo = input(true);
+
+  /** Versão longa para a conta Asaas que o próprio clube contrata (sem o texto de "abertura da conta pela plataforma"). */
+  readonly contaPropria = input(false);
+
   /** Como o pagamento aparece na frase da versão curta ("Pagamento {{ meio }} processado…"). */
   readonly meio = input('por Pix');
 

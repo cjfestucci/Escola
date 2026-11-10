@@ -225,11 +225,12 @@ public class PagamentoAsaasHttpTests(ApiFactory api) : IClassFixture<ApiFactory>
         await GarantirContaAsync();
         var financeiro = await api.ClienteLogadoAsync(PapelUsuario.Financeiro);
 
-        // Responsável com CPF: Pix da subconta → o e-mail identifica o Asaas.
+        // Responsável com CPF: Pix da conta do Asaas → o e-mail identifica o Asaas (só texto).
         var (comCpf, _) = await CriarCobrancaAsync(cpfResponsavel: "52998224725");
         (await financeiro.PostAsync($"/api/financeiro/cobrancas/{comCpf}/enviar-email", null)).EnsureSuccessStatusCode();
         var enviado = api.Email.Enviados.Last().Corpo;
-        Assert.Contains(Escola.Infrastructure.Pagamentos.Asaas.SeloAsaas.UrlPositivo, enviado);
+        Assert.Contains("processado pelo Asaas", enviado);
+        Assert.DoesNotContain("baas.asaas.com", enviado); // conta do clube: só texto, sem o selo do BaaS
         Assert.Contains("0800 009 0037", enviado);
         Assert.Contains("contato@asaas.com.br", enviado);
 
