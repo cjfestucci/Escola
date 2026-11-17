@@ -74,4 +74,25 @@ CTA],
 CTA],
 '20261120-estoque':[
 {t:'capa',tag:'Estoque',h:'Quantas bolas <em>sobraram</em> no armário?',p:'Entradas, saídas e saldo sempre certo, com aviso quando o estoque baixa.'}
+],
+'20261123-contas':[
+{t:'capa',tag:'Financeiro do clube',h:'O clube <em>recebe</em>, mas e o que ele <em>paga</em>?',p:'Contas a pagar, a receber e o balanço do mês no mesmo sistema.'},
+{h:'A mensalidade entra. <em>E a conta de luz?</em>',p:'Aluguel da quadra, árbitro, uniforme, fornecedor. Quando as contas ficam no caderno, o vencimento passa e ninguém viu.'},
+{t:'claro',h:'Contas a pagar <em>por fornecedor</em>',p:'Cadastre o fornecedor, lance a conta com valor e vencimento e marque como paga quando quitar. A lista separa pendentes, atrasadas e pagas.'},
+{h:'Receita que <em>não é mensalidade</em>',p:'Patrocínio, aluguel de quadra, inscrição em torneio. Contas a receber guardam o que entra fora da mensalidade dos atletas.'},
+{t:'claro',h:'Balanço do <em>mês</em>',list:['Receitas: mensalidades pagas e contas recebidas','Despesas: contas pagas','Saldo: a diferença, pela data do pagamento']},
+{h:'O que vence nos <em>próximos 7 dias</em>',p:'O painel mostra as contas a pagar da semana e avisa quando há conta atrasada. Cada aviso abre a lista já filtrada.'},
+{t:'claro',h:'Nada <em>some</em> sem rastro',p:'Conta lançada errada não se apaga: ela é cancelada, e cada alteração fica no histórico com quem fez e quando.',n:'O balanço aparece para quem é do financeiro do clube.'},
+CTA],
+'20261125-matricula':[
+{t:'capa',tag:'Matrícula do atleta',h:'Matrícula <em>completa</em>, sem pasta de papel',p:'Atleta, responsáveis, ficha de saúde e aceite da família no mesmo cadastro.'},
+{h:'Ficha de papel <em>some</em>. E o contato da mãe?',p:'Dados espalhados em cadernos, planilhas e conversas. Na hora de achar o contato, ninguém sabe onde está.'},
+{t:'claro',h:'Tudo do atleta <em>num lugar só</em>',list:['Foto, data de nascimento e categoria','Posição em campo, se você quiser registrar','Um ou mais responsáveis, com o financeiro indicado']},
+{h:'O responsável <em>recebe o convite</em>',p:'Ao salvar a matrícula, a família recebe um e-mail para confirmar o endereço e criar a própria senha do Portal da Família.'},
+{t:'claro',h:'A matrícula vale após o <em>aceite</em>',p:'No primeiro acesso, o responsável lê e aceita o termo de matrícula. Até lá, o atleta aparece com o selo "Aguardando aceite", e a lista tem filtro para isso.'},
+{h:'Bolsa e desconto com <em>motivo anotado</em>',p:'O desconto fica no atleta, em percentual, junto do motivo. A mensalidade do mês já sai com ele aplicado.'},
+{t:'claro',h:'Atleta saiu? <em>Desative</em>, não apague',p:'O cadastro fica guardado e pode ser reativado. Cada alteração entra no histórico, com quem mexeu e o que mudou.'},
+CTA],
+'20261127-pergunta':[
+{t:'capa',tag:'Pergunta do dia',h:'Qual é a maior <em>dor</em> da sua escolinha hoje?',p:'Mensalidade, chamada, comunicação com os pais ou controle do material? Conta nos comentários.'}
 ]};
