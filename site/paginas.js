@@ -2,8 +2,19 @@
 
 // Versão dos Termos de Uso e da Política de Privacidade. Mudou o texto → troque aqui E em
 // AssinaturaService.VersaoTermosUso (backend), que grava qual versão cada clube aceitou no cadastro.
-const VERSAO_DOCUMENTOS = '2026-11-09.2';
-const VIGENCIA_DOCUMENTOS = '09/11/2026';
+const VERSAO_DOCUMENTOS = '2026-11-17.1';
+const VIGENCIA_DOCUMENTOS = '17/11/2026';
+
+// Medição de visitas do site (Cloudflare Web Analytics: sem cookies, não identifica o visitante). O token é público.
+// Só carrega no domínio de produção, pra não contar visita de teste local. A CSP do site (Caddyfile) libera os dois endereços.
+const TOKEN_ANALYTICS = '13c9f5fa1d0644af9dc6c1cc310143f6';
+if (location.hostname === 'gestortatico.com.br' || location.hostname === 'www.gestortatico.com.br') {
+  const beacon = document.createElement('script');
+  beacon.defer = true;
+  beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  beacon.dataset.cfBeacon = JSON.stringify({ token: TOKEN_ANALYTICS });
+  document.head.appendChild(beacon);
+}
 
 function preencher(seletor, texto) {
   document.querySelectorAll(seletor).forEach((el) => (el.textContent = texto));

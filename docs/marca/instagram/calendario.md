@@ -16,10 +16,10 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 | ~~Qua 04/11~~ | **Carrossel** | Convocação, súmula e cartões: **publicado na sex 06/11** |
 | ~~Sex 06/11~~ | Livre | Usado pelo carrossel de convocação |
 | ~~Seg 09/11~~ | Reel | Chamada em menos de 1 minuto: **publicado** (`reels/reel-chamada-com-musica.mp4`) |
-| Ter 10/11 | **Carrossel** | Portal da Família (rascunho em `semanas/2026-11-09/rascunhos.md`, arte `png/20261109-portal-*.png`) |
-| Qua 11/11 | **Carrossel** | Ficha de saúde e atestado (arte `png/20261111-saude-*.png`) |
-| Sex 13/11 | Post único | Pergunta ao público: como os pais ficam sabendo da convocação (arte `png/20261113-pergunta-1.png`) |
-| Seg 16/11 | **Carrossel** | O que pede atenção: painel da coordenação (rascunho em `semanas/2026-11-16/rascunhos.md`, arte `png/20261116-atencao-*.png`) |
+| ~~Ter 10/11~~ | **Carrossel** | Portal da Família: **publicado** (rascunho em `semanas/2026-11-09/rascunhos.md`, arte `png/20261109-portal-*.png`) |
+| ~~Qua 11/11~~ | **Carrossel** | Ficha de saúde e atestado: **publicado** (arte `png/20261111-saude-*.png`) |
+| ~~Sex 13/11~~ | Post único | Pergunta ao público: como os pais ficam sabendo da convocação: **publicado** (arte `png/20261113-pergunta-1.png`) |
+| ~~Seg 16/11~~ | **Carrossel** | O que pede atenção: painel da coordenação: **publicado na ter 17/11** (depois da verificação de identidade da conta; rascunho em `semanas/2026-11-16/rascunhos.md`, arte `png/20261116-atencao-*.png`) |
 | Qua 18/11 | **Carrossel** | Campanha e artilharia do campeonato (arte `png/20261118-campeonato-*.png`) |
 | Sex 20/11 | Post único | Estoque, com pergunta nos comentários (arte `png/20261120-estoque-1.png`) |
 
