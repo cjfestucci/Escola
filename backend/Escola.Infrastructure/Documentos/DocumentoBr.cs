@@ -16,6 +16,32 @@ public static class DocumentoBr
 
     public static bool EhCnpj(string documento) => documento.Length == 14;
 
+    /// <summary>Pra exibir: "000.000.000-00" (CPF) ou "00.000.000/0000-00" (CNPJ, também o alfanumérico). Outro tamanho volta como veio.</summary>
+    public static string Formatar(string? texto)
+    {
+        var d = Normalizar(texto);
+        return d.Length switch
+        {
+            11 => $"{d[..3]}.{d[3..6]}.{d[6..9]}-{d[9..]}",
+            14 => $"{d[..2]}.{d[2..5]}.{d[5..8]}/{d[8..12]}-{d[12..]}",
+            _ => texto ?? string.Empty
+        };
+    }
+
+    /// <summary>Telefone brasileiro pra exibir: "(16) 99184-9114" (celular) ou "(16) 3333-4444" (fixo); tira o +55 se vier. Outro
+    /// tamanho volta como veio.</summary>
+    public static string FormatarTelefone(string? texto)
+    {
+        var d = new string((texto ?? string.Empty).Where(char.IsAsciiDigit).ToArray());
+        if (d.Length is 12 or 13 && d.StartsWith("55")) d = d[2..];
+        return d.Length switch
+        {
+            11 => $"({d[..2]}) {d[2..7]}-{d[7..]}",
+            10 => $"({d[..2]}) {d[2..6]}-{d[6..]}",
+            _ => texto ?? string.Empty
+        };
+    }
+
     /// <summary>CPF com dígitos verificadores corretos (só números, 11 caracteres).</summary>
     public static bool CpfValido(string cpf)
     {

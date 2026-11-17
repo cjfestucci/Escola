@@ -175,7 +175,7 @@ public class AssinaturasController(
             <p><strong>Novo clube cadastrado pelo site</strong></p>
             <p style="margin:0 0 16px;padding:14px 16px;background:#F3F5F7;border-radius:8px;">
             Clube: <strong>{H(dados.NomeClube)}</strong><br>
-            CPF/CNPJ: {H(dados.CpfCnpj)}<br>
+            CPF/CNPJ: {H(Escola.Infrastructure.Documentos.DocumentoBr.Formatar(dados.CpfCnpj))}<br>
             Cidade: {H(dados.Cidade)}<br>
             Atletas informados: {dados.Atletas}<br>
             Mensalidade: {resultado.ValorMensal.ToString("C", new System.Globalization.CultureInfo("pt-BR"))}<br>
@@ -184,7 +184,7 @@ public class AssinaturasController(
             </p>
             <p>Administrador: {H(dados.NomeAdmin)}<br>
             E-mail: {H(dados.Email)}<br>
-            Celular: {H(dados.Celular)}</p>
+            Celular: {H(Escola.Infrastructure.Documentos.DocumentoBr.FormatarTelefone(dados.Celular))}</p>
             <p style="font-size:13px;color:#555">Convite de acesso {(resultado.EmailEnviado ? "enviado" : "<strong>não enviado</strong> (confira o SMTP)")} ao administrador.
             Id do cliente: {resultado.ClienteId}. Acompanhe em Plataforma → Clientes.</p>
             """;

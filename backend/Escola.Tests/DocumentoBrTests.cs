@@ -34,6 +34,22 @@ public class DocumentoBrTests
         Assert.True(DocumentoBr.CpfOuCnpjValido(DocumentoBr.Normalizar("529.982.247-25")));
     }
 
+    [Theory]
+    [InlineData("52998224725", "529.982.247-25")]
+    [InlineData("11444777000161", "11.444.777/0001-61")]
+    [InlineData("12abc34501de35", "12.ABC.345/01DE-35")]
+    [InlineData("123", "123")]
+    [InlineData(null, "")]
+    public void FormataCpfECnpjPraExibir(string? entrada, string esperado) => Assert.Equal(esperado, DocumentoBr.Formatar(entrada));
+
+    [Theory]
+    [InlineData("11999998888", "(11) 99999-8888")]
+    [InlineData("1133334444", "(11) 3333-4444")]
+    [InlineData("+55 11 99999-8888", "(11) 99999-8888")]
+    [InlineData("00900000000", "(00) 90000-0000")]
+    [InlineData("12345", "12345")]
+    public void FormataTelefonePraExibir(string entrada, string esperado) => Assert.Equal(esperado, DocumentoBr.FormatarTelefone(entrada));
+
     [Fact]
     public void ChavePixCnpjAceitaLetras()
     {
