@@ -19,7 +19,10 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withXhr(), withInterceptors([authInterceptor])),
     provideAppInitializer(() => inject(ConfiguracaoEscolaService).inicializar()),
-    provideServiceWorker('ngsw-worker.js', {
+    // O "?v=" força os navegadores a reinstalar o service worker: ele guarda a CSP do momento da instalação e, como o arquivo não
+    // muda entre versões, nunca seria reinstalado sozinho. Mudou o connect-src do app no Caddyfile → incremente o número.
+    // (v=2 em 17/11/2026: liberou o Turnstile do /assinar.)
+    provideServiceWorker('ngsw-worker.js?v=2', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'
     })
