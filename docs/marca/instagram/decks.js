@@ -95,4 +95,25 @@ CTA],
 CTA],
 '20261127-pergunta':[
 {t:'capa',tag:'Pergunta do dia',h:'Qual é a maior <em>dor</em> da sua escolinha hoje?',p:'Mensalidade, chamada, comunicação com os pais ou controle do material? Conta nos comentários.'}
+],
+'20261130-perfis':[
+{t:'capa',tag:'Equipe e acessos',h:'Cada um da equipe vê <em>o que precisa</em>',p:'Coordenação, treinador, financeiro e secretaria com acessos diferentes.'},
+{h:'Uma senha <em>para todo mundo</em>?',p:'Quando a equipe divide o mesmo login, ninguém sabe quem mudou a mensalidade ou mexeu na chamada.'},
+{t:'claro',h:'Cada pessoa com o <em>próprio acesso</em>',p:'O administrador convida a equipe por e-mail. Cada um cria a própria senha, e ninguém precisa saber a senha do outro.'},
+{h:'Treinador: <em>as turmas dele</em>',p:'Faz a chamada, agenda jogos e monta a convocação das categorias em que está vinculado. O resto, ele só consulta.'},
+{t:'claro',h:'Secretaria: <em>o balcão</em>',list:['Cadastra atletas e responsáveis','Marca a mensalidade como paga','Cuida do estoque'],n:'Desconto e cancelamento de cobrança ficam com o financeiro.'},
+{h:'Financeiro e <em>coordenação</em>',p:'O financeiro cuida de mensalidades, contas e fornecedores. A coordenação toca o dia a dia inteiro, inclusive a equipe.'},
+{t:'claro',h:'Quem fez, <em>fica registrado</em>',p:'Cada alteração entra no histórico com o nome de quem mexeu e o que mudou. Saiu alguém da equipe? Desative a conta.'},
+CTA],
+'20261202-contato':[
+{t:'capa',tag:'Portal da Família',h:'O pai quer falar com o clube. <em>Onde está o contato?</em>',p:'Endereço, telefone, WhatsApp e e-mail de cada unidade, dentro do portal.'},
+{h:'"Qual é o <em>número</em> da secretaria?"',p:'O contato fica num grupo, num papel na geladeira ou com o treinador. E a mensagem chega no celular errado.'},
+{t:'claro',h:'Você cadastra <em>uma vez</em>',p:'Em cada unidade do clube, preencha endereço, telefone, WhatsApp e e-mail. Todos são opcionais.'},
+{h:'Fale com o clube, <em>no portal</em>',p:'O responsável encontra os contatos das unidades numa tela só, no mesmo acesso em que vê jogos, frequência e mensalidades.'},
+{t:'claro',h:'WhatsApp <em>a um toque</em>',p:'O número vira um botão que abre a conversa com o clube, já com uma mensagem dizendo quem é o responsável e de qual atleta.'},
+{h:'E-mail <em>sem procurar endereço</em>',p:'O pai escolhe o assunto, escreve e envia pelo portal. A mensagem chega no e-mail da unidade com o nome do atleta e a categoria.',n:'O responsável recebe uma cópia do que enviou.'},
+{t:'claro',h:'Menos mensagem <em>perdida</em>',p:'A família fala com o canal certo do clube, e quem atende já sabe de quem é a mensagem.'},
+CTA],
+'20261204-primeiros-passos':[
+{t:'capa',tag:'Dica rápida',h:'Primeiro dia de teste: <em>por onde começar</em>',list:['Nome, logo e contatos do clube','Convide a equipe e crie as categorias','Cadastre os atletas e faça a chamada'],passo:true}
 ]};
