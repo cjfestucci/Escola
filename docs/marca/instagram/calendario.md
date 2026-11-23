@@ -1,4 +1,4 @@
-# Instagram @gestortaticooficial: calendário (23/10 a 06/11/2026)
+# Instagram @gestortaticooficial: calendário (23/10 a 27/11/2026)
 
 Ritmo: **3 posts por semana (seg, qua, sex)** + stories quando der. Melhor horário para começar: 12h ou 19h (testar e ajustar pelas estatísticas da conta profissional).
 
@@ -21,7 +21,11 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 | ~~Sex 13/11~~ | Post único | Pergunta ao público: como os pais ficam sabendo da convocação: **publicado** (arte `png/20261113-pergunta-1.png`) |
 | ~~Seg 16/11~~ | **Carrossel** | O que pede atenção: painel da coordenação: **publicado na ter 17/11** (depois da verificação de identidade da conta; rascunho em `semanas/2026-11-16/rascunhos.md`, arte `png/20261116-atencao-*.png`) |
 | ~~Qua 18/11~~ | **Carrossel** | Campanha e artilharia do campeonato: **publicado na qui 19/11** (arte `png/20261118-campeonato-*.png`) |
-| Sex 20/11 | Post único | Estoque, com pergunta nos comentários (arte `png/20261120-estoque-1.png`) |
+| ~~Sex 20/11~~ | Post único | Estoque: **não saiu na sexta, remarcado para a qui 26/11** |
+| ~~Seg 23/11~~ | **Carrossel** | Contas a pagar, a receber e balanço do mês: **publicado** (rascunho em `semanas/2026-11-23/rascunhos.md`, arte `png/20261123-contas-*.png`) |
+| Qua 25/11 | **Carrossel** | Matrícula completa do atleta (arte `png/20261125-matricula-*.png`) |
+| Qui 26/11 | Post único | Estoque, com pergunta nos comentários (arte `png/20261120-estoque-1.png`), remarcado da sex 20/11 |
+| Sex 27/11 | Post único | Pergunta ao público (arte `png/20261127-pergunta-1.png`) |
 
 ## Sex 23/10: apresentação (publicado)
 
