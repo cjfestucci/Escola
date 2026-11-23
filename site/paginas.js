@@ -7,7 +7,7 @@ const VIGENCIA_DOCUMENTOS = '17/11/2026';
 
 // Medição de visitas do site (Cloudflare Web Analytics: sem cookies, não identifica o visitante). O token é público.
 // Só carrega no domínio de produção, pra não contar visita de teste local. A CSP do site (Caddyfile) libera os dois endereços.
-const TOKEN_ANALYTICS = '13c9f5fa1d0644af9dc6c1cc310143f6';
+const TOKEN_ANALYTICS = '16388acb43cb4b85a41c62c106e4d8a4';
 if (location.hostname === 'gestortatico.com.br' || location.hostname === 'www.gestortatico.com.br') {
   const beacon = document.createElement('script');
   beacon.defer = true;
