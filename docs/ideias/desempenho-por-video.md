@@ -139,6 +139,33 @@ O que medir no protótipo:
 | As métricas são confiáveis? | Comparar a distância com um relógio GPS num atleta. Até ~15% de diferença está ok |
 | Quanto custa? | Tempo de processamento por minuto de vídeo na GPU |
 
+## Resultados dos testes
+
+### 1º teste (24/11/2026): vídeo de jogo filmado do celular
+
+Condições: 1 minuto de um jogo em campo oficial, filmado da lateral na altura do meio-campo, câmera **acompanhando a bola** (sem calibração, `CAMERA_PARADA = False`), vídeo **1024 × 576** (comprimido, provavelmente pelo WhatsApp). Colab **sem GPU** (o gratuito estava sem GPU livre): `yolo11s`, `IMGSZ = 960`, 5 quadros/s.
+
+| Pergunta | Resultado |
+|---|---|
+| A detecção funciona? | **Sim.** Achou os jogadores, o árbitro e um adulto na beira do campo |
+| A identificação pelo número funciona? | **Não, com esse vídeo.** Recortes de 30 a 60 px de largura e borrados: nem uma pessoa lê o número. Problema do vídeo, não do código |
+| Fragmentação | **100 tracks em 1 minuto** para ~22 pessoas. Num treino de 60 min seriam milhares de fotos para revisar: a revisão manual fica inviável |
+| Separação dos times | Separou o árbitro (vermelho) de todo o resto: preto e branco caíram no mesmo grupo. **Bug do notebook, corrigido** (o agrupamento ignorava a luminosidade, justamente o que diferencia preto de branco; agora usa LAB completo e 3 grupos: dois times + árbitro) |
+| Sobreposição | Alguns recortes trazem dois jogadores juntos (detecção agrupando quem está colado) |
+| Processamento | 3,3 min para 1 min de vídeo em CPU. Com GPU, esperado de 5 a 10 vezes mais rápido |
+
+**Conclusão:** com vídeo de celular comum (baixa resolução, câmera solta, de longe), **não é vendável**: o treinador gastaria mais tempo revisando do que o recurso vale. A viabilidade depende da forma de gravar; os produtos do mercado resolvem isso com câmera própria, fixa e alta.
+
+**Próximo teste (o melhor cenário possível com celular)**, antes de investir em implementação:
+- vídeo **original** do celular, em 1080p ou 4K, sem passar pelo WhatsApp;
+- **câmera fixa num tripé, no alto** (arquibancada), com o campo inteiro no quadro;
+- de preferência **treino com coletes numerados** grandes;
+- Colab **com GPU**, `yolo11m` e `IMGSZ = 1280`.
+
+Critério para seguir: a maioria dos tracks identificada pelo número e poucos tracks por atleta (revisão de poucos minutos). Se não passar, a alternativa é outro produto, sem identificação automática: **clipes marcados pelo treinador** (botão "lance!" durante a gravação) ligados ao atleta e enviados ao Portal da Família.
+
+Ajustes feitos no notebook depois deste teste: o vídeo pode ser enviado direto pelo painel do Colab (`USAR_DRIVE = False`, o padrão; o Drive exige marcar todas as permissões), o erro do ffmpeg passa a aparecer na tela, e há uma receita de parâmetros para rodar sem GPU.
+
 ## Riscos e limitações
 
 - **LGPD:** imagem de menor de idade. Consentimento do responsável com escopo, antes de qualquer gravação, inclusive no protótipo (vídeos guardados só localmente). Precisa de texto próprio, revisado juridicamente.
