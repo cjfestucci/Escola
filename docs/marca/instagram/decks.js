@@ -1,5 +1,5 @@
 // Textos dos carrosséis. Cada chave é um carrossel (ou post único); o nome vira o prefixo dos PNGs em png/.
-// Slide: {t:'capa'|'claro'|'verde', tag, h, p, list, passo, n, b}. <em> destaca em verde. Veja carrosseis.html.
+// Slide: {t:'capa'|'claro'|'verde', tag, h, p, list, passo, n, b, img, foco}. img = print em telas/ (celular na parte de baixo). <em> destaca em verde. Veja carrosseis.html.
 const CTA={t:'verde',h:'Teste por <em>7 dias grátis</em>',p:'Gestor Tático: gestão para escolinhas e clubes de base.',b:'Link na bio'};
 const decks={
 apresentacao:[
@@ -73,7 +73,7 @@ CTA],
 {t:'claro',h:'O que ele <em>ainda não faz</em>',p:'O sistema registra o lado do seu clube. Não monta a tabela de classificação com os outros times.'},
 CTA],
 '20261120-estoque':[
-{t:'capa',tag:'Estoque',h:'Quantas bolas <em>sobraram</em> no armário?',p:'Entradas, saídas e saldo sempre certo, com aviso quando o estoque baixa.'}
+{t:'capa',tag:'Estoque',h:'Quantas bolas <em>sobraram</em> no armário?',p:'Entradas, saídas e saldo sempre certo, com aviso quando o estoque baixa.',img:'estoque-produtos.png'}
 ],
 '20261123-contas':[
 {t:'capa',tag:'Financeiro do clube',h:'O clube <em>recebe</em>, mas e o que ele <em>paga</em>?',p:'Contas a pagar, a receber e o balanço do mês no mesmo sistema.'},
@@ -85,13 +85,13 @@ CTA],
 {t:'claro',h:'Nada <em>some</em> sem rastro',p:'Conta lançada errada não se apaga: ela é cancelada, e cada alteração fica no histórico com quem fez e quando.',n:'O balanço aparece para quem é do financeiro do clube.'},
 CTA],
 '20261125-matricula':[
-{t:'capa',tag:'Matrícula do atleta',h:'Matrícula <em>completa</em>, sem pasta de papel',p:'Atleta, responsáveis, ficha de saúde e aceite da família no mesmo cadastro.'},
+{t:'capa',tag:'Matrícula do atleta',h:'Matrícula <em>completa</em>, sem pasta de papel',p:'Atleta, responsáveis, ficha de saúde e aceite da família no mesmo cadastro.',img:'matricula-lista.png'},
 {h:'Ficha de papel <em>some</em>. E o contato da mãe?',p:'Dados espalhados em cadernos, planilhas e conversas. Na hora de achar o contato, ninguém sabe onde está.'},
-{t:'claro',h:'Tudo do atleta <em>num lugar só</em>',list:['Foto, data de nascimento e categoria','Posição em campo, se você quiser registrar','Um ou mais responsáveis, com o financeiro indicado']},
-{h:'O responsável <em>recebe o convite</em>',p:'Ao salvar a matrícula, a família recebe um e-mail para confirmar o endereço e criar a própria senha do Portal da Família.'},
-{t:'claro',h:'A matrícula vale após o <em>aceite</em>',p:'No primeiro acesso, o responsável lê e aceita o termo de matrícula. Até lá, o atleta aparece com o selo "Aguardando aceite", e a lista tem filtro para isso.'},
-{h:'Bolsa e desconto com <em>motivo anotado</em>',p:'O desconto fica no atleta, em percentual, junto do motivo. A mensalidade do mês já sai com ele aplicado.'},
-{t:'claro',h:'Atleta saiu? <em>Desative</em>, não apague',p:'O cadastro fica guardado e pode ser reativado. Cada alteração entra no histórico, com quem mexeu e o que mudou.'},
+{t:'claro',h:'Tudo do atleta <em>num lugar só</em>',list:['Foto, data de nascimento e categoria','Posição em campo, se você quiser registrar','Um ou mais responsáveis, com o financeiro indicado'],img:'matricula-dados.png'},
+{h:'O responsável <em>recebe o convite</em>',p:'Ao salvar a matrícula, a família recebe um e-mail para confirmar o endereço e criar a própria senha do Portal da Família.',img:'matricula-responsaveis.png'},
+{t:'claro',h:'A matrícula vale após o <em>aceite</em>',p:'No primeiro acesso, o responsável lê e aceita o termo de matrícula. Até lá, o atleta aparece com o selo "Aguardando aceite", e a lista tem filtro para isso.',img:'matricula-aguardando.png'},
+{h:'Bolsa e desconto com <em>motivo anotado</em>',p:'O desconto fica no atleta, em percentual, junto do motivo. A mensalidade do mês já sai com ele aplicado.',img:'matricula-dados.png',foco:330},
+{t:'claro',h:'Atleta saiu? <em>Desative</em>, não apague',p:'O cadastro fica guardado e pode ser reativado. Cada alteração entra no histórico, com quem mexeu e o que mudou.',img:'matricula-historico.png'},
 CTA],
 '20261127-pergunta':[
 {t:'capa',tag:'Pergunta do dia',h:'Qual é a maior <em>dor</em> da sua escolinha hoje?',p:'Mensalidade, chamada, comunicação com os pais ou controle do material? Conta nos comentários.'}
@@ -99,21 +99,21 @@ CTA],
 '20261130-perfis':[
 {t:'capa',tag:'Equipe e acessos',h:'Cada um da equipe vê <em>o que precisa</em>',p:'Coordenação, treinador, financeiro e secretaria com acessos diferentes.'},
 {h:'Uma senha <em>para todo mundo</em>?',p:'Quando a equipe divide o mesmo login, ninguém sabe quem mudou a mensalidade ou mexeu na chamada.'},
-{t:'claro',h:'Cada pessoa com o <em>próprio acesso</em>',p:'O administrador convida a equipe por e-mail. Cada um cria a própria senha, e ninguém precisa saber a senha do outro.'},
-{h:'Treinador: <em>as turmas dele</em>',p:'Faz a chamada, agenda jogos e monta a convocação das categorias em que está vinculado. O resto, ele só consulta.'},
-{t:'claro',h:'Secretaria: <em>o balcão</em>',list:['Cadastra atletas e responsáveis','Marca a mensalidade como paga','Cuida do estoque'],n:'Desconto e cancelamento de cobrança ficam com o financeiro.'},
+{t:'claro',h:'Cada pessoa com o <em>próprio acesso</em>',p:'O administrador convida a equipe por e-mail. Cada um cria a própria senha, e ninguém precisa saber a senha do outro.',img:'usuarios.png'},
+{h:'Treinador: <em>as turmas dele</em>',p:'Faz a chamada, agenda jogos e monta a convocação das categorias em que está vinculado. O resto, ele só consulta.',img:'chamada-celular.png'},
+{t:'claro',h:'Secretaria: <em>o balcão</em>',list:['Cadastra atletas e responsáveis','Marca a mensalidade como paga','Cuida do estoque'],n:'Desconto e cancelamento de cobrança ficam com o financeiro.',img:'secretaria-menu.png'},
 {h:'Financeiro e <em>coordenação</em>',p:'O financeiro cuida de mensalidades, contas e fornecedores. A coordenação toca o dia a dia inteiro, inclusive a equipe.'},
-{t:'claro',h:'Quem fez, <em>fica registrado</em>',p:'Cada alteração entra no histórico com o nome de quem mexeu e o que mudou. Saiu alguém da equipe? Desative a conta.'},
+{t:'claro',h:'Quem fez, <em>fica registrado</em>',p:'Cada alteração entra no histórico com o nome de quem mexeu e o que mudou. Saiu alguém da equipe? Desative a conta.',img:'matricula-historico.png'},
 CTA],
 '20261202-contato':[
 {t:'capa',tag:'Portal da Família',h:'O pai quer falar com o clube. <em>Onde está o contato?</em>',p:'Endereço, telefone, WhatsApp e e-mail de cada unidade, dentro do portal.'},
 {h:'"Qual é o <em>número</em> da secretaria?"',p:'O contato fica num grupo, num papel na geladeira ou com o treinador. E a mensagem chega no celular errado.'},
-{t:'claro',h:'Você cadastra <em>uma vez</em>',p:'Em cada unidade do clube, preencha endereço, telefone, WhatsApp e e-mail. Todos são opcionais.'},
-{h:'Fale com o clube, <em>no portal</em>',p:'O responsável encontra os contatos das unidades numa tela só, no mesmo acesso em que vê jogos, frequência e mensalidades.'},
+{t:'claro',h:'Você cadastra <em>uma vez</em>',p:'Em cada unidade do clube, preencha endereço, telefone, WhatsApp e e-mail. Todos são opcionais.',img:'unidade-contatos.png'},
+{h:'Fale com o clube, <em>no portal</em>',p:'O responsável encontra os contatos das unidades numa tela só, no mesmo acesso em que vê jogos, frequência e mensalidades.',img:'portal-contato.png'},
 {t:'claro',h:'WhatsApp <em>a um toque</em>',p:'O número vira um botão que abre a conversa com o clube, já com uma mensagem dizendo quem é o responsável e de qual atleta.'},
-{h:'E-mail <em>sem procurar endereço</em>',p:'O pai escolhe o assunto, escreve e envia pelo portal. A mensagem chega no e-mail da unidade com o nome do atleta e a categoria.',n:'O responsável recebe uma cópia do que enviou.'},
+{h:'E-mail <em>sem procurar endereço</em>',p:'O pai escolhe o assunto, escreve e envia pelo portal. A mensagem chega no e-mail da unidade com o nome do atleta e a categoria.',n:'O responsável recebe uma cópia do que enviou.',img:'portal-email.png'},
 {t:'claro',h:'Menos mensagem <em>perdida</em>',p:'A família fala com o canal certo do clube, e quem atende já sabe de quem é a mensagem.'},
 CTA],
 '20261204-primeiros-passos':[
-{t:'capa',tag:'Dica rápida',h:'Primeiro dia de teste: <em>por onde começar</em>',list:['Nome, logo e contatos do clube','Convide a equipe e crie as categorias','Cadastre os atletas e faça a chamada'],passo:true}
+{t:'capa',tag:'Dica rápida',h:'Primeiro dia de teste: <em>por onde começar</em>',list:['Nome, logo e contatos do clube','Convide a equipe e crie as categorias','Cadastre os atletas e faça a chamada'],passo:true,img:'configuracao-geral.png'}
 ]};

@@ -20,6 +20,7 @@ Rascunhos dos 3 posts da próxima semana (segunda, quarta e sexta), prontos para
 - Novidade do produto: olhar `git log --since="7 days ago" --oneline`; só virar post o que for visível ao cliente e já estiver no ar. Nunca divulgar o que é interno.
 - Tom: direto, em português do Brasil, falando com quem cuida de escolinha ou clube de base (dono, coordenador, treinador). Sem jargão técnico, sem exagero de emoji (no máximo 1 ou 2 por legenda).
 - Todo carrossel termina com o slide `CTA` (já definido em `decks.js`), 6 a 8 slides, 1 ideia por slide, títulos curtos.
+- **Imagens (desde 25/11/2026, pedido do Cleber):** os slides que mostram um recurso levam um print real do app num celular (campo `img` do slide, arquivo em `telas/`; `foco` sobe a tela em px para mostrar um trecho mais abaixo). Em geral: capa + 3 a 5 slides do recurso com imagem; o slide do problema e o CTA ficam só com texto. Com imagem, o texto do slide precisa ser curto (título de até 2 linhas e parágrafo de até 3). Use os prints que já existem em `telas/`; se faltar uma tela, **não invente**: liste na seção "Pendências para o Cleber confirmar" qual print precisa ser tirado (eles saem do ambiente de desenvolvimento, só com dados fictícios do clube "Demonstração FC").
 
 ## Regras que não podem ser quebradas
 

@@ -27,6 +27,24 @@ li::before{content:"";position:absolute;left:0;top:14px;width:30px;height:30px;b
 .passo li::before{content:counter(p);width:48px;height:48px;top:0;color:#fff;font-size:30px;font-weight:700;text-align:center;line-height:48px}
 .nota{font-size:34px;opacity:.7;margin-top:30px}
 .botao{align-self:flex-start;background:#fff;color:var(--verde);font-weight:800;font-size:46px;padding:28px 56px;border-radius:70px;margin-top:20px}
+/* Slide com print do app num celular (campo img): texto em cima, celular saindo pela parte de baixo */
+.slide.com-imagem{justify-content:flex-start;padding-top:170px}
+.com-imagem h1{font-size:78px;margin-bottom:24px}
+.com-imagem h2{font-size:64px;margin-bottom:24px}
+.com-imagem p{font-size:36px;margin-bottom:16px}
+.com-imagem li{font-size:36px;margin-bottom:14px;padding-left:58px}
+.com-imagem li::before{top:8px;width:26px;height:26px}
+.com-imagem .passo li::before{width:42px;height:42px;line-height:42px;font-size:26px;top:-2px}
+.com-imagem .nota{font-size:30px;margin-top:8px}
+.com-imagem .tag{margin-bottom:28px}
+.com-imagem .rodape{display:none}
+.celular{position:relative;flex:none;align-self:center;margin-top:44px;width:600px;height:1300px;border-radius:84px;background:#0b0f12;padding:18px;
+  box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 3px #2b3a44 inset}
+.claro .celular{box-shadow:0 30px 70px rgba(14,42,58,.35),0 0 0 3px #2b3a44 inset}
+.celular::after{content:"";position:absolute;top:34px;left:50%;width:150px;height:40px;margin-left:-75px;border-radius:24px;background:#0b0f12}
+.tela{width:100%;height:100%;border-radius:68px;overflow:hidden;background:#fff}
+.status{position:relative;z-index:1;background:#fff;height:78px;display:flex;justify-content:space-between;align-items:center;padding:8px 60px 0;color:#111;font-size:26px;font-weight:700}
+.tela img{width:100%;display:block}
 </style>
 <body><div id="app"></div>
 <script src="decks.js"></script>
@@ -34,14 +52,16 @@ li::before{content:"";position:absolute;left:0;top:14px;width:30px;height:30px;b
 const LOGO='../simbolo-fundo-escuro.svg';
 const [,deck,idx]=((location.hash.slice(1)||'').match(/^(.*?)(?:-(\d+))?$/));
 function slide(s,i,n){
- const cls=['slide']; if(s.t==='claro')cls.push('claro'); if(s.t==='verde')cls.push('verde');
+ const cls=['slide']; if(s.t==='claro')cls.push('claro'); if(s.t==='verde')cls.push('verde'); if(s.img)cls.push('com-imagem');
+ // img: arquivo em telas/ (print do app, 1170 px de largura); foco: quantos px subir a tela para mostrar um trecho mais abaixo
+ const celular=s.img?`<div class="celular"><div class="tela"><div class="status"><span>9:41</span><span>●●● 5G ▮</span></div><img src="telas/${s.img}" style="margin-top:-${s.foco||0}px" alt=""></div></div>`:'';
  const list=s.list?`<ul class="${s.passo?'passo':''}">${s.list.map(x=>`<li>${x}</li>`).join('')}</ul>`:'';
  return `<section class="${cls.join(' ')}">
  <div class="topo"><span><img src="${LOGO}" alt="">Gestor Tático</span><span class="num">${n>1?`${i+1}/${n}`:''}</span></div>
  ${s.tag?`<span class="tag">${s.tag}</span>`:''}
  ${s.t==='capa'?`<h1>${s.h}</h1>`:`<h2>${s.h}</h2>`}
  ${s.p?`<p>${s.p}</p>`:''}${list}${s.n?`<p class="nota">${s.n}</p>`:''}
- ${s.b?`<div class="botao">${s.b}</div>`:''}
+ ${s.b?`<div class="botao">${s.b}</div>`:''}${celular}
  <div class="rodape"><span>@gestortaticooficial</span>${i<n-1?'<span>Arraste →</span>':''}</div></section>`;}
 let html='';
 for(const [k,v] of Object.entries(decks)){ if(deck&&k!==deck)continue;

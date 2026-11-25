@@ -4,7 +4,7 @@ Ritmo: **3 posts por semana (seg, qua, sex)** + stories quando der. Melhor horá
 
 Regras (valem para todo post): só falar do que o sistema faz hoje; nunca mostrar dados reais de atletas (usar a Demonstração); nada de fotos de crianças de clientes sem autorização por escrito; link do site só na bio.
 
-Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `chamada-1..7.png`, `convocacao-1..7.png`. Para refazer depois de editar `carrosseis.html`: `bash exportar.sh`.
+Desde 25/11/2026 os slides que mostram um recurso levam um print real do app num celular (campo `img` em `decks.js`, prints em `telas/`). Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `chamada-1..7.png`, `convocacao-1..7.png`. Para refazer depois de editar `carrosseis.html`: `bash exportar.sh`.
 
 | Data | Formato | Tema |
 |---|---|---|
@@ -23,7 +23,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 | ~~Qua 18/11~~ | **Carrossel** | Campanha e artilharia do campeonato: **publicado na qui 19/11** (arte `png/20261118-campeonato-*.png`) |
 | ~~Sex 20/11~~ | Post único | Estoque: **não saiu na sexta, remarcado para a qui 26/11** |
 | ~~Seg 23/11~~ | **Carrossel** | Contas a pagar, a receber e balanço do mês: **publicado** (rascunho em `semanas/2026-11-23/rascunhos.md`, arte `png/20261123-contas-*.png`) |
-| Qua 25/11 | **Carrossel** | Matrícula completa do atleta (arte `png/20261125-matricula-*.png`) |
+| ~~Qua 25/11~~ | **Carrossel** | Matrícula completa do atleta: **publicado** (arte `png/20261125-matricula-*.png`, a primeira com prints reais do app num celular) |
 | Qui 26/11 | Post único | Estoque, com pergunta nos comentários (arte `png/20261120-estoque-1.png`), remarcado da sex 20/11 |
 | Sex 27/11 | Post único | A escolinha na palma da mão: gestão pelo celular, com print real da Chamada (arte `png/20261127-celular-1.png`, modelo `post-celular.html`). Substituiu a pergunta ao público, que ficou sem data (`png/20261127-pergunta-1.png`). **+ story "Sem Black Friday"** com o cupom BEMVINDO25 (`png/20261127-story-black-friday.png`, modelo `story-black-friday.html`) |
 
