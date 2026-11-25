@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><title>Post: gestão no celular</title>
+<!-- Post único 1080x1350 com o print real do app num celular. Exportar:
+     "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless --hide-scrollbars --window-size=1080,1350 --screenshot=png\20261127-celular-1.png post-celular.html
+     O print (telas/chamada-celular.png) vem do ambiente de desenvolvimento, só com dados fictícios. -->
+<style>
+:root{--marinho:#0E2A3A;--verde:#16A34A;--verde-claro:#4ADE80}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,"Segoe UI",Arial,sans-serif}
+.post{width:1080px;height:1350px;position:relative;overflow:hidden;color:#fff;
+  background:radial-gradient(circle at 78% 72%,#16523a 0,rgba(14,42,58,0) 46%),var(--marinho)}
+.topo{position:absolute;top:60px;left:90px;font-size:30px;font-weight:600;opacity:.85;display:flex;align-items:center}
+.topo img{height:56px;margin-right:14px}
+h1{position:absolute;top:165px;left:90px;right:90px;margin:0;font-size:100px;line-height:1.02;letter-spacing:-.025em}
+h1 em{font-style:normal;color:var(--verde-claro)}
+.sub{position:absolute;top:395px;left:90px;width:900px;margin:0;font-size:40px;line-height:1.3;opacity:.9}
+ul{position:absolute;top:560px;left:90px;width:470px;list-style:none;margin:0;padding:0}
+li{font-size:40px;line-height:1.25;font-weight:600;margin:0 0 42px;padding-left:62px;position:relative}
+li span{display:block;font-size:30px;font-weight:400;opacity:.75;margin-top:6px}
+li::before{content:"✓";position:absolute;left:0;top:2px;width:42px;height:42px;border-radius:50%;background:var(--verde);
+  font-size:26px;font-weight:800;text-align:center;line-height:42px}
+.celular{position:absolute;left:600px;top:520px;width:410px;height:870px;border-radius:66px;background:#0b0f12;padding:15px;
+  box-shadow:0 40px 90px rgba(0,0,0,.55),0 0 0 3px #2b3a44 inset;transform:rotate(4deg)}
+.tela{width:100%;height:100%;border-radius:52px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.status{height:58px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:6px 44px 0;color:#111;font-size:19px;font-weight:700}
+.tela img{width:100%;flex:1;min-height:0;object-fit:cover;object-position:top;display:block}
+.celular::after{content:"";position:absolute;top:26px;left:50%;width:110px;height:30px;margin-left:-55px;border-radius:20px;background:#0b0f12}
+.cta{position:absolute;left:90px;bottom:150px;background:#fff;color:var(--verde);font-weight:800;font-size:36px;
+  padding:24px 40px;border-radius:60px}
+.rodape{position:absolute;left:90px;bottom:70px;font-size:28px;opacity:.7}
+</style>
+<body><section class="post">
+  <div class="topo"><img src="../simbolo-fundo-escuro.svg" alt="">Gestor Tático</div>
+  <h1>A escolinha na<br><em>palma da mão.</em></h1>
+  <p class="sub">No navegador do celular, sem instalar nada.</p>
+  <ul>
+    <li>Chamada no campo<span>em menos de 1 minuto</span></li>
+    <li>Mensalidades com Pix<span>e QR Code para os pais</span></li>
+    <li>Portal da Família<span>jogos, frequência e cobranças</span></li>
+  </ul>
+  <div class="celular"><div class="tela"><div class="status"><span>9:41</span><span>●●● 5G ▮</span></div><img src="telas/chamada-celular.png" alt=""></div></div>
+  <div class="cta">Teste grátis por 7 dias</div>
+  <div class="rodape">@gestortaticooficial · link na bio</div>
+</section></body></html>

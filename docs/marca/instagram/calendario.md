@@ -25,7 +25,7 @@ Os carrosséis estão prontos em `png/` (1080×1350): `mensalidade-1..8.png`, `c
 | ~~Seg 23/11~~ | **Carrossel** | Contas a pagar, a receber e balanço do mês: **publicado** (rascunho em `semanas/2026-11-23/rascunhos.md`, arte `png/20261123-contas-*.png`) |
 | Qua 25/11 | **Carrossel** | Matrícula completa do atleta (arte `png/20261125-matricula-*.png`) |
 | Qui 26/11 | Post único | Estoque, com pergunta nos comentários (arte `png/20261120-estoque-1.png`), remarcado da sex 20/11 |
-| Sex 27/11 | Post único | Pergunta ao público (arte `png/20261127-pergunta-1.png`) |
+| Sex 27/11 | Post único | A escolinha na palma da mão: gestão pelo celular, com print real da Chamada (arte `png/20261127-celular-1.png`, modelo `post-celular.html`). Substituiu a pergunta ao público, que ficou sem data (`png/20261127-pergunta-1.png`). **+ story "Sem Black Friday"** com o cupom BEMVINDO25 (`png/20261127-story-black-friday.png`, modelo `story-black-friday.html`) |
 
 ## Sex 23/10: apresentação (publicado)
 

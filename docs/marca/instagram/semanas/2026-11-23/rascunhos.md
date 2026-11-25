@@ -58,7 +58,47 @@ Obs.: o `calendario.md` cobre até 20/11 (painel de atenção, campeonato, estoq
 
 ---
 
-## Sex 27/11: post único, pergunta ao público (formato leve)
+## Sex 27/11: post único "A escolinha na palma da mão" (gestão pelo celular)
+
+Entrou no lugar da pergunta ao público (decisão de 25/11/2026); a pergunta ficou guardada abaixo, sem data.
+
+- **Formato:** post único (imagem), no estilo de anúncio: título, celular com a tela real e chamada para o teste
+- **Arquivo:** `png/20261127-celular-1.png` (modelo em `post-celular.html`; o print do celular é `telas/chamada-celular.png`, do ambiente de desenvolvimento, com nomes fictícios)
+- **Horário sugerido:** 19h (ou 12h)
+
+**Legenda:**
+> Dá para cuidar da escolinha sem sair do campo 📱⚽
+>
+> O Gestor Tático funciona direto no navegador do celular, sem instalar nada: a chamada do treino sai em menos de 1 minuto, as mensalidades têm Pix com QR Code e os pais acompanham jogos, frequência e cobranças pelo Portal da Família.
+>
+> Salve e mande para quem cuida da escolinha com você.
+>
+> Teste grátis por 7 dias: link na bio.
+
+**Hashtags:** #escolinhadefutebol #futebolbase #gestaoesportiva #categoriasdebase #treinadordefutebol #escolinha
+
+**O que este post afirma → onde está a prova**
+- Funciona no navegador do celular, sem instalar → o app é web/PWA (`CLAUDE.md`, "Servidor fora do ar"; o Portal "sem baixar aplicativo" já foi usado no carrossel do portal).
+- Chamada em menos de 1 minuto, com "Todos presentes" → `CLAUDE.md` "Chamada (presença) e frequência"; mesmo tema do Reel publicado em 09/11.
+- Pix com QR Code; Portal com jogos, frequência e cobranças → `CLAUDE.md` (Pix, "Menu Financeiro no Portal dos Pais", Portal da Família).
+
+### Sex 27/11: story "Sem Black Friday" (Black Friday 2026)
+
+- **Arquivo:** `png/20261127-story-black-friday.png` (1080×1920; modelo `story-black-friday.html`)
+- **Quando:** sexta de manhã, antes do post do celular
+- **Link:** adicionar a figurinha de link para `gestortatico.com.br` (a faixa da oferta do site já aplica o cupom nos botões)
+- **Antes de postar:** abrir https://gestortatico.com.br/api/assinaturas/cupom/BEMVINDO25 e conferir `"restantes"` maior que 0. Em 25/11/2026: 25% nas 3 primeiras mensalidades, 9 vagas.
+
+**O que o story afirma → onde está a prova**
+- 25% nas 3 primeiras mensalidades, vagas limitadas → cupom `BEMVINDO25` em produção (consulta pública acima; `CLAUDE.md`, "Cupons de desconto").
+- 7 dias grátis → `Assinatura:DiasTeste` = 7 (`site/precos.js`).
+- Não é desconto de Black Friday de propósito: é a oferta que já existia, sem prazo, só limitada pelas vagas.
+
+---
+
+## Sem data: post único, pergunta ao público (formato leve)
+
+Saiu da sex 27/11 para dar lugar ao post do celular. Usar numa semana com menos posts.
 
 - **Formato:** post único (imagem) + enquete/caixinha nos stories, se der
 - **Arquivo:** `png/20261127-pergunta-1.png`
