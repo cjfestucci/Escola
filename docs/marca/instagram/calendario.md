@@ -25,7 +25,7 @@ Desde 25/11/2026 os slides que mostram um recurso levam um print real do app num
 | ~~Seg 23/11~~ | **Carrossel** | Contas a pagar, a receber e balanço do mês: **publicado** (rascunho em `semanas/2026-11-23/rascunhos.md`, arte `png/20261123-contas-*.png`) |
 | ~~Qua 25/11~~ | **Carrossel** | Matrícula completa do atleta: **publicado** (arte `png/20261125-matricula-*.png`, a primeira com prints reais do app num celular) |
 | ~~Qui 26/11~~ | Post único | Estoque, com pergunta nos comentários: **publicado** (arte `png/20261120-estoque-1.png`, com print do app), remarcado da sex 20/11 |
-| Sex 27/11 | Post único | A escolinha na palma da mão: gestão pelo celular, com print real da Chamada (arte `png/20261127-celular-1.png`, modelo `post-celular.html`). Substituiu a pergunta ao público, que ficou sem data (`png/20261127-pergunta-1.png`). **+ story "Sem Black Friday"** com o cupom BEMVINDO25 (`png/20261127-story-black-friday.png`, modelo `story-black-friday.html`) |
+| ~~Sex 27/11~~ | Post único | A escolinha na palma da mão: **publicado**; gestão pelo celular, com print real da Chamada (arte `png/20261127-celular-1.png`, modelo `post-celular.html`). Substituiu a pergunta ao público, que ficou sem data (`png/20261127-pergunta-1.png`). **+ story "Sem Black Friday": publicado** com o cupom BEMVINDO25 (`png/20261127-story-black-friday.png`, modelo `story-black-friday.html`) |
 
 ## Sex 23/10: apresentação (publicado)
 
